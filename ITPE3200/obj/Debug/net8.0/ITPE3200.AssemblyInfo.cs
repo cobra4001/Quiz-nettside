@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("ITPE3200")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+d8c02446df900cd8e2c1ec8e3bb307f8b53b86d0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+168792ca0f0b23b6a8ccb522653c8cde295dd704")]
 [assembly: System.Reflection.AssemblyProductAttribute("ITPE3200")]
 [assembly: System.Reflection.AssemblyTitleAttribute("ITPE3200")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

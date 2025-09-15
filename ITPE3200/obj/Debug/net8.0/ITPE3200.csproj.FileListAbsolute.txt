@@ -10,6 +10,8 @@ C:\Users\jacob\OneDrive\OsloMet\3og5 Semester\WebApp\Exam\ITPE3200Exam\ITPE3200\
 C:\Users\jacob\OneDrive\OsloMet\3og5 Semester\WebApp\Exam\ITPE3200Exam\ITPE3200\obj\Debug\net8.0\ITPE3200.AssemblyInfo.cs
 C:\Users\jacob\OneDrive\OsloMet\3og5 Semester\WebApp\Exam\ITPE3200Exam\ITPE3200\obj\Debug\net8.0\ITPE3200.csproj.CoreCompileInputs.cache
 C:\Users\jacob\OneDrive\OsloMet\3og5 Semester\WebApp\Exam\ITPE3200Exam\ITPE3200\obj\Debug\net8.0\ITPE3200.MvcApplicationPartsAssemblyInfo.cache
+C:\Users\jacob\OneDrive\OsloMet\3og5 Semester\WebApp\Exam\ITPE3200Exam\ITPE3200\obj\Debug\net8.0\ITPE3200.RazorAssemblyInfo.cache
+C:\Users\jacob\OneDrive\OsloMet\3og5 Semester\WebApp\Exam\ITPE3200Exam\ITPE3200\obj\Debug\net8.0\ITPE3200.RazorAssemblyInfo.cs
 C:\Users\jacob\OneDrive\OsloMet\3og5 Semester\WebApp\Exam\ITPE3200Exam\ITPE3200\obj\Debug\net8.0\ITPE3200.sourcelink.json
 C:\Users\jacob\OneDrive\OsloMet\3og5 Semester\WebApp\Exam\ITPE3200Exam\ITPE3200\obj\Debug\net8.0\staticwebassets.build.json
 C:\Users\jacob\OneDrive\OsloMet\3og5 Semester\WebApp\Exam\ITPE3200Exam\ITPE3200\obj\Debug\net8.0\staticwebassets.development.json
