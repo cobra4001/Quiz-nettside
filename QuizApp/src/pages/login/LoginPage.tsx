@@ -1,0 +1,73 @@
+import React, { useState } from "react";
+import { Form, Button, Card, Alert, Container } from "react-bootstrap";
+import { useNavigate } from "react-router-dom";
+
+
+
+const LoginPage: React.FC = () => {
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const navigate = useNavigate();
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!username || !password) {
+      setError("Please enter both username and password.");
+      return;
+    }
+    setError(null);
+    navigate("/HomePage");
+  };
+
+  const handleCreateUser = () => {
+    navigate("/CreateUser");
+  };
+
+  return (
+    <Container className="d-flex align-items-center justify-content-center min-vh-100">
+      <Card style={{ minWidth: "350px" }} className="shadow">
+        <Card.Body>
+          <h2 className="mb-4 text-center">Login</h2>
+          {error && <Alert variant="danger">{error}</Alert>}
+          <Form onSubmit={handleSubmit}>
+            <Form.Group className="mb-3" controlId="formUsername">
+              <Form.Label>Username</Form.Label>
+              <Form.Control
+                type="text"
+                placeholder="Enter username"
+                value={username}
+                onChange={e => setUsername(e.target.value)}
+                autoComplete="username"
+              />
+            </Form.Group>
+            <Form.Group className="mb-4" controlId="formPassword">
+              <Form.Label>Password</Form.Label>
+              <Form.Control
+                type="password"
+                placeholder="Password"
+                value={password}
+                onChange={e => setPassword(e.target.value)}
+                autoComplete="current-password"
+              />
+            </Form.Group>
+            <Button variant="primary" type="submit" className="w-100 mb-2">
+              Login
+            </Button>
+            <Button
+              variant="secondary"
+              type="button"
+              className="w-100"
+              onClick={handleCreateUser}
+            >
+              Create User
+            </Button>
+          </Form>
+        </Card.Body>
+      </Card>
+    </Container>
+  );
+};
+
+
+export default LoginPage;

@@ -1,22 +1,31 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
-import './App.css'
-import Container from 'react-bootstrap/Container'
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
+import React, {} from 'react'
+import { Container } from 'react-bootstrap'
 import NavBar from './shared/NavBar'
-import HomePage from './home/Homepage'
-import QuizCreationPage from './quiz/QuizCreatePage'
+import HomePage from './pages/home/HomePage'
+import QuizCreationPage from './pages/quiz/QuizCreatePage'
+import LoginPage from './pages/login/LoginPage'
+import QuizTakingPage from './pages/quiz/QuizTakingPage'
+import UserCreationPage from './pages/user/UserCreationPage'
+import './App.css'
 
-function App() {
+const App: React.FC = () => {
+
   return (
-    <Router>
-      <NavBar />
-      <Container>
-        <Routes>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/quizcreate" element={<Navigate to="/QuizCreatePage" replace />} />
-          <Route path="/QuizCreatePage" element={<QuizCreationPage />} />
-        </Routes>
-      </Container>
+    <>
+    <NavBar />
+      <Router>
+        <Container>
+          <Routes>
+            <Route path="/LoginPage" element={<LoginPage />} />
+            <Route path="/HomePage" element={<HomePage />} />
+            <Route path="/QuizTakingPage" element={<QuizTakingPage />} />
+            <Route path="/quizcreate" element={<QuizCreationPage />} />
+            <Route path="/CreateUser" element={<UserCreationPage />} />
+          </Routes>
+        </Container>
     </Router>
+    </>
   )
 }
 
