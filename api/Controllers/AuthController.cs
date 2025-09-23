@@ -18,24 +18,27 @@ namespace api.Controllers
         private readonly SignInManager<AuthUser> _signInManager;
         private readonly IConfiguration _configuration;
         private readonly ILogger<AuthController> _logger;
+        private readonly AuthUserDbContext _context;
 
-        public AuthController(UserManager<AuthUser> userManager, SignInManager<AuthUser> signInManager, IConfiguration configuration, ILogger<AuthController> logger)
+        public AuthController(UserManager<AuthUser> userManager,
+        SignInManager<AuthUser> signInManager,
+        IConfiguration configuration,
+        ILogger<AuthController> logger,
+        AuthUserDbContext context)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _configuration = configuration;
             _logger = logger;
+            _context = context;
         }
 
         [HttpPost("register")]
-        public async Task<IActionResult> Register([FromBody] RegisterDto registerDto)
+        public async Task<IActionResult> Register([FromBody] RegisterDTO registerDto)
         {
             var user = new AuthUser
             {
-                UserName = registerDto.Username,
-                Email = registerDto.Email,
-                // FirstName = registerDto.FirstName,
-                // LastName = registerDto.LastName
+                UserName = registerDto.Username
             };
 
             var result = await _userManager.CreateAsync(user, registerDto.Password);
@@ -51,7 +54,7 @@ namespace api.Controllers
         }
 
         [HttpPost("login")]
-        public async Task<IActionResult> Login([FromBody] LoginDto loginDto)
+        public async Task<IActionResult> Login([FromBody] LoginDTO loginDto)
         {
             var user = await _userManager.FindByNameAsync(loginDto.Username);
 

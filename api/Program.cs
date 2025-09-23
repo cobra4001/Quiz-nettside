@@ -1,3 +1,12 @@
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
+using Microsoft.AspNetCore.Identity;
+using System.IdentityModel.Tokens.Jwt;
+using Microsoft.OpenApi.Models;
+using api.Models;
+using Microsoft.EntityFrameworkCore.Sqlite;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
