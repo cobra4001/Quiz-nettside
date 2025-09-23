@@ -11,7 +11,6 @@ const NavBar: React.FC = () => {
         <Navbar.Collapse id="basic-navbar-nav">
             <Nav.Link href="/quizcreate">Create</Nav.Link>
             <Nav.Link href="/QuizTakingPage">Take</Nav.Link>
-            <Nav.Link href="#">Grade</Nav.Link>
             <Nav.Link href="/LoginPage">Login</Nav.Link>
         </Navbar.Collapse>
       </Nav>
