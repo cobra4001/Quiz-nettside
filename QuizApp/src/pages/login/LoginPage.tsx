@@ -16,6 +16,12 @@ const LoginPage: React.FC = () => {
       setError("Please enter both username and password.");
       return;
     }
+
+     if (password.length < 8) {
+      setError("Please write a password with at least 8 characters.");
+      return;
+    }
+
     setError(null);
     navigate("/HomePage");
   };
