@@ -4,7 +4,7 @@ using api.Models;
 
 namespace api.Models
 {
-    public class AuthUserDbContext : IdentityDbContext
+    public class AuthUserDbContext : IdentityDbContext<AuthUser>
     {
          public AuthUserDbContext(DbContextOptions<AuthUserDbContext> options) : base(options)
          { }

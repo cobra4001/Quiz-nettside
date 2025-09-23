@@ -36,11 +36,10 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("CorsPolicy", builder =>
     {
-        builder.WithOrigins("http://localhost:5174")
+        builder
             .AllowAnyOrigin()
             .AllowAnyHeader()
-            .AllowAnyMethod()
-            .AllowCredentials();
+            .AllowAnyMethod();
     });
 });
 

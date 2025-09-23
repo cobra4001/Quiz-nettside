@@ -93,7 +93,7 @@ namespace api.Controllers
             var claims = new[]
             {
                 new Claim(JwtRegisteredClaimNames.Sub, user.UserName!), // Subject of the token
-                new Claim(JwtRegisteredClaimNames.Email, user.Email!), // User's email
+                //new Claim(JwtRegisteredClaimNames.Email, user.Email!), // User's email
                 new Claim(ClaimTypes.NameIdentifier, user.Id), // Unique identifier for the user
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()), // Unique identifier for the token
                 new Claim(JwtRegisteredClaimNames.Iat, DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString()) // Issued at timestamp
