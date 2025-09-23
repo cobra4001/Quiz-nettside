@@ -21,7 +21,7 @@ const QuizCreationPage: React.FC = () => {
     const [questions, setQuestions] = useState<IQuestion[]>([
         // Start with one blank question to get the user started
         { 
-            id: 1, 
+            id: 1,
             questionText: '', 
             points: 10, 
             answerOptions: [
@@ -85,7 +85,7 @@ const QuizCreationPage: React.FC = () => {
                                 type="text" 
                                 className="form-control form-control-lg" 
                                 id="quizTitle" 
-                                placeholder="e.g., General Knowledge Quiz" 
+                                placeholder="Write the name of your quiz here" 
                                 value={quizTitle}
                                 onChange={(e) => setQuizTitle(e.target.value)}
                             />
@@ -112,7 +112,7 @@ const QuizCreationPage: React.FC = () => {
                                         </div>
                                         {/* Points Input */}
                                         <div className="mb-3">
-                                            <label htmlFor={`points-${question.id}`} className="form-label">Points</label>
+                                            <label htmlFor={`points-${question.id}`} className="form-label">Points</label>                                    
                                             <input 
                                                 type="number" 
                                                 className="form-control w-25" 
@@ -120,20 +120,21 @@ const QuizCreationPage: React.FC = () => {
                                                 defaultValue={10} 
                                                 min={1} 
                                                 // You would add an onChange handler here to update state
-                                            />
+                                            />                                            
                                         </div>
                                         <h6 className="mt-4 mb-2">Answer Options</h6>
                                         {/* Dynamic Answer Options */}
                                         {question.answerOptions.map(option => (
                                             <div key={option.id} className="input-group mb-2">
                                                 <div className="input-group-text">
-                                                    <input 
+                                                    <input
                                                         className="form-check-input mt-0" 
                                                         type="radio" 
                                                         name={`correct-answer-${question.id}`} 
                                                         value={option.id}
                                                         // You would add an onChange handler here to update the correct answer
                                                     />
+                                                     <label htmlFor={`correct-answer-${question.id}-${option.id}`} className="ms-2">Correct</label>
                                                 </div>
                                                 <input 
                                                     type="text" 

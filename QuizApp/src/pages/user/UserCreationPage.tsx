@@ -17,6 +17,10 @@ const UserCreationPage: React.FC = () => {
       setError("Please fill in all fields.");
       return;
     }
+    if (password.length < 8) {
+      setError("Please create a password with at least 8 characters.");
+      return;
+    }
     if (password !== confirmPassword) {
       setError("Passwords do not match.");
       return;
