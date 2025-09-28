@@ -78,7 +78,7 @@ const QuizTakingPage: React.FC = () => {
     };
 
     return (
-        <div className="d-flex justify-content-center align-items-center min-vh-100 bg-light">
+        <div className="d-flex justify-content-center align-items-center min-vh-100">
             <div className="card shadow-lg p-4" style={{ maxWidth: "700px", width: "100%" }}>
                 <h1 className="text-center fw-bold mb-4"> Quiz Taker</h1> {/* This should get the Title of the quiz */}
 
