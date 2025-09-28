@@ -1,7 +1,8 @@
 export interface IQuiz {
+    id: number;
     title: string;
     questions: IQuestion[];
-    anwserOptions: IAnswerOption[];
+    description: string;
 }
 
 export interface IAnswerOption {

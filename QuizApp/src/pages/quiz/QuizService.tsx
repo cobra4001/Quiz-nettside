@@ -20,6 +20,11 @@ export const fetchQuizzes = async () => {
     return handleResponse(response);
 };
 
+export const fetchQuizById = async (id: number) => {
+    const response = await fetch(`${API_URL}/api/quizapi/${id}`);
+    return handleResponse(response);
+}
+
 export const createQuiz = async (quiz: any) => {
     const response = await fetch(`${API_URL}/api/quizapi/create`, {
         method: 'POST',

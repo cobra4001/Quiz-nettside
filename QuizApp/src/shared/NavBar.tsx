@@ -10,6 +10,7 @@ const NavBar: React.FC = () => {
         <Navbar.Toggle aria-controls="basic-navbar-nav" />
         <Navbar.Collapse id="basic-navbar-nav">
             <Nav.Link href="/quizcreate">Create</Nav.Link>
+            <Nav.Link href="/QuizList">List</Nav.Link>
             <Nav.Link href="/QuizTakingPage">Take</Nav.Link>
             <Nav.Link href="/LoginPage">Login</Nav.Link>
         </Navbar.Collapse>
