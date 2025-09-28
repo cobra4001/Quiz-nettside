@@ -1,18 +1,28 @@
 import React from 'react';
-import type { IQuiz } from '../../types/quiz';
+import type { IQuiz, QuizListProps } from '../../types/quiz';
 import { AllQuizzes } from './QuizData'; 
+import { useNavigate } from 'react-router-dom';
+
+
 
 /**
  * QuizList-komponenten viser en dynamisk liste over alle tilgjengelige quizzer.
  * Den bruker Bootstrap 5 for et responsivt og tiltalende design.
  */
-const QuizList: React.FC = () => {
+const QuizList: React.FC<QuizListProps> = () => {
     // Bruker mock-data fra AllQuizzes
     const quizzes: IQuiz[] = AllQuizzes;
+    const navigate = useNavigate();
+
+     const navigateOnclick = async (quizId: number) => {
+        await fetch(`/QuizTakingPage/${quizId}`);
+        
+        navigate(`/QuizTakingPage/${quizId}`);
+    };
 
     return (
         // Bootstrap: Sentrerer innholdet vertikalt og horisontalt
-        <div className="d-flex justify-content-center min-vh-100 bg-light p-3">
+        <div className="d-flex justify-content-center min-vh-100 p-3">
             <div className="container py-5" style={{ maxWidth: "800px" }}>
                 <h1 className="text-center fw-bold text-primary mb-5 display-4">
                     Tilgjengelige Quizzer
@@ -29,8 +39,7 @@ const QuizList: React.FC = () => {
                             <div className="col" key={quiz.id}>
                                 <div 
                                     className="card shadow-sm h-100 border-0 p-3 p-md-4 bg-white hover-zoom" 
-                                    // Simulerer klikkbarhet (i en ekte app ville dette vært en lenke)
-                                    onClick={() => console.log(`Starter Quiz ID: ${quiz.id}`)}
+                                    onClick={() => {navigateOnclick(quiz.id); }}
                                     style={{ 
                                         cursor: 'pointer', 
                                         transition: 'transform 0.2s ease, box-shadow 0.2s ease', 
@@ -53,7 +62,10 @@ const QuizList: React.FC = () => {
                                     </div>
                                     
                                     <div className="mt-3">
-                                        <button className="btn btn-sm btn-primary fw-bold rounded-pill px-4">
+                                        <button 
+                                            onClick={() => navigateOnclick(quiz.id)} // Hindrer kortets onClick
+                                            className="btn btn-sm btn-primary fw-bold rounded-pill px-4"
+                                        >
                                             Start Quiz
                                         </button>
                                     </div>
@@ -67,7 +79,7 @@ const QuizList: React.FC = () => {
                 <style>{`
                     .hover-zoom:hover {
                         transform: translateY(-5px);
-                        box-shadow: 0 0.5rem 1rem rgba(0,0,0,.15)!important; /* Mindre skygge */
+                        box-shadow: 0 0.5rem 1rem rgba(0,0,0,.15)!important; 
                     }
                     .hover-zoom {
                          transform: translateY(0);

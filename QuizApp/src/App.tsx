@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
+import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom'
 import React, {} from 'react'
 import { Container } from 'react-bootstrap'
 import NavBar from './shared/NavBar'
@@ -12,6 +12,8 @@ import './App.css'
 
 const App: React.FC = () => {
 
+   
+
   return (
     <>
     <NavBar />
@@ -21,7 +23,7 @@ const App: React.FC = () => {
             <Route path="/LoginPage" element={<LoginPage />} />
             <Route path="/HomePage" element={<HomePage />} />
             <Route path="/QuizList" element={<QuizList />} />
-            <Route path="/QuizTakingPage" element={<QuizTakingPage />} />
+            <Route path="/QuizTakingPage/:quizId" element={<QuizTakingPage />}  />
             <Route path="/quizcreate" element={<QuizCreationPage />} />
             <Route path="/CreateUser" element={<UserCreationPage />} />
           </Routes>

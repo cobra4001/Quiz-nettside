@@ -1,167 +1,171 @@
-import React, { useState } from "react";
-import type { IQuiz, IQuestion } from '../../types/quiz';
-import { QuizTestData } from "./QuizData";
+import React, { useState, useEffect } from "react";
+import type { IQuiz, IQuestion, QuizTakerProps } from '../../types/quiz';
+import { getQuizById} from './QuizData';
 import "bootstrap/dist/css/bootstrap.min.css";
+import { Card, Button, ProgressBar, Alert } from 'react-bootstrap';
+import { useParams, useNavigate } from 'react-router-dom';
+/**
+ * QuizTaker-komponenten viser spørsmålene for en valgt quiz og håndterer spilllogikken.
+ */
+const QuizTaker: React.FC<QuizTakerProps> = () => {
+   const { quizId } = useParams<{ quizId: string }>();
+    const navigate = useNavigate();
+
+    const [currentQuiz, setCurrentQuiz] = useState<IQuiz | undefined>(undefined);
+    const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+    const [userAnswers, setUserAnswers] = useState<{ [key: number]: number }>({}); // {questionId: selectedOptionId}
+    const [showResults, setShowResults] = useState(false);
+
+    // Laster quiz-data ved oppstart basert på URL-parameter
+    useEffect(() => {
+        if (quizId) {
+            const id = parseInt(quizId, 10);
+            const quizData = getQuizById(id);
+            setCurrentQuiz(quizData);
+        }
+    }, [quizId]);
+
+    // Håndterer feil hvis quiz ikke finnes
+    if (!currentQuiz) {
+        return (
+            <Alert variant="danger" className="mt-5 text-center">
+                <Alert.Heading>Oops! Quiz ikke funnet.</Alert.Heading>
+                <p>Kunne ikke laste quiz med ID: {quizId}.</p>
+                <Button variant="danger" onClick={() => navigate('/QuizList')}>Tilbake til listen</Button>
+            </Alert>
+        );
+    }
+
+    const totalQuestions = currentQuiz.questions.length;
+    const currentQuestion: IQuestion = currentQuiz.questions[currentQuestionIndex];
 
 
-const QuizTaker: React.FC = () => {
-    // Bruker InitialQuizData til å sette opp quiz-tilstanden
-    const [quizData] = useState<IQuiz>(QuizTestData);
-    const questions: IQuestion[] = quizData.questions;
-
-    // Tilstand for quiz-progresjon
-    const [currentQuestionIndex, setCurrentQuestionIndex] = useState<number>(0);
-    const [score, setScore] = useState<number>(0);
-    const [showResult, setShowResult] = useState<boolean>(false);
-
-    // Tilstand for det valgte svaret på gjeldende spørsmål
-    const [selectedAnswerId, setSelectedAnswerId] = useState<number | null>(null);
-
-    /**
-     * Setter det valgte svaret når brukeren klikker på et alternativ.
-     * @param optionId ID-en til det valgte svaralternativet.
-     */
-    const handleAnswerOptionClick = (optionId: number) => {
-        setSelectedAnswerId(optionId);
+    const handleAnswerSelect = (optionId: number) => {
+        setUserAnswers({
+            ...userAnswers,
+            [currentQuestion.id]: optionId,
+        });
     };
 
-    /**
-     * Behandler innsending av svar: sjekker korrekthet, oppdaterer poengsum
-     * og navigerer til neste spørsmål eller resultatskjermen.
-     */
-    const handleSubmit = () => {
-        if (selectedAnswerId === null) return;
-
-        const currentQuestion = questions[currentQuestionIndex];
-        const selectedOption = currentQuestion.answerOptions.find(opt => opt.id === selectedAnswerId);
-
-        // Sjekker om svaret er korrekt og legger til poeng
-        if (selectedOption && selectedOption.isCorrect) {
-            setScore(prevScore => prevScore + currentQuestion.points);
-        }
-
-        const nextQuestionIndex = currentQuestionIndex + 1;
-
-        if (nextQuestionIndex < questions.length) {
-            // Gå til neste spørsmål
-            setCurrentQuestionIndex(nextQuestionIndex);
-            setSelectedAnswerId(null); // Tilbakestill valgt svar
+    const handleNext = () => {
+        if (currentQuestionIndex < totalQuestions - 1) {
+            setCurrentQuestionIndex(currentQuestionIndex + 1);
         } else {
-            // Quizen er fullført
-            setShowResult(true);
+            setShowResults(true);
         }
     };
 
-    /**
-     * Tilbakestiller alle tilstander for å starte quizen på nytt.
-     */
-    const handleRestartQuiz = () => {
-        setCurrentQuestionIndex(0);
-        setScore(0);
-        setShowResult(false);
-        setSelectedAnswerId(null);
+    const handlePrevious = () => {
+        if (currentQuestionIndex > 0) {
+            setCurrentQuestionIndex(currentQuestionIndex - 1);
+        }
     };
 
-    // Beregner totalt antall poeng
-    const totalPoints = questions.reduce((total, q) => total + q.points, 0);
-    // Beregner fremdriftslinjens bredde
-    const progressWidth = ((currentQuestionIndex + 1) / questions.length) * 100;
-    
-    // Sikrer at vi ikke prøver å aksessére et spørsmål som ikke eksisterer (kun relevant ved initialisering)
-    const currentQuestion = questions[currentQuestionIndex];
-    
-    return (
-         <div className="d-flex justify-content-center align-items-center min-vh-100 p-3">
-            {/* Bootstrap: card for innholdsboksen, shadow-lg for skygge, p-5 for polstring, max-width for responsiv begrensning */}
-            <div className="card shadow-lg p-4 p-md-5 w-100" style={{ maxWidth: "550px", borderRadius: "1rem" }}>
-                <h1 className="text-center fw-bold fs-3 text-dark mb-5">
-                    {quizData.title}
-                </h1>
+    const calculateScore = () => {
+        let score = 0;
+        currentQuiz.questions.forEach(question => {
+            if (userAnswers[question.id] === question.correctOptionId) {
+                score += question.points;
+            }
+        });
+        return score;
+    };
 
-                {!showResult && currentQuestion ? (
-                    <>
-                        {/* Fremdriftslinje (Progress Bar) */}
-                        <div className="progress mb-4" style={{ height: "10px" }}>
-                            <div
-                                className="progress-bar bg-success"
-                                role="progressbar"
-                                style={{ width: `${progressWidth}%` }}
-                                aria-valuenow={progressWidth}
-                                aria-valuemin={0}
-                                aria-valuemax={100}
-                            ></div>
-                        </div>
+    const calculateTotalPoints = () => {
+        return currentQuiz.questions.reduce((sum, q) => sum + q.points, 0);
+    };
 
-                        {/* Spørsmålsnummer og Poeng */}
-                        <div className="d-flex justify-content-between text-muted small mb-4">
-                            <span>
-                                Spørsmål {currentQuestionIndex + 1} av {questions.length}
-                            </span>
-                            <span className="fw-semibold text-dark">Poeng: {currentQuestion.points}</span>
-                        </div>
+    const progress = ((currentQuestionIndex + 1) / totalQuestions) * 100;
 
-                        {/* Spørsmålstekst */}
-                        <h4 className="fs-5 fw-semibold mb-4 text-dark">
-                            {currentQuestion.questionText}
-                        </h4>
-
-                        {/* Svaralternativer (Row for grid) */}
-                        <div className="row g-3">
-                            {currentQuestion.answerOptions.map((option) => (
-                                // Bruker col-12 for full bredde på mobil, og col-md-6 på større skjermer
-                                <div className="col-12 col-md-6" key={option.id}>
-                                    <button
-                                        onClick={() => handleAnswerOptionClick(option.id)}
-                                        className={`btn w-100 py-3 shadow-sm rounded-3 fw-medium transition ${
-                                            selectedAnswerId === option.id
-                                                ? "btn-primary active"
-                                                : "btn-outline-secondary"
-                                            }`}
-                                        style={{ transition: "all 0.2s" }}
-                                    >
-                                        {option.text}
-                                    </button>
-                                </div>
-                            ))}
-                        </div>
-
-                        {/* Innsendingsknapp */}
-                        <div className="text-center mt-5">
-                            <button
-                                onClick={handleSubmit}
-                                disabled={selectedAnswerId === null}
-                                className={`btn btn-lg px-5 fw-bold rounded-pill transition ${
-                                    selectedAnswerId === null
-                                        ? "btn-secondary disabled"
-                                        : "btn-success shadow-success"
-                                }`}
-                            >
-                                Send svar
-                            </button>
-                        </div>
-                    </>
-                ) : (
-                    /* Resultatvisning */
-                    <div className="text-center p-4">
-                        <h2 className="fw-bold text-success display-5 mb-3">Quiz Fullført!</h2>
-                        <p className="fs-5 text-secondary mb-4">
-                            Du fikk <span className="fw-bolder text-success">{score}</span> ut av totalt <span className="fw-bolder">{totalPoints}</span> poeng.
-                        </p>
-                        <button
-                            onClick={handleRestartQuiz}
-                            className="btn btn-primary btn-lg px-5 fw-bold rounded-pill shadow-primary"
-                        >
-                            Take the quiz again
-                        </button>
-                        <button 
-                            className="btn btn-secondary btn-lg px-5 fw-bold rounded-pill shadow-secondary mt-3"
-                            onClick={() => window.location.href = '/homepage'} // Ændre til QUIZ LIST PAGE NÅR DEN ER KLAR
-                            >
-                            go to Quiz List
-                        </button>
-                    </div>
-                )}
+    const renderQuestion = () => (
+        <>
+            <ProgressBar 
+                now={progress} 
+                label={`${currentQuestionIndex + 1} av ${totalQuestions}`} 
+                className="mb-4"
+                variant="info"
+            />
+            <Card.Title className="h5 mb-4">{currentQuestion.questionText}</Card.Title>
+            
+            <div className="d-grid gap-3">
+                {currentQuestion.answerOptions.map(option => (
+                    <Button
+                        key={option.id}
+                        variant={userAnswers[currentQuestion.id] === option.id ? 'primary' : 'outline-primary'}
+                        size="lg"
+                        onClick={() => handleAnswerSelect(option.id)}
+                        className="text-start"
+                    >
+                        {option.text}
+                    </Button>
+                ))}
             </div>
+
+            <div className="d-flex justify-content-between mt-4">
+                <Button 
+                    variant="secondary" 
+                    onClick={handlePrevious} 
+                    disabled={currentQuestionIndex === 0}
+                >
+                    <i className="bi bi-arrow-left me-2"></i> Forrige
+                </Button>
+                <Button 
+                    variant="success" 
+                    onClick={handleNext}
+                    disabled={userAnswers[currentQuestion.id] === undefined} // Krever svar før neste
+                >
+                    {currentQuestionIndex === totalQuestions - 1 ? 'Fullfør Quiz' : 'Neste Spørsmål'}
+                    <i className="bi bi-arrow-right ms-2"></i>
+                </Button>
+            </div>
+        </>
+    );
+
+    const renderResults = () => {
+        const finalScore = calculateScore();
+        const totalPoints = calculateTotalPoints();
+        const scorePercentage = (finalScore / totalPoints) * 100;
+
+        return (
+            <div className="text-center p-4">
+                <h2 className="display-4 text-success mb-4">Quiz Fullført!</h2>
+                <Alert variant={scorePercentage >= 50 ? 'success' : 'warning'}>
+                    <p className="lead mb-1">Din score:</p>
+                    <h3 className="fw-bold">{finalScore} av {totalPoints} poeng</h3>
+                    <p className="h5">({scorePercentage.toFixed(1)}%)</p>
+                </Alert>
+                <Button 
+                    variant="primary" 
+                    className="mt-3 me-2"
+                    onClick={() => {
+                        setCurrentQuestionIndex(0);
+                        setUserAnswers({});
+                        setShowResults(false);
+                    }}
+                >
+                    Ta Quizen Igjen
+                </Button>
+                <Button 
+                    variant="secondary" 
+                    className="mt-3"
+                    onClick={() => navigate('/QuizList')} // Går tilbake til listen
+                >
+                    <i className="bi bi-list-task me-2"></i> Tilbake til Quiz-listen
+                </Button>
+            </div>
+        );
+    };
+
+    return (
+        <div className="py-5">
+            <Card className="shadow-lg mx-auto" style={{ maxWidth: '700px' }}>
+                <Card.Header className="bg-primary text-white text-center">
+                    <h2 className="mb-0">{currentQuiz.title}</h2>
+                </Card.Header>
+                <Card.Body>
+                    {showResults ? renderResults() : renderQuestion()}
+                </Card.Body>
+            </Card>
         </div>
     );
 };
