@@ -13,8 +13,20 @@ const UserCreationPage: React.FC = () => {
     setError(null);
     setSuccess(null);
 
+     if (username.length < 3) {
+      setError("Please write a username with at least 3 characters.");
+      return;
+    }
+     if (username.length > 20) {
+      setError("Please write a username shorter than 20 characters.");
+      return;
+    }
     if (!username || !password || !confirmPassword) {
       setError("Please fill in all fields.");
+      return;
+    }
+    if (password.length < 8) {
+      setError("Please create a password with at least 8 characters.");
       return;
     }
     if (password !== confirmPassword) {

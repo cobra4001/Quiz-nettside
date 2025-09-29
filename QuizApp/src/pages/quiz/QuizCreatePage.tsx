@@ -1,5 +1,17 @@
+//vurder at lage en fil QuizCreateForm.tsx for selve formen
+
+
 import React, { useState } from "react";
-// Define the shape of our data with TypeScript interfaces
+import * as QuizService from './QuizService';
+//import {IQuiz, IAnswerOption, IQuestion from '../../types/quiz';
+
+// interfaces kan bli importeret: ../../types/quiz'
+interface IQuiz {
+    title: string;
+    questions: IQuestion[];
+    anwserOptions: IAnswerOption[];
+}
+
 interface IAnswerOption {
     id: number;
     text: string;
@@ -21,7 +33,7 @@ const QuizCreationPage: React.FC = () => {
     const [questions, setQuestions] = useState<IQuestion[]>([
         // Start with one blank question to get the user started
         { 
-            id: 1, 
+            id: 1,
             questionText: '', 
             points: 10, 
             answerOptions: [
@@ -32,7 +44,7 @@ const QuizCreationPage: React.FC = () => {
     ]);
 
     // Function to add a new, blank question to the state
-    const handleAddQuestion = () => {
+    const handleAddQuestion = async() => {
         const newQuestion: IQuestion = {
             id: questions.length + 1,
             questionText: '',
@@ -65,8 +77,23 @@ const QuizCreationPage: React.FC = () => {
         setQuestions(newQuestions);
     };
 
+    const handlesubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        const newQuiz: IQuiz = {
+            title: quizTitle,
+            questions: questions,
+            anwserOptions: questions.flatMap(q => q.answerOptions),
+        };
+        try {
+            const createdQuiz = await QuizService.createQuiz(newQuiz);
+            console.log('Quiz created successfully:', createdQuiz);
+            // Optionally reset the form or navigate away
+        } catch (error) {
+            console.error('Error creating quiz:', error);
+        }
+    }
     return (
-        // Main container with centered layout and light background
+       
         <div className="container my-5">
             <div className="card shadow-lg border-0 rounded-4">
                 <div className="card-body p-5">
@@ -77,7 +104,7 @@ const QuizCreationPage: React.FC = () => {
                         Build your own quiz by adding questions and their correct answers.
                     </p>
 
-                    <form>
+                    <form onSubmit={handlesubmit}>
                         {/* Quiz Title Input */}
                         <div className="mb-4">
                             <label htmlFor="quizTitle" className="form-label fw-bold">Quiz Title</label>
@@ -85,7 +112,7 @@ const QuizCreationPage: React.FC = () => {
                                 type="text" 
                                 className="form-control form-control-lg" 
                                 id="quizTitle" 
-                                placeholder="e.g., General Knowledge Quiz" 
+                                placeholder="Write the name of your quiz here" 
                                 value={quizTitle}
                                 onChange={(e) => setQuizTitle(e.target.value)}
                             />
@@ -112,7 +139,7 @@ const QuizCreationPage: React.FC = () => {
                                         </div>
                                         {/* Points Input */}
                                         <div className="mb-3">
-                                            <label htmlFor={`points-${question.id}`} className="form-label">Points</label>
+                                            <label htmlFor={`points-${question.id}`} className="form-label">Points</label>                                    
                                             <input 
                                                 type="number" 
                                                 className="form-control w-25" 
@@ -120,20 +147,21 @@ const QuizCreationPage: React.FC = () => {
                                                 defaultValue={10} 
                                                 min={1} 
                                                 // You would add an onChange handler here to update state
-                                            />
+                                            />                                            
                                         </div>
                                         <h6 className="mt-4 mb-2">Answer Options</h6>
                                         {/* Dynamic Answer Options */}
                                         {question.answerOptions.map(option => (
                                             <div key={option.id} className="input-group mb-2">
                                                 <div className="input-group-text">
-                                                    <input 
+                                                    <input
                                                         className="form-check-input mt-0" 
                                                         type="radio" 
                                                         name={`correct-answer-${question.id}`} 
                                                         value={option.id}
                                                         // You would add an onChange handler here to update the correct answer
                                                     />
+                                                     <label htmlFor={`correct-answer-${question.id}-${option.id}`} className="ms-2">Correct</label>
                                                 </div>
                                                 <input 
                                                     type="text" 
