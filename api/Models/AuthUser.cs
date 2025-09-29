@@ -1,10 +1,11 @@
 using Microsoft.AspNetCore.Identity;
 
-namespace ITPE.Models
+namespace api.Models
 {
     public class AuthUser : IdentityUser
     {
-       
+        
     }
 }
+
 
