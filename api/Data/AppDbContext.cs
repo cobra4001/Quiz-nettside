@@ -4,5 +4,8 @@ using api.Models;
 
 namespace api.Data
 {
-    public class AppDbContext : IdentityDb
+    public class AppDbContext : DbContext
+    {
+        
+    }
 }
