@@ -1,4 +1,3 @@
-import { AuthProvider } from './auth/AuthContext'
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom'
 import React, {} from 'react'
 import { Container } from 'react-bootstrap'
@@ -13,10 +12,9 @@ import './App.css'
 
 const App: React.FC = () => {
 
-   
 
   return (
-    <AuthProvider>
+    <>
       <NavBar />
         <Router>
           <Container>
@@ -30,7 +28,7 @@ const App: React.FC = () => {
             </Routes>
           </Container>
       </Router>
-    </AuthProvider>
+    </>
   )
 }
 

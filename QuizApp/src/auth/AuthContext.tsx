@@ -1,13 +1,14 @@
 import React, { createContext, useState, useContext, useEffect, type ReactNode } from 'react';
 import { jwtDecode } from 'jwt-decode';
 import type { User } from '../types/user';
-import type { LoginDto } from '../types/auth';
+import type { LoginDto, RegisterDto } from '../types/auth';
 import * as authService from './AuthService';
 
 interface AuthContextType { // Define the shape of the auth context
     user: User | null;
     token: string | null;
     login: (credentials: LoginDto) => Promise<void>;
+    register: (userData: RegisterDto ) => Promise<void>;
     logout: () => void;
     isLoading: boolean;
 }
@@ -50,6 +51,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         setToken(token);
     };
 
+    const register = async (userData: RegisterDto) => { 
+        await authService.register(userData);
+    }
+
     const logout = () => { // Clear token and user data
         localStorage.removeItem('token');
         setUser(null);
@@ -57,7 +62,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     };
 
     return ( // Provide context to children
-        <AuthContext.Provider value={{ user, token, login, logout, isLoading }}>
+        <AuthContext.Provider value={{ user, token, login, logout, register, isLoading }}>
             {!isLoading && children}
         </AuthContext.Provider>
     );

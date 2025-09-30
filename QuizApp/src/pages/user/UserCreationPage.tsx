@@ -1,8 +1,10 @@
 import React, { useState } from "react";
 import { Form, Button, Card, Alert, Container } from "react-bootstrap";
-const API_URL = import.meta.env.VITE_API_URL;
+import { useAuth } from "../../auth/AuthContext";
+import type { RegisterDto } from "../../types/auth";
 
 const UserCreationPage: React.FC = () => {
+  const { register } = useAuth();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -36,22 +38,10 @@ const UserCreationPage: React.FC = () => {
     }
     // TODO: Implement actual user creation logic here (e.g., API call)
     try {
-      const newUser = { username, password, confirmPassword };
-      const response = await fetch(`${API_URL}/api/Auth/register`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(newUser)
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to create user");
-      }
+      await register ({ username, password, confirmPassword } as RegisterDto);
     }
-
-    catch (err) {
-      setError("An error occurred while creating the user. Please try again.");
+    catch (err: any) {
+      setError(err.message || "User creation failed.");
       return;
     }
 
