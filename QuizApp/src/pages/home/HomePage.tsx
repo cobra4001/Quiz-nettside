@@ -21,7 +21,7 @@ const HomePage: React.FC = () => {
                             Create a Quiz
                         </a>
                         {/* Button for taking a quiz */}
-                        <a href="/QuizTakingPage" className="btn btn-secondary btn-lg">
+                        <a href="/QuizList" className="btn btn-secondary btn-lg">
                             Take a Quiz
                         </a>
                     </div>
