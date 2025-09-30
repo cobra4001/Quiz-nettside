@@ -1,21 +1,49 @@
 import React, { useState } from "react";
 import { Form, Button, Card, Alert, Container } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
-
-
+import { useAuth } from "./AuthContext";
+import type { LoginDto } from "../types/auth";
 
 const LoginPage: React.FC = () => {
+  const { login } = useAuth();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+     if (username.length < 3) {
+      setError("Please write a username with at least 3 characters.");
+      return;
+    }
+     if (username.length > 20) {
+      setError("Please write a username shorter than 20 characters.");
+      return;
+    }
+
     if (!username || !password) {
       setError("Please enter both username and password.");
       return;
     }
+
+     if (password.length < 8) {
+      setError("Please write a password with at least 8 characters.");
+      return;
+    }
+
+    //Add API call here to validate user credentials, before navigating to HomePage
+    try {
+      await login ({ username, password } as LoginDto);
+
+    } 
+    catch (err) {
+      setError("Invalid username or password.");
+      return;
+    }
+
+
     setError(null);
     navigate("/HomePage");
   };
