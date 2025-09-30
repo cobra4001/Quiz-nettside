@@ -23,7 +23,8 @@ const NavBar: React.FC = () => {
         <Navbar.Brand href="/HomePage">QuizTask</Navbar.Brand>
         <Navbar.Toggle aria-controls="basic-navbar-nav" />
         <Navbar.Collapse id="basic-navbar-nav">
-            <Nav.Link onClick={handleCreateClick} style={{ cursor: 'pointer' }}>Create</Nav.Link>
+            {!user ? null : <Nav.Link onClick={handleCreateClick} style={{ cursor: 'pointer' }}>Create</Nav.Link> }
+            
             <Nav.Link href="/QuizList">Quizzes</Nav.Link>
             {!user ? (
               <Nav.Link href="/LoginPage">Login</Nav.Link>

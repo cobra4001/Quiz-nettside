@@ -1,6 +1,8 @@
 import React from "react";
 import { useAuth } from "../../auth/AuthContext";
 
+
+
 const HomePage: React.FC = () => {
 
     const {user} = useAuth();
@@ -12,10 +14,10 @@ const HomePage: React.FC = () => {
             <div className="card shadow border-0 rounded-4 p-5 w-100" style={{ maxWidth: '480px' }}>
                 <div className="card-body text-center">
                     <h1 className="card-title fw-bold fs-1 text-dark mb-3">
-                        Quiz Hub
+                        {!user ? 'Quiz Hub' : `Welcome back, ${user.username}`} {/*Denne viser ikke bruger navn */}
                     </h1>
                     <p className="card-text lead text-muted mb-5">
-                        Create, share, and challenge your friends with custom quizzes!
+                        Create custom quizzes, and challenge your friends!
                     </p>
 
                     {/* Container for the action buttons */}

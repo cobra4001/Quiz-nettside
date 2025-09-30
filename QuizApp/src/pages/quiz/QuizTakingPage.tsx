@@ -81,7 +81,7 @@ const QuizTaker: React.FC<QuizTakerProps> = () => {
         <>
             <ProgressBar 
                 now={progress} 
-                label={`${currentQuestionIndex + 1} av ${totalQuestions}`} 
+  //              label={`${currentQuestionIndex + 1} av ${totalQuestions}`} 
                 className="mb-4"
                 variant="info"
             />
@@ -107,14 +107,15 @@ const QuizTaker: React.FC<QuizTakerProps> = () => {
                     onClick={handlePrevious} 
                     disabled={currentQuestionIndex === 0}
                 >
-                    <i className="bi bi-arrow-left me-2"></i> Forrige
+                    <i className="bi bi-arrow-left me-2"></i> Previous
                 </Button>
+                <p>Question {currentQuestionIndex + 1} of {totalQuestions}</p>
                 <Button 
                     variant="success" 
                     onClick={handleNext}
                     disabled={userAnswers[currentQuestion.id] === undefined} // Krever svar før neste
                 >
-                    {currentQuestionIndex === totalQuestions - 1 ? 'Fullfør Quiz' : 'Neste Spørsmål'}
+                    {currentQuestionIndex === totalQuestions - 1 ? 'Submit Quiz' : 'Next question'}
                     <i className="bi bi-arrow-right ms-2"></i>
                 </Button>
             </div>

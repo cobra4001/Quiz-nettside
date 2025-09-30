@@ -38,7 +38,7 @@ const QuizList: React.FC<QuizListProps> = () => {
                         {quizzes.map((quiz) => (
                             <div className="col" key={quiz.id}>
                                 <div 
-                                    className="card shadow-sm h-100 border-0 p-3 p-md-4 bg-white hover-zoom" 
+                                    className="card shadow-sm h-100 border-0 p-3 p-md-4 bg-primary-subtle hover-zoom" 
                                     onClick={() => {navigateOnclick(quiz.id); }}
                                     style={{ 
                                         cursor: 'pointer', 
@@ -51,12 +51,12 @@ const QuizList: React.FC<QuizListProps> = () => {
                                             {/* Quiz Tittel */}
                                             <h2 className="card-title fw-bolder fs-4 text-dark mb-2">{quiz.title}</h2>
                                             {/* Beskrivelse */}
-                                            <p className="card-text text-muted mb-3">{quiz.description}</p>
+                                            <p className="card-text mb-3">{quiz.description}</p>
                                         </div>
                                         {/* Ikon/Antall spørsmål */}
                                         <div className="text-end ms-3">
                                             <span className="badge bg-info text-dark rounded-pill py-2 px-3 fw-bold">
-                                                {quiz.questions.length} spørsmål
+                                                {quiz.questions.length} questions
                                             </span>
                                         </div>
                                     </div>
