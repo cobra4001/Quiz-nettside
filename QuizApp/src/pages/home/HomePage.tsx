@@ -1,6 +1,10 @@
 import React from "react";
+import { useAuth } from "../../auth/AuthContext";
 
 const HomePage: React.FC = () => {
+
+    const {user} = useAuth();
+
     return (
         // Main container with a centered, full-screen layout using flexbox
         <div className="d-flex align-items-center justify-content-center min-vh-100">
@@ -17,9 +21,13 @@ const HomePage: React.FC = () => {
                     {/* Container for the action buttons */}
                     <div className="d-grid gap-3">
                         {/* Button for creating a quiz */}
-                        <a href="/quizcreate" className="btn btn-primary btn-lg">
+                        {(!user) ? <a href="/LoginPage" className="btn btn-primary btn-lg">
+                            Login to Create a Quiz
+                        </a> : <a href="/quizcreate" className="btn btn-primary btn-lg">
                             Create a Quiz
                         </a>
+                        }
+                        
                         {/* Button for taking a quiz */}
                         <a href="/QuizList" className="btn btn-secondary btn-lg">
                             Take a Quiz
