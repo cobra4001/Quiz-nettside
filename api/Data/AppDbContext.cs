@@ -9,7 +9,7 @@ namespace api.Data
         public AppDbContext(DbContextOptions<AppDbContext> options)
            : base(options)
         {
-            
+
         }
 
         // Legger til DbSets for Quiz-modellene slik at Entity Framework Core (EF Core)
@@ -17,10 +17,5 @@ namespace api.Data
         public DbSet<Quiz> Quizzes { get; set; }
         public DbSet<Question> Questions { get; set; }
         public DbSet<Answer> Answers { get; set; }
-
-      
-    public class AppDbContext : DbContext
-    {
-        
     }
 }

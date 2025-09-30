@@ -1,16 +1,17 @@
 import React, { useState } from "react";
 import { Form, Button, Card, Alert, Container } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
-
-
+import { useAuth } from "../../auth/AuthContext";
+import type { LoginDto } from "../../types/auth";
 
 const LoginPage: React.FC = () => {
+  const { login } = useAuth();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
      if (username.length < 3) {
@@ -33,6 +34,15 @@ const LoginPage: React.FC = () => {
     }
 
     //Add API call here to validate user credentials, before navigating to HomePage
+    try {
+      await login ({ username, password } as LoginDto);
+
+    } 
+    catch (err) {
+      setError("Invalid username or password.");
+      return;
+    }
+
 
     setError(null);
     navigate("/HomePage");

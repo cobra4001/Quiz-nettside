@@ -1,3 +1,4 @@
+import { AuthProvider } from './auth/AuthContext'
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom'
 import React, {} from 'react'
 import { Container } from 'react-bootstrap'
@@ -15,21 +16,21 @@ const App: React.FC = () => {
    
 
   return (
-    <>
-    <NavBar />
-      <Router>
-        <Container>
-          <Routes>
-            <Route path="/LoginPage" element={<LoginPage />} />
-            <Route path="/HomePage" element={<HomePage />} />
-            <Route path="/QuizList" element={<QuizList />} />
-            <Route path="/QuizTakingPage/:quizId" element={<QuizTakingPage />}  />
-            <Route path="/quizcreate" element={<QuizCreationPage />} />
-            <Route path="/CreateUser" element={<UserCreationPage />} />
-          </Routes>
-        </Container>
-    </Router>
-    </>
+    <AuthProvider>
+      <NavBar />
+        <Router>
+          <Container>
+            <Routes>
+              <Route path="/LoginPage" element={<LoginPage />} />
+              <Route path="/HomePage" element={<HomePage />} />
+              <Route path="/QuizList" element={<QuizList />} />
+              <Route path="/QuizTakingPage/:quizId" element={<QuizTakingPage />}  />
+              <Route path="/quizcreate" element={<QuizCreationPage />} />
+              <Route path="/CreateUser" element={<UserCreationPage />} />
+            </Routes>
+          </Container>
+      </Router>
+    </AuthProvider>
   )
 }
 
