@@ -7,6 +7,7 @@ using Microsoft.OpenApi.Models;
 using api.Models;
 using Microsoft.EntityFrameworkCore.Sqlite;
 using Microsoft.EntityFrameworkCore;
+using api.Data; 
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -19,6 +20,13 @@ builder.Services.AddDbContext<AuthUserDbContext>(options =>
 {
     options.UseSqlite(builder.Configuration["ConnectionStrings:AuthUserDbContextConnection"]);
 });
+
+builder.Services.AddDbContext<AppDbContext>(options =>
+{
+    // Bruker samme tilkoblingsstreng for å lagre i samme SQLite-fil
+    options.UseSqlite(builder.Configuration["ConnectionStrings:AuthUserDbContextConnection"]); 
+});
+
 
 builder.Services.AddIdentity<AuthUser, IdentityRole>(options =>
 {
@@ -69,6 +77,16 @@ builder.Services.AddAuthentication(options =>
 
 
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    
+    // Henter AppDbContext for å sikre at Quiz, Question og Answer tabellene opprettes
+    var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    context.Database.EnsureCreated();
+}
+
+
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
