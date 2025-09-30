@@ -1,10 +1,11 @@
+import { AuthProvider } from './auth/AuthContext'
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom'
 import React, {} from 'react'
 import { Container } from 'react-bootstrap'
 import NavBar from './shared/NavBar'
 import HomePage from './pages/home/HomePage'
 import QuizCreationPage from './pages/quiz/QuizCreatePage'
-import LoginPage from './pages/login/LoginPage'
+import LoginPage from './auth/LoginPage'
 import QuizTakingPage from './pages/quiz/QuizTakingPage'
 import UserCreationPage from './pages/user/UserCreationPage'
 import QuizList from './pages/quiz/QuizList'
@@ -12,11 +13,10 @@ import './App.css'
 
 const App: React.FC = () => {
 
-   
-
   return (
     <>
     <NavBar />
+    
       <Router>
         <Container>
           <Routes>

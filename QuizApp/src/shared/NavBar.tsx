@@ -1,8 +1,10 @@
 import React from "react"
 import { Nav, Navbar } from 'react-bootstrap'
-
+import { useAuth } from "../auth/AuthContext";
 
 const NavBar: React.FC = () => {
+  const { user, logout } = useAuth();
+
   return (
     <Navbar expand="lg" fixed="top" bg="primary" variant="dark">
       <Nav className="mx-auto">
@@ -10,8 +12,7 @@ const NavBar: React.FC = () => {
         <Navbar.Toggle aria-controls="basic-navbar-nav" />
         <Navbar.Collapse id="basic-navbar-nav">
             <Nav.Link href="/quizcreate">Create</Nav.Link>
-            <Nav.Link href="/QuizList">List</Nav.Link>
-            <Nav.Link href="/QuizTakingPage">Take</Nav.Link>
+            <Nav.Link href="/QuizList">Quizzes</Nav.Link>
             <Nav.Link href="/LoginPage">Login</Nav.Link>
         </Navbar.Collapse>
       </Nav>

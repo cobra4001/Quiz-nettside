@@ -17,7 +17,10 @@ namespace api.Data
         public DbSet<Quiz> Quizzes { get; set; }
         public DbSet<Question> Questions { get; set; }
         public DbSet<Answer> Answers { get; set; }
+<<<<<<< HEAD
 
 
+=======
+>>>>>>> 6dbdcf1499f8c0e71bf9ec63a2e29d48f74de17f
     }
 }

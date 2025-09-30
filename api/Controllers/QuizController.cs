@@ -8,7 +8,10 @@ using System.Security.Claims;
 
 namespace api.Controllers
 {
+<<<<<<< HEAD
 
+=======
+>>>>>>> 6dbdcf1499f8c0e71bf9ec63a2e29d48f74de17f
     [ApiController]
     [Route("api/[controller]")]
     public class QuizController : ControllerBase
@@ -162,7 +165,10 @@ namespace api.Controllers
             });
         }
     }
+<<<<<<< HEAD
 
     
 
+=======
+>>>>>>> 6dbdcf1499f8c0e71bf9ec63a2e29d48f74de17f
 }
