@@ -18,8 +18,7 @@ namespace api.Data
         public DbSet<Question> Questions { get; set; }
         public DbSet<Answer> Answers { get; set; }
 
-        // Du kan overstyre OnModelCreating her for å definere 
-        // mer komplekse relasjoner, indekser, eller begrensninger.
+      
     public class AppDbContext : DbContext
     {
         
