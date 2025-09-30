@@ -27,12 +27,12 @@ const LoginPage: React.FC = () => {
       return;
     }
 
-  
-
      if (password.length < 8) {
       setError("Please write a password with at least 8 characters.");
       return;
     }
+
+    //Add API call here to validate user credentials, before navigating to HomePage
 
     setError(null);
     navigate("/HomePage");

@@ -4,6 +4,7 @@ using api.Models;
 
 namespace api.Data
 {
+<<<<<<< HEAD
     // AppDbContext arver fra IdentityDbContext<AuthUser> for å inkludere 
     // alle Identity-tabellene (brukere, roller, osv.) automatisk.
     public class AppDbContext : IdentityDbContext<AuthUser>
@@ -22,5 +23,10 @@ namespace api.Data
 
         // Du kan overstyre OnModelCreating her for å definere 
         // mer komplekse relasjoner, indekser, eller begrensninger.
+=======
+    public class AppDbContext : DbContext
+    {
+        
+>>>>>>> d93ed7caae41428d7bd44978e98aefffdced0456
     }
 }
