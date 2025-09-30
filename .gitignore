@@ -8,6 +8,8 @@ build/
 *.suo
 *.userosscache
 *.sln.docstates
+*.db-shm
+*.db-wal
 
 # Visual Studio Code settings
 .vscode/
