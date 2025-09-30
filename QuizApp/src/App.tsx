@@ -1,3 +1,4 @@
+import { AuthProvider } from './auth/AuthContext'
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom'
 import React, {} from 'react'
 import { Container } from 'react-bootstrap'

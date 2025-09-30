@@ -1,8 +1,10 @@
 import React from "react"
 import { Nav, Navbar } from 'react-bootstrap'
-
+import { useAuth } from "../auth/AuthContext";
 
 const NavBar: React.FC = () => {
+  const { user, logout } = useAuth();
+
   return (
     <Navbar expand="lg" fixed="top" bg="primary" variant="dark">
       <Nav className="mx-auto">

@@ -4,10 +4,9 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace api.Models
 {
     public class Quiz
-
     {
-        [Key]
-        public int QuizId { get; set; }
+        // Primærnøkkel: Følger EF Core-konvensjonen (heter kun Id). [Key] er fjernet.
+        public int Id { get; set; }
 
         [Required]
         public string Title { get; set; } = string.Empty;
@@ -17,8 +16,6 @@ namespace api.Models
 
         public virtual AuthUser? Creator { get; set; }
 
-         public virtual ICollection<Question> Questions { get; set; } = new List<Question>();
+        public virtual ICollection<Question> Questions { get; set; } = new List<Question>();
     }
-    
-    
 }
