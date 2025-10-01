@@ -1,5 +1,5 @@
 import React from "react";
-import { Nav, Navbar } from 'react-bootstrap';
+import { Nav, Navbar, NavDropdown } from 'react-bootstrap';
 import { useAuth } from "../auth/AuthContext";
 import { useNavigate } from "react-router-dom";
 
@@ -23,13 +23,21 @@ const NavBar: React.FC = () => {
         <Navbar.Brand href="/HomePage">QuizTask</Navbar.Brand>
         <Navbar.Toggle aria-controls="basic-navbar-nav" />
         <Navbar.Collapse id="basic-navbar-nav">
-            {!user ? null : <Nav.Link onClick={handleCreateClick} style={{ cursor: 'pointer' }}>Create</Nav.Link> }
+
+            
             
             <Nav.Link href="/QuizList">Quizzes</Nav.Link>
+
+            {!user ? <Nav.Link href="/CreateUser">Create account</Nav.Link> : <Nav.Link onClick={handleCreateClick} style={{ cursor: 'pointer' }}>Create quiz</Nav.Link> }
+
             {!user ? (
               <Nav.Link href="/LoginPage">Login</Nav.Link>
             ) : (
-              <Nav.Link onClick={() => { logout(); navigate("/"); }}>Logout</Nav.Link>
+              <NavDropdown title={user.sub} id="basic-nav-dropdown" >
+              <NavDropdown.Item>My scores</NavDropdown.Item> {/* Eventuel oppgradering til siden, hvor man kan se ens score */}
+              <NavDropdown.Item>My Quizzes</NavDropdown.Item> {/* Eventuel oppgradering til oversigt over ens egen quizzer */}
+              <NavDropdown.Item onClick={() => { logout(); navigate("/"); }}>Logout</NavDropdown.Item>
+              </NavDropdown>
 
             )}
         </Navbar.Collapse>

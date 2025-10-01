@@ -109,7 +109,7 @@ const QuizTaker: React.FC<QuizTakerProps> = () => {
                 >
                     <i className="bi bi-arrow-left me-2"></i> Previous
                 </Button>
-                <p>Question {currentQuestionIndex + 1} of {totalQuestions}</p>
+                <p>Question <br></br>{currentQuestionIndex + 1} of {totalQuestions}</p>
                 <Button 
                     variant="success" 
                     onClick={handleNext}
@@ -131,8 +131,8 @@ const QuizTaker: React.FC<QuizTakerProps> = () => {
             <div className="text-center p-4">
                 <h2 className="display-4 text-success mb-4">Quiz Fullført!</h2>
                 <Alert variant={scorePercentage >= 50 ? 'success' : 'warning'}>
-                    <p className="lead mb-1">Din score:</p>
-                    <h3 className="fw-bold">{finalScore} av {totalPoints} poeng</h3>
+                    <p className="lead mb-1">your score:</p>
+                    <h3 className="fw-bold">{finalScore} of {totalPoints} points</h3>
                     <p className="h5">({scorePercentage.toFixed(1)}%)</p>
                 </Alert>
                 <Button 
@@ -144,14 +144,14 @@ const QuizTaker: React.FC<QuizTakerProps> = () => {
                         setShowResults(false);
                     }}
                 >
-                    Ta Quizen Igjen
+                    Take the Quiz again
                 </Button>
                 <Button 
                     variant="secondary" 
                     className="mt-3"
                     onClick={() => navigate('/QuizList')} // Går tilbake til listen
                 >
-                    <i className="bi bi-list-task me-2"></i> Tilbake til Quiz-listen
+                    <i className="bi bi-list-task me-2"></i> Back to Quiz-list
                 </Button>
             </div>
         );

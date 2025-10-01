@@ -25,12 +25,12 @@ const QuizList: React.FC<QuizListProps> = () => {
         <div className="d-flex justify-content-center min-vh-100 p-3">
             <div className="container py-5" style={{ maxWidth: "800px" }}>
                 <h1 className="text-center fw-bold text-primary mb-5 display-4">
-                    Tilgjengelige Quizzer
+                    Available Quizzes
                 </h1>
 
                 {quizzes.length === 0 ? (
                     <div className="alert alert-info text-center" role="alert">
-                        Ingen quizzer funnet. Legg til nye quizzer for å starte!
+                        No quizzes available at the moment. Please check back later!
                     </div>
                 ) : (
                     // Viser quizer i et responsivt grid med rader

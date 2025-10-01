@@ -14,7 +14,7 @@ const HomePage: React.FC = () => {
             <div className="card shadow border-0 rounded-4 p-5 w-100" style={{ maxWidth: '480px' }}>
                 <div className="card-body text-center">
                     <h1 className="card-title fw-bold fs-1 text-dark mb-3">
-                        {!user ? 'Quiz Hub' : `Welcome back, ${user.username}`} {/*Denne viser ikke bruger navn */}
+                        {!user ? 'Quiz Hub' : `Welcome back ${user.sub}`} {/*Denne viser username, hvis logget ind */}
                     </h1>
                     <p className="card-text lead text-muted mb-5">
                         Create custom quizzes, and challenge your friends!
