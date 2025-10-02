@@ -44,7 +44,7 @@ const UserCreationPage: React.FC = () => {
     }
 
       if (!isValidPhone(phonenumber)) {
-      setError("Please enter a valid phone number.");
+      setError("Please enter a valid Norwegian phone number 4******* or 9*******.");
       return;
       }
        if (phonenumber !== confirmPhonenumber) {
