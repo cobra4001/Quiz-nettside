@@ -33,24 +33,30 @@ namespace api.Controllers
             _context = context;
         }
 
-        [HttpPost("register")]
+       [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] RegisterDTO registerDto)
         {
-            var user = new AuthUser
-            {
-                UserName = registerDto.Username
-            };
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState); // Automatisk validering med [Compare], [Required], [RegularExpression], etc.
 
-            var result = await _userManager.CreateAsync(user, registerDto.Password);
-            
-            if (result.Succeeded)
-            {
-                _logger.LogInformation("[AuthAPIController] user registered for {@username}", registerDto.Username);
-                return Ok(new { Message = "User registered successfully" });
-            }
+        var user = new AuthUser
+        {
+            UserName = registerDto.Username,
+            Email = registerDto.Email,
+            PhoneNumber = registerDto.Phonenumber
+        };
 
-            _logger.LogWarning("[AuthAPIController] user registration failed for {@username}", registerDto.Username);
-            return BadRequest(result.Errors);
+        var result = await _userManager.CreateAsync(user, registerDto.Password);
+
+        if (result.Succeeded)
+        {
+            _logger.LogInformation("[AuthAPIController] user registered for {@username}", registerDto.Username);
+            return Ok(new { Message = "User registered successfully" });
+        }
+
+        // Konverter feilliste til array av beskrivelser
+        var errors = result.Errors.Select(e => e.Description).ToArray();
+        return BadRequest(new { Errors = errors });
         }
 
         [HttpPost("login")]

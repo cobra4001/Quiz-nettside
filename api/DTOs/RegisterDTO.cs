@@ -5,11 +5,27 @@ namespace api.DTOs
     public class RegisterDTO
     {
         [Required]
+        [MinLength(3), MaxLength(20)]
         public string Username { get; set; } = string.Empty;
 
+        [Required]
+        [EmailAddress]
+        public string Email { get; set; } = string.Empty;
 
         [Required]
-        [MinLength(6, ErrorMessage = "Password must be at least 6 characters long.")]
+        [Compare("Email", ErrorMessage = "Emails do not match.")]
+        public string ConfirmEmail { get; set; } = string.Empty;
+
+        [Required]
+        [RegularExpression(@"^\d{8}$", ErrorMessage = "Phone number must be exactly 8 digits.")]
+        public string Phonenumber { get; set; } = string.Empty;
+
+        [Required]
+        [Compare("Phonenumber", ErrorMessage = "Phone numbers do not match.")]
+        public string ConfirmPhonenumber { get; set; } = string.Empty;
+
+        [Required]
+        [MinLength(8)]
         public string Password { get; set; } = string.Empty;
 
         [Required]
