@@ -1,7 +1,7 @@
-import React from 'react';
-import type { IQuiz, QuizListProps } from '../../types/quiz';
-import { AllQuizzes } from './QuizData'; 
+import React, { useEffect, useState } from 'react';
+import type { QuizListProps } from '../../types/quiz';
 import { useNavigate } from 'react-router-dom';
+import { fetchQuizzes } from './QuizService';
 
 
 
@@ -10,9 +10,27 @@ import { useNavigate } from 'react-router-dom';
  * Den bruker Bootstrap 5 for et responsivt og tiltalende design.
  */
 const QuizList: React.FC<QuizListProps> = () => {
-    // Bruker mock-data fra AllQuizzes
-    const quizzes: IQuiz[] = AllQuizzes;
     const navigate = useNavigate();
+    const [quizzes, setQuizzes] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+        let mounted = true;
+        (async () => {
+            try {
+                const data = await fetchQuizzes();
+                if (!mounted) return;
+                setQuizzes(Array.isArray(data) ? data : []);
+            } catch (e: any) {
+                if (!mounted) return;
+                setError(e.message || 'Failed to load quizzes');
+            } finally {
+                if (mounted) setLoading(false);
+            }
+        })();
+        return () => { mounted = false; };
+    }, []);
 
      const navigateOnclick = async (quizId: number) => {
         await fetch(`/QuizTakingPage/${quizId}`);
@@ -28,14 +46,19 @@ const QuizList: React.FC<QuizListProps> = () => {
                     Available Quizzes
                 </h1>
 
-                {quizzes.length === 0 ? (
-                    <div className="alert alert-info text-center" role="alert">
-                        No quizzes available at the moment. Please check back later!
-                    </div>
-                ) : (
+                {loading && (
+                    <div className="alert alert-secondary text-center" role="status">Loading quizzes...</div>
+                )}
+                {error && (
+                    <div className="alert alert-danger text-center" role="alert">{error}</div>
+                )}
+                {!loading && !error && quizzes.length === 0 && (
+                    <div className="alert alert-info text-center" role="alert">No quizzes yet. Create one!</div>
+                )}
+                {!loading && !error && quizzes.length > 0 && (
                     // Viser quizer i et responsivt grid med rader
                     <div className="row row-cols-1 g-4">
-                        {quizzes.map((quiz) => (
+                        {quizzes.map((quiz: any) => (
                             <div className="col" key={quiz.id}>
                                 <div 
                                     className="card shadow-sm h-100 border-0 p-3 p-md-4 bg-primary-subtle hover-zoom" 
@@ -50,13 +73,13 @@ const QuizList: React.FC<QuizListProps> = () => {
                                         <div>
                                             {/* Quiz Tittel */}
                                             <h2 className="card-title fw-bolder fs-4 text-dark mb-2">{quiz.title}</h2>
-                                            {/* Beskrivelse */}
-                                            <p className="card-text mb-3">{quiz.description}</p>
+                                            {/* Placeholder description since backend doesn't send one */}
+                                            <p className="card-text mb-3">{quiz.description || 'No description provided.'}</p>
                                         </div>
                                         {/* Ikon/Antall spørsmål */}
                                         <div className="text-end ms-3">
-                                            <span className="badge bg-info text-dark rounded-pill py-2 px-3 fw-bold">
-                                                {quiz.questions.length} questions
+                                            <span className="badge bg-info text-dark rounded-pill py-2 px-3 fw-bold" title="Number of questions">
+                                                {quiz.questionCount ?? (quiz.questions ? quiz.questions.length : 0)} questions
                                             </span>
                                         </div>
                                     </div>

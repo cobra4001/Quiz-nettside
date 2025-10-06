@@ -16,11 +16,7 @@ interface IQuestion {
   answerOptions: IAnswerOption[];
 }
 
-interface IQuiz {
-  title: string;
-  questions: IQuestion[];
-  anwserOptions: IAnswerOption[];
-}
+// (Removed unused IQuizDraft interface)
 
 const QuizCreatePage: React.FC = () => {
   const { user } = useAuth();
@@ -40,6 +36,9 @@ const QuizCreatePage: React.FC = () => {
   if (!user) return null;
 
   const [quizTitle, setQuizTitle] = useState<string>('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [questions, setQuestions] = useState<IQuestion[]>([
     {
       id: 1,
@@ -131,20 +130,57 @@ const QuizCreatePage: React.FC = () => {
   // Submit quiz til backend/service
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setErrorMsg(null);
+    setSuccessMsg(null);
 
-    const newQuiz: IQuiz = {
-      title: quizTitle,
-      questions,
-      anwserOptions: questions.flatMap(q => q.answerOptions),
+    // Basic client validation so user sees feedback instead of "nothing happens"
+    if (!quizTitle.trim()) {
+      setErrorMsg('Quiz title is required.');
+      return;
+    }
+
+    for (const [index, q] of questions.entries()) {
+      if (!q.questionText.trim()) {
+        setErrorMsg(`Question ${index + 1} is empty.`);
+        return;
+      }
+      const filledAnswers = q.answerOptions.filter(a => a.text.trim());
+      if (filledAnswers.length < 2) {
+        setErrorMsg(`Question ${index + 1} must have at least 2 answer options filled in.`);
+        return;
+      }
+      if (!filledAnswers.some(a => a.isCorrect)) {
+        setErrorMsg(`Question ${index + 1} needs one correct answer selected.`);
+        return;
+      }
+    }
+
+    const quizDto = {
+      title: quizTitle.trim(),
+      questions: questions.map(q => ({
+        questionText: q.questionText.trim(),
+        points: q.points,
+        answers: q.answerOptions
+          .filter(a => a.text.trim())
+          .map(a => ({
+            answerText: a.text.trim(),
+            isCorrect: a.isCorrect
+          }))
+      }))
     };
 
     try {
-      const createdQuiz = await QuizService.createQuiz(newQuiz);
+      setIsSubmitting(true);
+      const createdQuiz = await QuizService.createQuiz(quizDto);
       console.log("Quiz created successfully:", createdQuiz);
-      // F.eks. naviger til quizliste eller nullstill form
-      navigate("/QuizList");
-    } catch (error) {
+      setSuccessMsg('Quiz saved successfully! Redirecting...');
+      // Small delay so user sees message
+      setTimeout(() => navigate('/QuizList'), 800);
+    } catch (error: any) {
       console.error("Error creating quiz:", error);
+      setErrorMsg(error?.message || 'Failed to create quiz');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -157,7 +193,13 @@ const QuizCreatePage: React.FC = () => {
             Build your own quiz by adding questions and their correct answers.
           </p>
 
-          <form onSubmit={handleSubmit}>
+          {errorMsg && (
+            <div className="alert alert-danger" role="alert">{errorMsg}</div>
+          )}
+          {successMsg && (
+            <div className="alert alert-success" role="alert">{successMsg}</div>
+          )}
+          <form onSubmit={handleSubmit} noValidate>
             {/* Quiz Title */}
             <div className="mb-4">
               <label htmlFor="quizTitle" className="form-label fw-bold">Quiz Title</label>
@@ -259,7 +301,9 @@ const QuizCreatePage: React.FC = () => {
             </div>
 
             <div className="d-grid gap-2 mt-5">
-              <button type="submit" className="btn btn-primary btn-lg">Save Quiz</button>
+              <button type="submit" className="btn btn-primary btn-lg" disabled={isSubmitting}>
+                {isSubmitting ? 'Saving...' : 'Save Quiz'}
+              </button>
             </div>
           </form>
         </div>
