@@ -55,3 +55,16 @@ export const createQuiz = async (quizDto: any) => {
 };
 
 // Future: export deleteQuiz, updateQuiz, submitQuiz, etc.
+// POST /api/Quiz/submit
+// submission: { quizId: number, selectedAnswers: { [questionId:number]: answerId } }
+export const submitQuiz = async (submission: { quizId: number; selectedAnswers: Record<number, number>; }) => {
+    const response = await fetch(`${API_URL}/api/Quiz/submit`, {
+        method: 'POST',
+        headers: buildHeaders(),
+        body: JSON.stringify({
+            quizId: submission.quizId,
+            selectedAnswers: submission.selectedAnswers
+        }),
+    });
+    return handleResponse(response);
+};

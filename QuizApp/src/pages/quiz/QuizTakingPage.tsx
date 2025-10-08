@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import type { IQuiz, IQuestion, QuizTakerProps } from '../../types/quiz';
-import { getQuizById} from './QuizData';
+import { fetchQuizById, submitQuiz } from './QuizService';
 import "bootstrap/dist/css/bootstrap.min.css";
 import { Card, Button, ProgressBar, Alert } from 'react-bootstrap';
 import { useParams, useNavigate } from 'react-router-dom';
@@ -15,14 +15,39 @@ const QuizTaker: React.FC<QuizTakerProps> = () => {
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
     const [userAnswers, setUserAnswers] = useState<{ [key: number]: number }>({}); // {questionId: selectedOptionId}
     const [showResults, setShowResults] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [submitError, setSubmitError] = useState<string | null>(null);
+    const [result, setResult] = useState<{ score: number; correctAnswers: number; totalQuestions: number } | null>(null);
 
     // Laster quiz-data ved oppstart basert på URL-parameter
     useEffect(() => {
-        if (quizId) {
+        const load = async () => {
+            if (!quizId) return;
             const id = parseInt(quizId, 10);
-            const quizData = getQuizById(id);
-            setCurrentQuiz(quizData);
-        }
+            if (Number.isNaN(id)) return;
+            try {
+                const data = await fetchQuizById(id);
+                if (!data) return;
+                // Backend returns: { id, title, questions: [{ id, questionText, points, answers: [{id, answerText}] }] }
+                const mapped: IQuiz = {
+                    id: data.id,
+                    title: data.title,
+                    description: data.description || 'No description provided.',
+                    questions: (data.questions || []).map((q: any) => ({
+                        id: q.id,
+                        questionText: q.questionText,
+                        points: q.points,
+                        // We don't receive correct answer id (intentionally hidden). Use -1 placeholder.
+                        correctOptionId: -1,
+                        answerOptions: (q.answers || []).map((a: any) => ({ id: a.id, text: a.answerText }))
+                    }))
+                };
+                setCurrentQuiz(mapped);
+            } catch (err) {
+                console.error('Failed to load quiz', err);
+            }
+        };
+        load();
     }, [quizId]);
 
     // Håndterer feil hvis quiz ikke finnes
@@ -47,11 +72,63 @@ const QuizTaker: React.FC<QuizTakerProps> = () => {
         });
     };
 
-    const handleNext = () => {
+    const handleNext = async () => {
         if (currentQuestionIndex < totalQuestions - 1) {
             setCurrentQuestionIndex(currentQuestionIndex + 1);
         } else {
-            setShowResults(true);
+            // Last question answered – submit to backend for scoring
+            if (!currentQuiz) return;
+            if (isSubmitting) return; // guard against double click
+            setIsSubmitting(true);
+            setSubmitError(null);
+            try {
+                const payload = { quizId: currentQuiz.id, selectedAnswers: userAnswers };
+                console.debug('Submitting quiz payload', payload);
+                // Quick sanity: ensure each provided answer id belongs to its question
+                const invalidMappings: Array<{ questionId: number; answerId: number }> = [];
+                currentQuiz.questions.forEach(q => {
+                    const chosen = userAnswers[q.id];
+                    if (chosen && !q.answerOptions.some(a => a.id === chosen)) {
+                        invalidMappings.push({ questionId: q.id, answerId: chosen });
+                    }
+                });
+                if (invalidMappings.length) {
+                    console.warn('Invalid question->answer mappings detected', invalidMappings);
+                }
+                const serverResult = await submitQuiz(payload);
+                console.debug('Server submit result', serverResult);
+                if (serverResult) {
+                    const scoreFromServer = serverResult.Score ?? serverResult.score ?? 0;
+                    const correctFromServer = serverResult.CorrectAnswers ?? serverResult.correctAnswers ?? 0;
+                    const totalFromServer = serverResult.TotalQuestions ?? serverResult.totalQuestions ?? currentQuiz.questions.length;
+                    setResult({
+                        score: scoreFromServer,
+                        correctAnswers: correctFromServer,
+                        totalQuestions: totalFromServer
+                    });
+                    // Fallback heuristic: if server returned 0 but at least one question answered, log details
+                    if (scoreFromServer === 0 && Object.keys(userAnswers).length > 0) {
+                        console.warn('Server returned score=0; debugging details', {
+                            answered: userAnswers,
+                            questions: currentQuiz.questions.map(q => ({ qid: q.id, answers: q.answerOptions.map(a => a.id) }))
+                        });
+                    }
+                } else {
+                    console.warn('ServerResult was null/empty; falling back to local placeholder.');
+                    setResult({
+                        score: 0,
+                        correctAnswers: 0,
+                        totalQuestions: currentQuiz.questions.length
+                    });
+                }
+                setShowResults(true);
+            } catch (err: any) {
+                console.error('Submit failed', err);
+                setSubmitError(err.message || 'Kunne ikke sende inn quiz.');
+                setShowResults(true); // still move to result screen, showing error
+            } finally {
+                setIsSubmitting(false);
+            }
         }
     };
 
@@ -61,15 +138,8 @@ const QuizTaker: React.FC<QuizTakerProps> = () => {
         }
     };
 
-    const calculateScore = () => {
-        let score = 0;
-        currentQuiz.questions.forEach(question => {
-            if (userAnswers[question.id] === question.correctOptionId) {
-                score += question.points;
-            }
-        });
-        return score;
-    };
+    // Client-side score deprecated; server determines correctness. (Keeping function for potential fallback.)
+    const calculateScore = () => 0;
 
     const calculateTotalPoints = () => {
         return currentQuiz.questions.reduce((sum, q) => sum + q.points, 0);
@@ -113,9 +183,9 @@ const QuizTaker: React.FC<QuizTakerProps> = () => {
                 <Button 
                     variant="success" 
                     onClick={handleNext}
-                    disabled={userAnswers[currentQuestion.id] === undefined} // Krever svar før neste
+                    disabled={userAnswers[currentQuestion.id] === undefined || isSubmitting}
                 >
-                    {currentQuestionIndex === totalQuestions - 1 ? 'Submit Quiz' : 'Next question'}
+                    {currentQuestionIndex === totalQuestions - 1 ? (isSubmitting ? 'Sender...' : 'Submit Quiz') : 'Next question'}
                     <i className="bi bi-arrow-right ms-2"></i>
                 </Button>
             </div>
@@ -123,9 +193,23 @@ const QuizTaker: React.FC<QuizTakerProps> = () => {
     );
 
     const renderResults = () => {
-        const finalScore = calculateScore();
+        if (isSubmitting) {
+            return <div className="text-center p-4"><h4>Sender inn resultat...</h4></div>;
+        }
+        if (submitError) {
+            return (
+                <Alert variant="danger" className="text-center">
+                    <p>{submitError}</p>
+                    <Button variant="secondary" onClick={() => navigate('/QuizList')}>Tilbake</Button>
+                </Alert>
+            );
+        }
+        if (!result) {
+            return <div className="text-center p-4"><h4>Mottar resultat...</h4></div>;
+        }
         const totalPoints = calculateTotalPoints();
-        const scorePercentage = (finalScore / totalPoints) * 100;
+        const finalScore = result.score;
+        const scorePercentage = totalPoints > 0 ? (finalScore / totalPoints) * 100 : 0;
 
         return (
             <div className="text-center p-4">
@@ -142,6 +226,8 @@ const QuizTaker: React.FC<QuizTakerProps> = () => {
                         setCurrentQuestionIndex(0);
                         setUserAnswers({});
                         setShowResults(false);
+                        setResult(null);
+                        setSubmitError(null);
                     }}
                 >
                     Take the Quiz again
