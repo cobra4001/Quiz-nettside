@@ -1,14 +1,14 @@
 const API_URL = import.meta.env.VITE_API_URL;
 
-// Common response handler
+// Vanlig responsbehandler
 const handleResponse = async (response: Response) => {
     if (response.ok) {
         if (response.status === 204) return null;
-        // Some endpoints might not return JSON
+       
         const text = await response.text();
         return text ? JSON.parse(text) : null;
     }
-    // Try to parse JSON error; fall back to status text
+    // Prøver å finne feil som fant sted tidligere i fasen
     try {
         const errorData = await response.json();
         throw new Error(errorData.message || JSON.stringify(errorData));
@@ -17,7 +17,7 @@ const handleResponse = async (response: Response) => {
     }
 };
 
-// Build auth headers dynamically so we always get the latest token
+// Bygg autorisasjonshoder dynamisk slik at vi alltid får det nyeste tokenet
 const buildHeaders = (extra: Record<string, string> = {}) => {
     const token = localStorage.getItem('token');
     return {
@@ -44,7 +44,7 @@ export const fetchQuizById = async (id: number) => {
 };
 
 // POST /api/Quiz/create
-// quizDto must match backend QuizCreationDto structure
+
 export const createQuiz = async (quizDto: any) => {
     const response = await fetch(`${API_URL}/api/Quiz/create`, {
         method: 'POST',
@@ -54,9 +54,7 @@ export const createQuiz = async (quizDto: any) => {
     return handleResponse(response);
 };
 
-// Future: export deleteQuiz, updateQuiz, submitQuiz, etc.
-// POST /api/Quiz/submit
-// submission: { quizId: number, selectedAnswers: { [questionId:number]: answerId } }
+//Videre legg inn retserende CRUD, med update og remove
 export const submitQuiz = async (submission: { quizId: number; selectedAnswers: Record<number, number>; }) => {
     const response = await fetch(`${API_URL}/api/Quiz/submit`, {
         method: 'POST',
