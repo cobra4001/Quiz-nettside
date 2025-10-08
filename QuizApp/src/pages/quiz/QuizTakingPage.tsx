@@ -28,7 +28,8 @@ const QuizTaker: React.FC<QuizTakerProps> = () => {
             try {
                 const data = await fetchQuizById(id);
                 if (!data) return;
-                // Backend returns: { id, title, questions: [{ id, questionText, points, answers: [{id, answerText}] }] }
+                // Backend returner
+        
                 const mapped: IQuiz = {
                     id: data.id,
                     title: data.title,
@@ -37,7 +38,7 @@ const QuizTaker: React.FC<QuizTakerProps> = () => {
                         id: q.id,
                         questionText: q.questionText,
                         points: q.points,
-                        // We don't receive correct answer id (intentionally hidden). Use -1 placeholder.
+                        // Gjem svaret til å begynne med
                         correctOptionId: -1,
                         answerOptions: (q.answers || []).map((a: any) => ({ id: a.id, text: a.answerText }))
                     }))
@@ -76,15 +77,15 @@ const QuizTaker: React.FC<QuizTakerProps> = () => {
         if (currentQuestionIndex < totalQuestions - 1) {
             setCurrentQuestionIndex(currentQuestionIndex + 1);
         } else {
-            // Last question answered – submit to backend for scoring
+            // Siste spørsmål besvart,send til backend for poengsum
             if (!currentQuiz) return;
-            if (isSubmitting) return; // guard against double click
+            if (isSubmitting) return;
             setIsSubmitting(true);
             setSubmitError(null);
             try {
                 const payload = { quizId: currentQuiz.id, selectedAnswers: userAnswers };
                 console.debug('Submitting quiz payload', payload);
-                // Quick sanity: ensure each provided answer id belongs to its question
+                // Sjekk for å se om svar tilhører spørsmålet sitt
                 const invalidMappings: Array<{ questionId: number; answerId: number }> = [];
                 currentQuiz.questions.forEach(q => {
                     const chosen = userAnswers[q.id];
@@ -106,7 +107,7 @@ const QuizTaker: React.FC<QuizTakerProps> = () => {
                         correctAnswers: correctFromServer,
                         totalQuestions: totalFromServer
                     });
-                    // Fallback heuristic: if server returned 0 but at least one question answered, log details
+                    // Loggfør detaljer hvis serveren gir feil 
                     if (scoreFromServer === 0 && Object.keys(userAnswers).length > 0) {
                         console.warn('Server returned score=0; debugging details', {
                             answered: userAnswers,
@@ -125,7 +126,7 @@ const QuizTaker: React.FC<QuizTakerProps> = () => {
             } catch (err: any) {
                 console.error('Submit failed', err);
                 setSubmitError(err.message || 'Kunne ikke sende inn quiz.');
-                setShowResults(true); // still move to result screen, showing error
+                setShowResults(true); 
             } finally {
                 setIsSubmitting(false);
             }
@@ -138,7 +139,7 @@ const QuizTaker: React.FC<QuizTakerProps> = () => {
         }
     };
 
-    // Client-side score deprecated; server determines correctness. (Keeping function for potential fallback.)
+    //Serveren bestemmer hva som er korrekt svar
     const calculateScore = () => 0;
 
     const calculateTotalPoints = () => {
