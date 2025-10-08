@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using api.Data;
 using api.DTOs;
 using api.Models;
 using System.Security.Claims;
@@ -12,9 +11,9 @@ namespace api.Controllers
     [Route("api/[controller]")]
     public class QuizController : ControllerBase
     {
-        private readonly AppDbContext _context;
+        private readonly AuthUserDbContext _context;
 
-        public QuizController(AppDbContext context)
+        public QuizController(AuthUserDbContext context)
         {
             _context = context;
         }
@@ -25,19 +24,61 @@ namespace api.Controllers
         [HttpPost("create")]
         public async Task<IActionResult> CreateQuiz([FromBody] QuizCreationDto quizDto)
         {
-            // ClaimTypes.NameIdentifier skal alltid være til stede hvis [Authorize] lykkes,
-            // men vi sjekker for sikkerhets skyld.
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (string.IsNullOrEmpty(userId))
+        
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            
+            var rawIdentifier = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var subjectClaim = User.FindFirstValue("sub");
+            var usernameFallback = User.Identity?.Name;
+
+            Console.WriteLine($"[QuizController] Raw NameIdentifier claim: {rawIdentifier}");
+            Console.WriteLine($"[QuizController] Sub claim: {subjectClaim}");
+            Console.WriteLine($"[QuizController] Identity.Name: {usernameFallback}");
+
+            string? resolvedUserId = null;
+
+            // Først anta at claim allerede inneholder GUID Id (Identity primærnøkkel) som er den som skal knyttes opp mot user 
+            if (!string.IsNullOrWhiteSpace(rawIdentifier))
             {
-                return Unauthorized();
+                var candidate = await _context.Users.FindAsync(rawIdentifier);
+                if (candidate != null)
+                {
+                    resolvedUserId = candidate.Id; 
+                }
             }
+
+            
+            if (resolvedUserId == null)
+            {
+                var possibleUsername = rawIdentifier ?? subjectClaim ?? usernameFallback;
+                if (!string.IsNullOrWhiteSpace(possibleUsername))
+                {
+                    var userByName = await _context.Users.FirstOrDefaultAsync(u => u.UserName == possibleUsername);
+                    if (userByName != null)
+                    {
+                        resolvedUserId = userByName.Id;
+                        Console.WriteLine($"[QuizController] Resolved username '{possibleUsername}' to Id '{resolvedUserId}'.");
+                    }
+                }
+            }
+
+            if (resolvedUserId == null)
+            {
+                return Unauthorized(new { Message = "Kunne ikke validere bruker fra token (mangler eller ugyldig). Logg inn på nytt." });
+            }
+
+            //Sørg for at quizen har minst ett spørsmål og at hvert spørsmål har svar
+            if (quizDto.Questions == null || !quizDto.Questions.Any())
+                return BadRequest(new { Message = "Quiz må ha minst ett spørsmål." });
+            if (quizDto.Questions.Any(q => q.Answers == null || !q.Answers.Any()))
+                return BadRequest(new { Message = "Hvert spørsmål må ha minst ett svar." });
 
             var quiz = new Quiz
             {
                 Title = quizDto.Title,
-                UserId = userId,
-                // Mapper DTO-strukturen til Modell-strukturen
+                UserId = resolvedUserId,
                 Questions = quizDto.Questions.Select(qDto => new Question
                 {
                     QuestionText = qDto.QuestionText,
@@ -51,10 +92,22 @@ namespace api.Controllers
             };
 
             _context.Quizzes.Add(quiz);
-            // Lagrer quizen og alle relaterte spørsmål og svar
-            await _context.SaveChangesAsync();
-
-            return Ok(new { Message = "Quiz opprettet!" });
+            try
+            {
+                await _context.SaveChangesAsync();
+                return Ok(new { Message = "Quiz opprettet!", QuizId = quiz.Id });
+            }
+            catch (DbUpdateException ex)
+            {
+                
+                Console.WriteLine($"[QuizController] DbUpdateException: {ex.Message}\nInner: {ex.InnerException?.Message}");
+                return StatusCode(500, new { Message = "Lagring feilet (DbUpdateException). Sannsynligvis ugyldig brukerreferanse.", Detail = ex.InnerException?.Message });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[QuizController] Uventet feil: {ex}");
+                return StatusCode(500, new { Message = "Uventet feil ved opprettelse av quiz.", Detail = ex.Message });
+            }
         }
 
         // GET: api/Quiz

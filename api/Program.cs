@@ -7,7 +7,6 @@ using Microsoft.OpenApi.Models;
 using api.Models;
 using Microsoft.EntityFrameworkCore.Sqlite;
 using Microsoft.EntityFrameworkCore;
-using api.Data; 
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -19,12 +18,6 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<AuthUserDbContext>(options =>
 {
     options.UseSqlite(builder.Configuration["ConnectionStrings:AuthUserDbContextConnection"]);
-});
-
-builder.Services.AddDbContext<AppDbContext>(options =>
-{
-    // Bruker samme tilkoblingsstreng for å lagre i samme SQLite-fil
-    options.UseSqlite(builder.Configuration["ConnectionStrings:AuthUserDbContextConnection"]); 
 });
 
 
@@ -78,12 +71,11 @@ builder.Services.AddAuthentication(options =>
 
 var app = builder.Build();
 
+// Apply pending EF Core migrations automatically at startup (dev convenience). In production consider manual migration deployment.
 using (var scope = app.Services.CreateScope())
 {
-    
-    // Henter AppDbContext for å sikre at Quiz, Question og Answer tabellene opprettes
-    var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    context.Database.EnsureCreated();
+    var db = scope.ServiceProvider.GetRequiredService<AuthUserDbContext>();
+    db.Database.Migrate();
 }
 
 
