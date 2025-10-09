@@ -131,7 +131,7 @@ const UserCreationPage: React.FC = () => {
             </Form.Group>
 
             <Form.Group className="mb-3" controlId="formTelephone">
-              <Form.Label>Telephone</Form.Label>
+              <Form.Label>Phone number</Form.Label>
               <Form.Control
                 type="tel"
                 placeholder="Enter Phone number"
