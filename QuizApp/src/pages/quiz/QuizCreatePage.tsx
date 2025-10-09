@@ -217,78 +217,88 @@ const QuizCreatePage: React.FC = () => {
             <hr className="my-5" />
 
             {/* Spørsmål */}
-            <div className="mb-4">
-              <h2 className="fs-3 mb-4">Questions</h2>
-              {questions.map((question, index) => (
-                <div key={question.id} className="card mb-4 border-0 shadow-sm rounded-3">
-                  <div className="card-body">
-                    <div className="mb-3">
-                      <label htmlFor={`question-${question.id}`} className="form-label fw-bold">
-                        Question {index + 1}
-                      </label>
-                      <input
-                        type="text"
-                        className="form-control"
-                        id={`question-${question.id}`}
-                        placeholder="Enter your question here"
-                        value={question.questionText}
-                        onChange={e => handleQuestionTextChange(question.id, e.target.value)}
-                        required
-                      />
-                    </div>
-
-                    <div className="mb-3">
-                      <label htmlFor={`points-${question.id}`} className="form-label">Points</label>
-                      <input
-                        type="number"
-                        className="form-control w-25"
-                        id={`points-${question.id}`}
-                        min={1}
-                        value={question.points}
-                        onChange={e => handlePointsChange(question.id, Number(e.target.value))}
-                        required
-                      />
-                    </div>
-
-                    <h6 className="mt-4 mb-2">Answer Options</h6>
-                    {question.answerOptions.map(option => (
-                      <div key={option.id} className="input-group mb-2">
-                        <div className="input-group-text">
-                          <input
-                            className="form-check-input mt-0"
-                            type="radio"
-                            name={`correct-answer-${question.id}`}
-                            checked={option.isCorrect}
-                            onChange={() => handleCorrectAnswerChange(question.id, option.id)}
-                          />
-                          <label className="ms-2">Correct</label>
-                        </div>
-                        <input
-                          type="text"
-                          className="form-control"
-                          placeholder={`Answer option ${option.id}`}
-                          value={option.text}
-                          onChange={e => handleAnswerTextChange(question.id, option.id, e.target.value)}
-                          required
-                        />
-                      </div>
-                    ))}
-
-                    {question.answerOptions.length < 4 && (
-                      <div className="d-grid mt-3">
-                        <button
-                          type="button"
-                          className="btn btn-sm btn-outline-secondary"
-                          onClick={() => handleAddAnswerOption(question.id)}
-                        >
-                          + Add Answer
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              ))}
+          <div className="mb-4">
+            <h2 className="fs-3 mb-4">Questions</h2>
+            {questions.map((question, index) => (
+              <div key={question.id} className="card mb-4 border-0 shadow-sm rounded-3">
+                <div className="card-body">
+        
+            {/* Spørsmålstekst */}
+            <div className="mb-3">
+              <label htmlFor={`question-${question.id}`} className="form-label fw-bold">
+                Question {index + 1}
+              </label>
+              <input
+                type="text"
+                className="form-control"
+                id={`question-${question.id}`}
+                placeholder="Enter your question here"
+                value={question.questionText}
+                onChange={e => handleQuestionTextChange(question.id, e.target.value)}
+                required
+              />
             </div>
+
+            {/* Poeng */}
+            <div className="mb-3">
+              <label htmlFor={`points-${question.id}`} className="form-label">Points</label>
+              <input
+                type="number"
+                className="form-control w-25"
+                id={`points-${question.id}`}
+                min={1}
+                max={100}
+                value={question.points}
+                onChange={e => {
+                  const value = Math.min(Math.max(Number(e.target.value), 1), 100);
+                  handlePointsChange(question.id, value);
+                }}
+                required
+              />
+            </div>
+
+            {/* Svaralternativer */}
+            <h6 className="mt-4 mb-2">Answer Options</h6>
+            {question.answerOptions.map(option => (
+              <div key={option.id} className="input-group mb-2">
+                <div className="input-group-text">
+                  <input
+                    className="form-check-input mt-0"
+                    type="radio"
+                    name={`correct-answer-${question.id}`}
+                    checked={option.isCorrect}
+                    onChange={() => handleCorrectAnswerChange(question.id, option.id)}
+                  />
+                  <label className="ms-2">Correct</label>
+                </div>
+                <input
+                  type="text"
+                  className="form-control"
+                  placeholder={`Answer option ${option.id}`}
+                  value={option.text}
+                  onChange={e => handleAnswerTextChange(question.id, option.id, e.target.value)}
+                  required
+                />
+              </div>
+            ))}
+
+            {/* Legg til svar-knapp */}
+            {question.answerOptions.length < 4 && (
+              <div className="d-grid mt-3">
+                <button
+                  type="button"
+                  className="btn btn-sm btn-outline-secondary"
+                  onClick={() => handleAddAnswerOption(question.id)}
+                >
+                  + Add Answer
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      ))}
+    </div>
+
 
             <div className="d-grid gap-2 mb-4">
               <button
