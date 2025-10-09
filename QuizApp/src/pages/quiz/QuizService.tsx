@@ -67,16 +67,7 @@ export const submitQuiz = async (submission: { quizId: number; selectedAnswers: 
     return handleResponse(response);
 };
 
-
-// PUT update quiz
-export const updateQuiz = async (id: number, quizDto: any) => {
-    const response = await fetch(`${API_URL}/api/Quiz/${id}`, {
-        method: 'PUT',
-        headers: buildHeaders(),
-        body: JSON.stringify(quizDto),
-    });
-    return handleResponse(response);
-};
+// Update quiz by ID Add method
 
 
 // DELETE quiz by ID

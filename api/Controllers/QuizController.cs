@@ -171,6 +171,11 @@ namespace api.Controllers
             return Ok(quizDetails);
         }
 
+        //Add Method for updating a quiz by id
+        
+
+
+
 
         //Method for deleting a quiz by id
         [Authorize]

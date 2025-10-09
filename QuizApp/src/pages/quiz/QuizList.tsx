@@ -3,6 +3,7 @@ import type { QuizListProps } from '../../types/quiz';
 import { useNavigate } from 'react-router-dom';
 import { fetchQuizzes, deleteQuiz } from './QuizService';
 
+
 /**
  * QuizList-komponenten viser en dynamisk liste over alle tilgjengelige quizzer.
  * Den bruker Bootstrap 5 for et responsivt og tiltalende design.
@@ -109,7 +110,7 @@ const QuizList: React.FC<QuizListProps> = () => {
                                         </button>
 
                                         <button
-                                            onClick={(e) => { e.stopPropagation(); navigate(`/EditQuiz/${quiz.id}`); }}
+                                            onClick={(e) => { e.stopPropagation(); navigate(`/QuizUpdate/${quiz.id}`); }}
                                             className="btn btn-primary fw-bold rounded-pill px-4 me-2"
                                         >
                                             Update Quiz

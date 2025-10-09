@@ -6,6 +6,7 @@ import './App.css';
 
 const HomePage = lazy(() => import("./pages/home/HomePage"));
 const QuizCreationPage = lazy(() => import("./pages/quiz/QuizCreatePage"));
+const QuizUpdatePage = lazy(() => import("./pages/quiz/QuizUpdatePage"));
 const LoginPage = lazy(() => import("./auth/LoginPage"));
 const QuizTakingPage = lazy(() => import("./pages/quiz/QuizTakingPage"));
 const UserCreationPage = lazy(() => import("./pages/user/UserCreationPage"));
@@ -25,6 +26,7 @@ const App: React.FC = () => {
             <Route path="/QuizTakingPage/:quizId" element={<QuizTakingPage />} />
             <Route path="/quizcreate" element={<QuizCreationPage />} />
             <Route path="/CreateUser" element={<UserCreationPage />} />
+            <Route path="/QuizUpdate/:quizId" element={<QuizUpdatePage />} />
             <Route path="*" element={<div>404 - Side ikke funnet</div>} />
           </Routes>
         </Container>
