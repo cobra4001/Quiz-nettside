@@ -214,7 +214,7 @@ const QuizTaker: React.FC<QuizTakerProps> = () => {
 
         return (
             <div className="text-center p-4">
-                <h2 className="display-4 text-success mb-4">Quiz Fullført!</h2>
+                <h2 className="display-4 text-success mb-4">Quiz Completed!</h2>
                 <Alert variant={scorePercentage >= 50 ? 'success' : 'warning'}>
                     <p className="lead mb-1">your score:</p>
                     <h3 className="fw-bold">{finalScore} of {totalPoints} points</h3>

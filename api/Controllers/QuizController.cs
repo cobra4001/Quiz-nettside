@@ -171,6 +171,30 @@ namespace api.Controllers
             return Ok(quizDetails);
         }
 
+
+        //Method for deleting a quiz by id
+        [Authorize]
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteQuiz(int id)
+        {
+            // Find the quiz including its questions and answers (for cascade delete)
+            var quiz = await _context.Quizzes
+            .Include(q => q.Questions)
+            .ThenInclude(q => q.Answers)
+            .FirstOrDefaultAsync(q => q.Id == id);
+
+            if (quiz == null)
+                return NotFound(new { Message = "Quiz not found." });
+
+            // Remove the quiz
+            _context.Quizzes.Remove(quiz);
+            await _context.SaveChangesAsync();
+
+            // Return 204 No Content to indicate success
+            return NoContent();
+        }   
+    
+    
         // POST: api/Quiz/submit
         // Sender inn en quiz og beregner poengsummen.
         [HttpPost("submit")]

@@ -66,3 +66,28 @@ export const submitQuiz = async (submission: { quizId: number; selectedAnswers: 
     });
     return handleResponse(response);
 };
+
+
+// PUT update quiz
+export const updateQuiz = async (id: number, quizDto: any) => {
+    const response = await fetch(`${API_URL}/api/Quiz/${id}`, {
+        method: 'PUT',
+        headers: buildHeaders(),
+        body: JSON.stringify(quizDto),
+    });
+    return handleResponse(response);
+};
+
+
+// DELETE quiz by ID
+export const deleteQuiz = async (id: number): Promise<void> => {
+    const response = await fetch(`${API_URL}/api/Quiz/${id}`, {
+        method: 'DELETE',
+        headers: buildHeaders(),
+    });
+
+    if (!response.ok) {
+        const msg = await response.text();
+        throw new Error(`Failed to delete quiz: ${msg}`);
+    }
+};

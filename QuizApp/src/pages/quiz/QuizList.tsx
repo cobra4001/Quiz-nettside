@@ -1,9 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import type { QuizListProps } from '../../types/quiz';
 import { useNavigate } from 'react-router-dom';
-import { fetchQuizzes } from './QuizService';
-
-
+import { fetchQuizzes, deleteQuiz } from './QuizService';
 
 /**
  * QuizList-komponenten viser en dynamisk liste over alle tilgjengelige quizzer.
@@ -14,6 +12,22 @@ const QuizList: React.FC<QuizListProps> = () => {
     const [quizzes, setQuizzes] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+
+
+    // Deletes a quiz both in the backend and locally
+    const handleQuizDeleted = async (quizId: number) => {
+    const confirmDelete = window.confirm("Are you sure you want to delete this quiz? This action cannot be undone.");
+    if (!confirmDelete) return;
+
+    try {
+        await deleteQuiz(quizId); // Call QuizService to delete
+        // Remove quiz from local state
+        setQuizzes(prev => prev.filter(q => q.id !== quizId));
+    } catch (error: any) {
+        console.error("Could not delete quiz:", error);
+        alert(error?.message || "Could not delete quiz.");
+    }
+};
 
     useEffect(() => {
         let mounted = true;
@@ -69,28 +83,47 @@ const QuizList: React.FC<QuizListProps> = () => {
                                         borderRadius: '1rem' 
                                     }}
                                 >
-                                    <div className="d-flex justify-content-between align-items-start">
-                                        <div>
-                                            {/* Quiz Tittel */}
-                                            <h2 className="card-title fw-bolder fs-4 text-dark mb-2">{quiz.title}</h2>
-                                            {/* Placeholder description since backend doesn't send one */}
-                                            <p className="card-text mb-3">{quiz.description || 'No description provided.'}</p>
-                                        </div>
-                                        {/* Ikon/Antall spørsmål */}
-                                        <div className="text-end ms-3">
-                                            <span className="badge bg-info text-dark rounded-pill py-2 px-3 fw-bold" title="Number of questions">
-                                                {quiz.questionCount ?? (quiz.questions ? quiz.questions.length : 0)} questions
-                                            </span>
-                                        </div>
+                                    <div className="d-flex align-items-start position-relative">
+                                    {/* Centered title & description */}
+                                    <div className="text-center mx-auto">
+                                        <h2 className="card-title fw-bolder fs-4 text-dark mb-2">{quiz.title}</h2>
+                                        <p className="card-text mb-3">{quiz.description || 'No description provided.'}</p>
                                     </div>
+
+                                    {/* Number of questions in top-right corner */}
+                                    <div className="position-absolute top-0 end-0">
+                                        <span className="badge bg-info text-dark rounded-pill py-2 px-3 fw-bold" title="Number of questions">
+                                        {quiz.questionCount ?? (quiz.questions ? quiz.questions.length : 0)} questions
+                                        </span>
+                                    </div>
+                                    </div>
+
                                     
+                                    {/* Action buttons */}
                                     <div className="mt-3">
-                                        <button 
-                                            onClick={() => navigateOnclick(quiz.id)} // Hindrer kortets onClick
-                                            className="btn btn-sm btn-primary fw-bold rounded-pill px-4"
+                                        <button
+                                            onClick={(e) => { e.stopPropagation(); navigateOnclick(quiz.id); }}
+                                            className="btn btn-success fw-bold rounded-pill px-4 me-2"
                                         >
                                             Start Quiz
                                         </button>
+
+                                        <button
+                                            onClick={(e) => { e.stopPropagation(); navigate(`/EditQuiz/${quiz.id}`); }}
+                                            className="btn btn-primary fw-bold rounded-pill px-4 me-2"
+                                        >
+                                            Update Quiz
+                                        </button>
+
+                                       <button
+                                        onClick={(e) => { 
+                                            e.stopPropagation(); // Prevent card click from navigating
+                                            handleQuizDeleted(quiz.id); 
+                                        }}
+                                        className="btn btn-danger fw-bold rounded-pill px-4"
+                                    >
+                                        Delete Quiz
+                                    </button>
                                     </div>
                                 </div>
                             </div>
@@ -98,7 +131,7 @@ const QuizList: React.FC<QuizListProps> = () => {
                     </div>
                 )}
                 
-                {/* Custom CSS for hover-effekt, da Bootstrap ikke har en standard klasse for dette */}
+                {/* Custom CSS for hover effect */}
                 <style>{`
                     .hover-zoom:hover {
                         transform: translateY(-5px);
