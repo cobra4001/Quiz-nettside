@@ -78,6 +78,7 @@ namespace api.Controllers
             var quiz = new Quiz
             {
                 Title = quizDto.Title,
+                Description = quizDto.Description,
                 UserId = resolvedUserId,
                 Questions = quizDto.Questions.Select(qDto => new Question
                 {
@@ -122,13 +123,14 @@ namespace api.Controllers
                                       {
                                           q.Id,
                                           q.Title,
+                                          q.Description,
                                           // Merk: Questions-samlingen må lastes (enten ivrig eller lat) 
                                           // for at .Count skal fungere i EF Core.
-                                          QuestionCount = q.Questions.Count, 
+                                          QuestionCount = q.Questions.Count,
                                           // Vi bruker null-tilgivende operatoren på UserName her 
                                           // for å løse advarselen, da Creator er sjekket for null, 
                                           // og UserName generelt ikke er null på en autentisert bruker.
-                                          Creator = q.Creator != null ? q.Creator.UserName! : "Unknown" 
+                                          Creator = q.Creator != null ? q.Creator.UserName! : "Unknown"
                                       })
                                       .ToListAsync();
             return Ok(quizzes);

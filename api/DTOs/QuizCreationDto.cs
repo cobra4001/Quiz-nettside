@@ -7,6 +7,11 @@ namespace api.DTOs
         [Required]
         public string Title { get; set; } = string.Empty;
 
+        //Description property 
+        [Required(ErrorMessage = "Description is required")]
+        public string Description { get; set; } = string.Empty; 
+
+
         [Required]
         [MinLength(1, ErrorMessage = "A quiz must have at least one question.")]
         public List<QuestionCreationDto> Questions { get; set; } = new List<QuestionCreationDto>();

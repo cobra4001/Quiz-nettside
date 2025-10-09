@@ -32,6 +32,7 @@ const QuizCreatePage: React.FC = () => {
   if (!user) return null;
 
   const [quizTitle, setQuizTitle] = useState<string>('');
+   const [quizDescription, setQuizDescription] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
@@ -163,6 +164,7 @@ const QuizCreatePage: React.FC = () => {
 
     const quizDto = {
       title: quizTitle.trim(),
+      description: quizDescription.trim(),
       questions: questions.map(q => ({
         questionText: q.questionText.trim(),
         points: q.points,
@@ -205,6 +207,16 @@ const QuizCreatePage: React.FC = () => {
                 className="form-control form-control-lg"
                 value={quizTitle}
                 onChange={e => setQuizTitle(e.target.value)}
+                required
+              />
+            </div>
+            <div className="mb-4">
+              <label className="form-label fw-bold">Quiz Description</label>
+              <input
+                type="text"
+                className="form-control form-control-lg"
+                value={quizDescription}
+                onChange={e => setQuizDescription(e.target.value)}
                 required
               />
             </div>

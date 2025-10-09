@@ -12,6 +12,9 @@ namespace api.Models
         public string Title { get; set; } = string.Empty;
 
         [Required]
+        public string Description { get; set; } = string.Empty;
+
+        [Required]
         public string UserId { get; set; } = string.Empty;
 
         // Navigasjonsfelt til brukeren som opprettet quizen
