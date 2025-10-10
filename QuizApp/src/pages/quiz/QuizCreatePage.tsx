@@ -145,6 +145,19 @@ const QuizCreatePage: React.FC = () => {
       setErrorMsg('Quiz title is required.');
       return;
     }
+    if (quizTitle.length < 5) {
+      setErrorMsg('Quiz title must be at least 5 characters long.');
+      return;   
+    }
+
+    if (!quizDescription.trim()) {
+      setErrorMsg('Quiz description is required.');
+      return;
+    }
+    if (quizDescription.length < 10) {
+      setErrorMsg('Quiz description must be at least 10 characters long.');
+      return;   
+    }
 
     for (const [index, q] of questions.entries()) {
       if (!q.questionText.trim()) {
