@@ -35,6 +35,14 @@ export const fetchQuizzes = async () => {
     return handleResponse(response);
 };
 
+// GET /api/Quiz/my
+export const fetchMyQuizzes = async () => {
+    const response = await fetch(`${API_URL}/api/Quiz/my`, {
+        headers: buildHeaders(),
+    });
+    return handleResponse(response);
+};
+
 // GET /api/Quiz/{id}
 export const fetchQuizById = async (id: number) => {
     const response = await fetch(`${API_URL}/api/Quiz/${id}`, {
@@ -67,8 +75,23 @@ export const submitQuiz = async (submission: { quizId: number; selectedAnswers: 
     return handleResponse(response);
 };
 
-// Update quiz by ID Add method
+// GET /api/Quiz/{id}/edit - Fetch quiz for editing with all details
+export const fetchQuizForEdit = async (id: number) => {
+    const response = await fetch(`${API_URL}/api/Quiz/${id}/edit`, {
+        headers: buildHeaders(),
+    });
+    return handleResponse(response);
+};
 
+// PUT /api/Quiz/{id} - Update quiz by ID
+export const updateQuiz = async (id: number, quizDto: any) => {
+    const response = await fetch(`${API_URL}/api/Quiz/${id}`, {
+        method: 'PUT',
+        headers: buildHeaders(),
+        body: JSON.stringify(quizDto),
+    });
+    return handleResponse(response);
+};
 
 // DELETE quiz by ID
 export const deleteQuiz = async (id: number): Promise<void> => {

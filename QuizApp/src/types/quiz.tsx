@@ -21,7 +21,7 @@ export interface IQuestion {
 
 export interface QuizListProps {
     // Funksjon for å navigere ved klikk (brukes av react-router-dom sin useNavigate)
-    onQuizSelect: (quizId: number) => void;
+    onQuizSelect?: (quizId: number) => void;
 }
 
 // Grensesnitt for QuizTaker-komponenten
