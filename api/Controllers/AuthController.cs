@@ -70,11 +70,74 @@ namespace api.Controllers
                 var token = GenerateJwtToken(user);
                 return Ok(new { Token = token });
             }
-            
+
             _logger.LogWarning("[AuthAPIController] user not authorised for {@username}", loginDto.Username);
             return Unauthorized();
         }
 
+        [Authorize]
+        [HttpPatch("update")]
+        public async Task<IActionResult> UpdateContact([FromBody] UpdateContactDTO updateContactDto)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (userId == null)
+                return Unauthorized();
+
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null)
+                return NotFound(new { Message = "User not found" });
+
+            user.Email = updateContactDto.Email;
+            user.PhoneNumber = updateContactDto.Phonenumber;
+
+            var result = await _userManager.UpdateAsync(user);
+            if (result.Succeeded)
+            {
+                _logger.LogInformation("[AuthAPIController] user updated contact info for {@username}", user.UserName);
+                return Ok(new { Message = "Contact information updated successfully" });
+            }
+
+            var errors = result.Errors.Select(e => e.Description).ToArray();
+            return BadRequest(new { Errors = errors });
+        }
+
+        
+        [HttpGet("profile")]
+        public async Task<IActionResult> GetProfile()
+        {
+            _logger.LogInformation("Profile endpoint hit");
+
+            foreach (var claim in User.Claims)
+            {
+                _logger.LogInformation($"Claim: {claim.Type} = {claim.Value}");
+            };
+
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            
+            if (userId == null) {
+                _logger.LogWarning("UserId is null, returning Unauthorized");
+                return Unauthorized();
+            }
+            
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null)
+                return NotFound(new { Message = "User not found" });
+
+            return Ok(new 
+            { 
+                Username = user.UserName,   
+                Email = user.Email, 
+                Phonenumber = user.PhoneNumber 
+            });
+        }
+
+        /*[Authorize]
+        [HttpPatch("change-password")]
+        public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordDTO changePasswordDto)
+        {
+            
+        }
+*/
         [Authorize] // not strictly necessary for logout, but good practice
         [HttpPost("logout")]
         public async Task<IActionResult> Logout()
@@ -98,9 +161,8 @@ namespace api.Controllers
 
             var claims = new[]
             {
-                new Claim(JwtRegisteredClaimNames.Sub, user.UserName!), // Subject of the token
-                //new Claim(JwtRegisteredClaimNames.Email, user.Email!), // User's email
-                new Claim(ClaimTypes.NameIdentifier, user.Id), // Unique identifier for the user
+                new Claim(JwtRegisteredClaimNames.UniqueName, user.UserName!),
+                new Claim(JwtRegisteredClaimNames.NameId, user.Id),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()), // Unique identifier for the token
                 new Claim(JwtRegisteredClaimNames.Iat, DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString()) // Issued at timestamp
             };

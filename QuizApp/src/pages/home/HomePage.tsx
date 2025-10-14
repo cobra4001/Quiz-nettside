@@ -1,12 +1,10 @@
 import React from "react";
 import { useAuth } from "../../auth/AuthContext";
 
-
-
 const HomePage: React.FC = () => {
 
     const {user} = useAuth();
-
+    console.log(user);
     return (
         // Main container with a centered, full-screen layout using flexbox
         <div className="d-flex align-items-center justify-content-center min-vh-100">
@@ -14,7 +12,7 @@ const HomePage: React.FC = () => {
             <div className="card shadow border-0 rounded-4 p-5 w-100" style={{ maxWidth: '480px' }}>
                 <div className="card-body text-center">
                     <h1 className="card-title fw-bold fs-1 text-dark mb-3">
-                        {!user ? 'Quiz Hub' : `Welcome back ${user.sub}`} {/*Denne viser username, hvis logget ind */}
+                        {!user ? 'Quiz Hub' : `Welcome back ${user.unique_name}`} {/*Denne viser username, hvis logget ind */}
                     </h1>
                     <p className="card-text lead text-muted mb-5">
                         Create custom quizzes, and challenge your friends!

@@ -12,3 +12,13 @@ export interface RegisterDto {
   password: string;
   confirmPassword: string;
 }
+
+export interface UpdateContactDTO {
+  email: string;
+  phonenumber: string;
+}
+
+export interface ChangePasswordDTO {
+  password: String;
+  confirmPassword: String;
+}

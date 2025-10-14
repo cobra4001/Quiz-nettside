@@ -17,6 +17,8 @@ const NavBar: React.FC = () => {
     }
   };
 
+  console.log(user);
+
   return (
     <Navbar expand="lg" fixed="top" bg="primary" variant="dark">
       <Nav className="mx-auto">
@@ -34,10 +36,11 @@ const NavBar: React.FC = () => {
               <Nav.Link href="/LoginPage">Login</Nav.Link>
             ) : (
               // @ts-ignore ignorerer feil med user.sub, da da fungere (den som viser brukernavnet i dropdown)
-              <NavDropdown title={user.sub} id="basic-nav-dropdown" >
+              <NavDropdown title={user.unique_name} id="basic-nav-dropdown" >
               <NavDropdown.Item>My scores</NavDropdown.Item> {/* Eventuel oppgradering til siden, hvor man kan se ens score */}
               <NavDropdown.Item onClick={() => navigate("/MyQuizzes")}>My Quizzes</NavDropdown.Item> {/* Navigerer til oversigt over ens egen quizzer */}
               <NavDropdown.Item onClick={() => { logout(); navigate("/"); }}>Logout</NavDropdown.Item>
+              <NavDropdown.Item onClick={() => navigate("/UserProfile")}>Profile</NavDropdown.Item>
               </NavDropdown>
 
             )}
