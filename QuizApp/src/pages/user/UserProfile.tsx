@@ -142,7 +142,7 @@ const UserProfile: React.FC = () => {
               <Form>
                 <Form.Group className="mb-3">
                   <Form.Label>Username</Form.Label>
-                  <Form.Control value={username} readOnly />
+                  <p className="form-control-plaintext">{username}</p>
                 </Form.Group>
               </Form>
             </Card.Body>
