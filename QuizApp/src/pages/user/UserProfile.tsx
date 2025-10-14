@@ -3,6 +3,7 @@ import { Form, Button, Card, Alert, Container, Row, Col, Modal } from "react-boo
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../auth/AuthContext";
 import { isValidEmail, isValidPhone } from "../../shared/Regex";
+import type { UpdateContactDTO } from "../../types/auth";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -68,7 +69,7 @@ const UserProfile: React.FC = () => {
     setIsSubmitting(true);
     try {
       // Fixed: Pass individual values as per AuthContext signature
-      await updateContact(email, phonenumber);
+      await updateContact( { email, phonenumber } as UpdateContactDTO);
       setSuccess("Contact information updated successfully!");
     } catch (err: any) {
       setError(err.message || "Update failed");

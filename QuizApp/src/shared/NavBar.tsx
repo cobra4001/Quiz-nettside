@@ -30,10 +30,10 @@ const NavBar: React.FC = () => {
             
             <Nav.Link href="/QuizList">Quizzes</Nav.Link>
 
-            {!user ? <Nav.Link onClick={() => navigate("/CreateUser")}>Create account</Nav.Link> : <Nav.Link onClick={handleCreateClick} style={{ cursor: 'pointer' }}>Create quiz</Nav.Link> }
+            {!user ? <Nav.Link href="/CreateUser">Create account</Nav.Link> : <Nav.Link onClick={handleCreateClick} style={{ cursor: 'pointer' }}>Create quiz</Nav.Link> }
 
             {!user ? (
-              <Nav.Link onClick={() => navigate("/LoginPage", { state: { from: "/NavBar", message: "" }})}>Login</Nav.Link>
+              <Nav.Link onClick={() => navigate("/LoginPage", { state: { from: "/NavBar", message: "null" }})}>Login</Nav.Link>
             ) : (
               // @ts-ignore ignorerer feil med user.sub, da da fungere (den som viser brukernavnet i dropdown)
               <NavDropdown title={user.unique_name} id="basic-nav-dropdown" >
