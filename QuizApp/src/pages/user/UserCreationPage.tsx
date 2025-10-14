@@ -8,7 +8,9 @@ const UserCreationPage: React.FC = () => {
   const { register } = useAuth();
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
+  const [confirmEmail, setConfirmEmail] = useState("");
   const [phonenumber, setPhonenumber] = useState("");
+  const [confirmPhonenumber, setConfirmPhonenumber] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -36,11 +38,19 @@ const UserCreationPage: React.FC = () => {
     setError("Please enter a valid email address.");
     return;
     }
-     
+     if (email !== confirmEmail) {
+      setError("Emails do not match.");
+      return;
+    }
+
       if (!isValidPhone(phonenumber)) {
       setError("Please enter a valid Norwegian phone number 4******* or 9*******.");
       return;
-      }  
+      }
+       if (phonenumber !== confirmPhonenumber) {
+      setError("Phone numbers do not match.");
+      return;
+    }
       
     if (password.length < 8) {
       setError("Please create a password with at least 8 characters.");
@@ -55,7 +65,9 @@ const UserCreationPage: React.FC = () => {
      await register({
       username,
       email,
+      confirmEmail,
       phonenumber,
+      confirmPhonenumber,
       password,
       confirmPassword
     } as RegisterDto);
@@ -69,7 +81,9 @@ const UserCreationPage: React.FC = () => {
     setSuccess("User created successfully!");
     setUsername("");
     setEmail("");
+    setConfirmEmail("");
     setPhonenumber("");
+    setConfirmPhonenumber("");
     setPassword("");
     setConfirmPassword("");
   };
@@ -82,32 +96,6 @@ const UserCreationPage: React.FC = () => {
           {error && <Alert variant="danger">{error}</Alert>}
           {success && <Alert variant="success">{success}</Alert>}
           <Form onSubmit={handleSubmit}>
-            
-
-            <Form.Group className="mb-3" controlId="formEmail">
-              <Form.Label>Email</Form.Label>
-              <Form.Control
-                type="email"
-                placeholder="Enter Email address"
-                value={email}
-                onChange={e => setEmail(e.target.value)}
-                autoComplete="email"
-              />
-            </Form.Group>
-             
-
-            <Form.Group className="mb-3" controlId="formTelephone">
-              <Form.Label>Phone number</Form.Label>
-              <Form.Control
-                type="tel"
-                placeholder="Enter Phone number"
-                maxLength={8}
-                value={phonenumber}
-                onChange={e => setPhonenumber(e.target.value)}
-                autoComplete="tel"
-              />
-            </Form.Group>
-
             <Form.Group className="mb-3" controlId="formUsername">
               <Form.Label>Username</Form.Label>
               <Form.Control
@@ -120,7 +108,51 @@ const UserCreationPage: React.FC = () => {
                 autoComplete="username"
               />
             </Form.Group>
-             
+
+            <Form.Group className="mb-3" controlId="formEmail">
+              <Form.Label>Email</Form.Label>
+              <Form.Control
+                type="email"
+                placeholder="Enter Email address"
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+                autoComplete="email"
+              />
+            </Form.Group>
+             <Form.Group className="mb-4" controlId="formConfirmEmail">
+              <Form.Label>Confirm Email</Form.Label>
+              <Form.Control
+                type="email"
+                placeholder="Confirm Email address"
+                value={confirmEmail}
+                onChange={e => setConfirmEmail(e.target.value)}
+                autoComplete="new-Email"
+              />
+            </Form.Group>
+
+            <Form.Group className="mb-3" controlId="formTelephone">
+              <Form.Label>Phone number</Form.Label>
+              <Form.Control
+                type="tel"
+                placeholder="Enter Phone number"
+                maxLength={8}
+                value={phonenumber}
+                onChange={e => setPhonenumber(e.target.value)}
+                autoComplete="tel"
+              />
+            </Form.Group>
+             <Form.Group className="mb-4" controlId="formConfirmTelephone">
+              <Form.Label>Confirm phone number</Form.Label>
+              <Form.Control
+                type="tel"
+                placeholder="Confirm phone number"
+                maxLength={8}
+                value={confirmPhonenumber}
+                onChange={e => setConfirmPhonenumber(e.target.value)}
+                autoComplete="new-Phone"
+              />
+            </Form.Group>
+
             <Form.Group className="mb-3" controlId="formPassword">
               <Form.Label>Password</Form.Label>
               <Form.Control
