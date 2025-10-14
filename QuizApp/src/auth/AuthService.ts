@@ -2,6 +2,8 @@ import type { LoginDto, RegisterDto, UpdateContactDTO, ChangePasswordDTO } from 
 
 const API_URL = import.meta.env.VITE_API_URL;
 
+
+
 function authHeader(token?: string) {
     const t = token ?? localStorage.getItem('token') ?? '';
     return t ? { Authorization: `Bearer ${t}` } : {};
@@ -59,20 +61,17 @@ export const updateContact = async (updateContact: UpdateContactDTO, token?: str
     return await handleResponse(response);
 }
 
-export const changePassword = async (changePassword: ChangePasswordDTO): Promise<any> => {
+export const changePassword = async (changePassword: ChangePasswordDTO, token?: string): Promise<any> => {
     const response = await fetch(`${API_URL}/api/Auth/change-password`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({changePassword})
+        headers: { 'Content-Type': 'application/json', ...authHeader(token) } as HeadersInit,
+        body: JSON.stringify(changePassword)
     });
     return await handleResponse(response);
 }
 
 export const fetchProfile = async (token: string): Promise<any> => {
     const headers = { 'Content-Type': 'application/json', ...authHeader(token) } as HeadersInit;
-
-    console.log("Headers:", headers);
-    console.log('Token being used:', token?.substring(0, 20) + '...');
 
     const response = await fetch(`${API_URL}/api/Auth/profile`, {
         method: 'GET',

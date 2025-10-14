@@ -3,7 +3,7 @@ import { Form, Button, Card, Alert, Container, Row, Col, Modal } from "react-boo
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../auth/AuthContext";
 import { isValidEmail, isValidPhone } from "../../shared/Regex";
-import type { UpdateContactDTO } from "../../types/auth";
+import type { ChangePasswordDTO, UpdateContactDTO } from "../../types/auth";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -14,7 +14,8 @@ const UserProfile: React.FC = () => {
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [phonenumber, setPhonenumber] = useState("");
-  const [password, setPassword] = useState("");
+  const [oldPassword, setOldPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
   const [loading, setLoading] = useState(true);
@@ -82,20 +83,20 @@ const UserProfile: React.FC = () => {
     setError(null);
     setSuccess(null);
 
-    if (password.length < 6) {
+    if (newPassword.length < 6) {
       setError("Password must be at least 6 characters.");
       return;
     }
-    if (password !== confirmPassword) {
+    if (newPassword !== confirmPassword) {
       setError("Passwords do not match.");
       return;
     }
 
     setIsSubmitting(true);
     try {
-      // Fixed: Use the context method and add auth header
-      await changePassword({ newPassword: password });
-      setPassword("");
+      await changePassword({ oldPassword, newPassword, confirmPassword } as ChangePasswordDTO);
+      setOldPassword("");
+      setNewPassword("");
       setConfirmPassword("");
       setSuccess("Password updated successfully!");
     } catch (err: any) {
@@ -188,13 +189,23 @@ const UserProfile: React.FC = () => {
           <Card>
             <Card.Header>Security</Card.Header>
             <Card.Body>
-              <Form>
+              <Form onSubmit={updatePassword}>
+                <Form.Group className="mb-3">
+                  <Form.Label>Current password</Form.Label>
+                  <Form.Control
+                    type="password"
+                    value={oldPassword}
+                    onChange={(e) => setOldPassword(e.target.value)}
+                    placeholder="Enter current password"
+                  />
+                </Form.Group>
+
                 <Form.Group className="mb-3">
                   <Form.Label>New password</Form.Label>
                   <Form.Control
                     type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
                     placeholder="Enter new password"
                   />
                 </Form.Group>

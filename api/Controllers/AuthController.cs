@@ -32,6 +32,7 @@ namespace api.Controllers
             _logger = logger;
             _context = context;
         }
+        
 
        [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] RegisterDTO registerDto)
@@ -75,6 +76,32 @@ namespace api.Controllers
             return Unauthorized();
         }
 
+
+
+        [Authorize]
+        [HttpGet("profile")]
+        public async Task<IActionResult> GetProfile()
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            if (userId == null)
+            {
+                _logger.LogWarning("UserId is null, returning Unauthorized");
+                return Unauthorized();
+            }
+
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null)
+                return NotFound(new { Message = "User not found" });
+
+            return Ok(new
+            {
+                Username = user.UserName,
+                Email = user.Email,
+                Phonenumber = user.PhoneNumber
+            });
+        }
+        
         [Authorize]
         [HttpPatch("update")]
         public async Task<IActionResult> UpdateContact([FromBody] UpdateContactDTO updateContactDto)
@@ -98,46 +125,34 @@ namespace api.Controllers
             }
 
             var errors = result.Errors.Select(e => e.Description).ToArray();
+            Console.WriteLine(errors);
             return BadRequest(new { Errors = errors });
         }
 
         [Authorize]
-        [HttpGet("profile")]
-        public async Task<IActionResult> GetProfile()
+        [HttpPatch("change-password")]
+        public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordDTO changePasswordDto)
         {
-            _logger.LogInformation("Profile endpoint hit");
-
-            foreach (var claim in User.Claims)
-            {
-                _logger.LogInformation($"Claim: {claim.Type} = {claim.Value}");
-            };
-
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            
-            if (userId == null) {
-                _logger.LogWarning("UserId is null, returning Unauthorized");
+            if (userId == null)
                 return Unauthorized();
-            }
-            
+
             var user = await _userManager.FindByIdAsync(userId);
             if (user == null)
                 return NotFound(new { Message = "User not found" });
 
-            return Ok(new 
-            { 
-                Username = user.UserName,   
-                Email = user.Email, 
-                Phonenumber = user.PhoneNumber 
-            });
+            var result = await _userManager.ChangePasswordAsync(user, changePasswordDto.OldPassword, changePasswordDto.NewPassword);
+            if (result.Succeeded)
+            {
+                _logger.LogInformation("[AuthAPIController] user changed password for {@username}", user.UserName);
+                return Ok(new { Message = "Password changed successfully" });
+            }
+            var errors = result.Errors.Select(e => e.Description).ToArray();
+            Console.WriteLine(errors);
+            return BadRequest(new { Errors = errors });
+
         }
 
-        /*[Authorize]
-        [HttpPatch("change-password")]
-        public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordDTO changePasswordDto)
-        {
-            
-        }
-*/
         [Authorize] // not strictly necessary for logout, but good practice
         [HttpPost("logout")]
         public async Task<IActionResult> Logout()

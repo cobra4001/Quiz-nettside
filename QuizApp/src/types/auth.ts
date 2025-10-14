@@ -17,6 +17,7 @@ export interface UpdateContactDTO {
 }
 
 export interface ChangePasswordDTO {
-  password: String;
-  confirmPassword: String;
+  oldPassword: string;
+  newPassword: string;
+  confirmPassword: string;
 }

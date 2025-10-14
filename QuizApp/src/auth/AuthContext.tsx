@@ -70,17 +70,14 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
 
     const updateContact = async (updateContact: UpdateContactDTO) => { 
-        if (!token) throw new Error("No token available");
         await authService.updateContact(updateContact, token as string);
     }
 
     const changePassword = async (changePassword: ChangePasswordDTO) => {
-        if (!token) throw new Error("No token available");
-        await authService.changePassword(changePassword);
+        await authService.changePassword(changePassword, token as string);
     }
 
     const deleteAccount = async () => { 
-        if (!token) throw new Error("No token available");
         await authService.deleteAccount();
         logout();
     }
