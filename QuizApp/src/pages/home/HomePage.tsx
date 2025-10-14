@@ -14,6 +14,7 @@ const HomePage: React.FC = () => {
             <div className="card shadow border-0 rounded-4 p-5 w-100" style={{ maxWidth: '480px' }}>
                 <div className="card-body text-center">
                     <h1 className="card-title fw-bold fs-1 text-dark mb-3">
+                       
                         {!user ? 'Quiz Hub' : `Welcome back ${user.sub}`} {/*Denne viser username, hvis logget ind */}
                     </h1>
                     <p className="card-text lead text-muted mb-5">
@@ -23,9 +24,9 @@ const HomePage: React.FC = () => {
                     {/* Container for the action buttons */}
                     <div className="d-grid gap-3">
                         {/* Button for creating a quiz */}
-                        {(!user) ? <a href="/LoginPage" className="btn btn-primary btn-lg">
+                        {(!user) ? <a href="/LoginPage" className="btn btn-success btn-lg">
                             Login to Create a Quiz
-                        </a> : <a href="/quizcreate" className="btn btn-primary btn-lg">
+                        </a> : <a href="/quizcreate" className="btn btn-success btn-lg">
                             Create a Quiz
                         </a>
                         }

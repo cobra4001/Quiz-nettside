@@ -96,18 +96,7 @@ const UserCreationPage: React.FC = () => {
           {error && <Alert variant="danger">{error}</Alert>}
           {success && <Alert variant="success">{success}</Alert>}
           <Form onSubmit={handleSubmit}>
-            <Form.Group className="mb-3" controlId="formUsername">
-              <Form.Label>Username</Form.Label>
-              <Form.Control
-                type="text"
-                placeholder="Enter username"
-                minLength={3}
-                maxLength={20}
-                value={username}
-                onChange={e => setUsername(e.target.value)}
-                autoComplete="username"
-              />
-            </Form.Group>
+            
 
             <Form.Group className="mb-3" controlId="formEmail">
               <Form.Label>Email</Form.Label>
@@ -119,16 +108,7 @@ const UserCreationPage: React.FC = () => {
                 autoComplete="email"
               />
             </Form.Group>
-             <Form.Group className="mb-4" controlId="formConfirmEmail">
-              <Form.Label>Confirm Email</Form.Label>
-              <Form.Control
-                type="email"
-                placeholder="Confirm Email address"
-                value={confirmEmail}
-                onChange={e => setConfirmEmail(e.target.value)}
-                autoComplete="new-Email"
-              />
-            </Form.Group>
+             
 
             <Form.Group className="mb-3" controlId="formTelephone">
               <Form.Label>Phone number</Form.Label>
@@ -141,18 +121,20 @@ const UserCreationPage: React.FC = () => {
                 autoComplete="tel"
               />
             </Form.Group>
-             <Form.Group className="mb-4" controlId="formConfirmTelephone">
-              <Form.Label>Confirm phone number</Form.Label>
+
+            <Form.Group className="mb-3" controlId="formUsername">
+              <Form.Label>Username</Form.Label>
               <Form.Control
-                type="tel"
-                placeholder="Confirm phone number"
-                maxLength={8}
-                value={confirmPhonenumber}
-                onChange={e => setConfirmPhonenumber(e.target.value)}
-                autoComplete="new-Phone"
+                type="text"
+                placeholder="Enter username"
+                minLength={3}
+                maxLength={20}
+                value={username}
+                onChange={e => setUsername(e.target.value)}
+                autoComplete="username"
               />
             </Form.Group>
-
+             
             <Form.Group className="mb-3" controlId="formPassword">
               <Form.Label>Password</Form.Label>
               <Form.Control
@@ -176,7 +158,7 @@ const UserCreationPage: React.FC = () => {
               />
             </Form.Group>
 
-            <Button variant="primary" type="submit" className="w-100">
+            <Button variant="success" type="submit" className="w-100">
               Create Account
             </Button>
           </Form>
