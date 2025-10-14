@@ -21,9 +21,9 @@ const HomePage: React.FC = () => {
                     {/* Container for the action buttons */}
                     <div className="d-grid gap-3">
                         {/* Button for creating a quiz */}
-                        {(!user) ? <a href="/LoginPage" className="btn btn-primary btn-lg">
+                        {(!user) ? <a href="/LoginPage" className="btn btn-success btn-lg">
                             Login to Create a Quiz
-                        </a> : <a href="/quizcreate" className="btn btn-primary btn-lg">
+                        </a> : <a href="/quizcreate" className="btn btn-success btn-lg">
                             Create a Quiz
                         </a>
                         }

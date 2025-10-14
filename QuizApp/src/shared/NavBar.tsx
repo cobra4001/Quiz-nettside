@@ -20,7 +20,7 @@ const NavBar: React.FC = () => {
   console.log(user);
 
   return (
-    <Navbar expand="lg" fixed="top" bg="primary" variant="dark">
+    <Navbar expand="lg" fixed="top" bg="success" variant="dark">
       <Nav className="mx-auto">
         <Navbar.Brand href="/HomePage">QuizTask</Navbar.Brand>
         <Navbar.Toggle aria-controls="basic-navbar-nav" />

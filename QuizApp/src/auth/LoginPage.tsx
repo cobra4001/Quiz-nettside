@@ -85,7 +85,7 @@ const LoginPage: React.FC = () => {
                 autoComplete="current-password"
               />
             </Form.Group>
-            <Button variant="primary" type="submit" className="w-100 mb-2">
+            <Button variant="success" type="submit" className="w-100 mb-2">
               Login
             </Button>
             <Button

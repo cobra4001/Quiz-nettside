@@ -54,7 +54,7 @@ const MyQuizzes: React.FC<QuizListProps> = () => {
   return (
     <div className="d-flex justify-content-center min-vh-100 p-3">
       <div className="container py-5" style={{ maxWidth: "800px" }}>
-        <h1 className="text-center fw-bold text-primary mb-5 display-4">
+        <h1 className="text-center fw-bold text-success mb-5 display-4">
           My Quizzes
         </h1>
 

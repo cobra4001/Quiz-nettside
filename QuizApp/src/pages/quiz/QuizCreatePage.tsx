@@ -307,7 +307,7 @@ const QuizCreatePage: React.FC = () => {
             <div className="d-flex justify-content-center gap-3 mt-5">
           <button
             type="button"
-            className="btn btn-outline-primary"
+            className="btn btn-outline-dark"
             onClick={handleAddQuestion}
           >
             + Add Question
@@ -315,7 +315,7 @@ const QuizCreatePage: React.FC = () => {
 
           <button
             type="submit"
-            className="btn btn-primary"
+            className="btn btn-success"
             disabled={isSubmitting}
           >
             {isSubmitting ? 'Saving...' : 'Save Quiz'}
