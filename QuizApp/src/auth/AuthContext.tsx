@@ -69,9 +69,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         return await authService.fetchProfile(token as string);
     }
 
-    const updateContact = async (updateContact: UpdateContactDTO, token?: string) => { 
+    const updateContact = async (updateContact: UpdateContactDTO) => { 
         if (!token) throw new Error("No token available");
-        await authService.updateContact(updateContact, token);
+        await authService.updateContact(updateContact, token as string);
     }
 
     const changePassword = async (changePassword: ChangePasswordDTO) => {
