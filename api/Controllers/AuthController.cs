@@ -101,7 +101,7 @@ namespace api.Controllers
             return BadRequest(new { Errors = errors });
         }
 
-        
+        [Authorize]
         [HttpGet("profile")]
         public async Task<IActionResult> GetProfile()
         {

@@ -23,6 +23,10 @@ const UserProfile: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
+    if (!user) {
+        navigate("/LoginPage", { state: { message: "Please log in to access your profile.", from: "/UserProfile" } });
+        return;
+    }
     let mounted = true;
     (async () => {
       try {
