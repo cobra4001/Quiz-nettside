@@ -153,6 +153,29 @@ namespace api.Controllers
 
         }
 
+        [Authorize]
+        [HttpDelete("delete")]
+        public async Task<IActionResult> DeleteAccount()
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (userId == null)
+                return Unauthorized();
+
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null)
+                return NotFound(new { Message = "User not found" });
+
+            var result = await _userManager.DeleteAsync(user);
+            if (result.Succeeded)
+            {
+                _logger.LogInformation("[AuthAPIController] user deleted account for {@username}", user.UserName);
+                return Ok(new { Message = "Account deleted successfully" });
+            }
+
+            var errors = result.Errors.Select(e => e.Description).ToArray();
+            return BadRequest(new { Errors = errors });
+        }
+
         [Authorize] // not strictly necessary for logout, but good practice
         [HttpPost("logout")]
         public async Task<IActionResult> Logout()

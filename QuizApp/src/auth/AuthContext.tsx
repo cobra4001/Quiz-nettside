@@ -78,7 +78,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
 
     const deleteAccount = async () => { 
-        await authService.deleteAccount();
+        await authService.deleteAccount(token as string);
         logout();
     }
 

@@ -5,10 +5,8 @@ import { useAuth } from "../../auth/AuthContext";
 import { isValidEmail, isValidPhone } from "../../shared/Regex";
 import type { ChangePasswordDTO, UpdateContactDTO } from "../../types/auth";
 
-const API_URL = import.meta.env.VITE_API_URL;
-
 const UserProfile: React.FC = () => {
-  const { user, token, logout, updateContact, changePassword, deleteAccount, fetchProfile } = useAuth() as any;
+  const { user, logout, updateContact, changePassword, deleteAccount, fetchProfile } = useAuth() as any;
   const navigate = useNavigate();
 
   const [username, setUsername] = useState("");
@@ -112,7 +110,7 @@ const UserProfile: React.FC = () => {
     try {
       await deleteAccount();
       logout();
-      navigate("/");
+      navigate("/", { state: { message: "Your account has been deleted." } });
     } catch (err: any) {
       setError(err.message || "Delete failed");
     } finally {

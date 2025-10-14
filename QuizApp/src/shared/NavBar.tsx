@@ -25,8 +25,6 @@ const NavBar: React.FC = () => {
         <Navbar.Brand href="/HomePage">QuizTask</Navbar.Brand>
         <Navbar.Toggle aria-controls="basic-navbar-nav" />
         <Navbar.Collapse id="basic-navbar-nav">
-
-            
             
             <Nav.Link href="/QuizList">Quizzes</Nav.Link>
 
@@ -39,7 +37,7 @@ const NavBar: React.FC = () => {
               <NavDropdown title={user.unique_name} id="basic-nav-dropdown" >
               <NavDropdown.Item>My scores</NavDropdown.Item> {/* Eventuel oppgradering til siden, hvor man kan se ens score */}
               <NavDropdown.Item onClick={() => navigate("/MyQuizzes")}>My Quizzes</NavDropdown.Item> {/* Navigerer til oversigt over ens egen quizzer */}
-              <NavDropdown.Item onClick={() => { logout(); navigate("/"); }}>Logout</NavDropdown.Item>
+              <NavDropdown.Item onClick={() => { logout(); navigate("/", {state: { message: "You have been logged out of the website."}}); }}>Logout</NavDropdown.Item>
               <NavDropdown.Item onClick={() => navigate("/UserProfile")}>Profile</NavDropdown.Item>
               </NavDropdown>
 

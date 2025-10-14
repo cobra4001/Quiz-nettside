@@ -80,10 +80,10 @@ export const fetchProfile = async (token: string): Promise<any> => {
     return await handleResponse(response);
 }
 
-export const deleteAccount = async (): Promise<any> => {
+export const deleteAccount = async (token: string): Promise<any> => {
     const response = await fetch(`${API_URL}/api/Auth/delete`, {
         method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...authHeader(token) } as HeadersInit,
     });
 
     return await handleResponse(response);
