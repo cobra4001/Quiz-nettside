@@ -1,6 +1,37 @@
-import type { LoginDto, RegisterDto } from '../types/auth';
+import type { LoginDto, RegisterDto, UpdateContactDTO, ChangePasswordDTO } from '../types/auth';
 
 const API_URL = import.meta.env.VITE_API_URL;
+
+
+
+function authHeader(token?: string) {
+    const t = token ?? localStorage.getItem('token') ?? '';
+    return t ? { Authorization: `Bearer ${t}` } : {};
+}
+
+async function handleResponse(response: Response): Promise<any> {
+    const text = await response.text();
+    let parsed: any = null;
+    if (text) {
+        try {
+            parsed = JSON.parse(text);
+        } catch {
+            parsed = text; // keep raw text if not JSON
+        }
+    }
+
+    if (!response.ok) {
+        // Attempt to extract any error text
+        if (parsed && typeof parsed === 'object') {
+            if (Array.isArray(parsed)) throw new Error(parsed.join(', '));
+            if (parsed.Errors && Array.isArray(parsed.Errors)) throw new Error(parsed.Errors.join(', '));
+            if (parsed.message) throw new Error(parsed.message);
+        }
+        throw new Error(typeof parsed === 'string' && parsed ? parsed : `Request failed (${response.status})`);
+    }
+
+    return parsed ?? null;
+}
 
 export const login = async (credentials: LoginDto): Promise<{ token: string }> => {
     const response = await fetch(`${API_URL}/api/Auth/login`, {
@@ -8,20 +39,7 @@ export const login = async (credentials: LoginDto): Promise<{ token: string }> =
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(credentials),
     });
-
-    if (!response.ok) {
-        // Try to extract any error text
-        const txt = await response.text();
-        throw new Error(txt || 'Login failed');
-    }
-
-    const text = await response.text();
-    if (!text) throw new Error('Login failed: empty response');
-    try {
-        return JSON.parse(text);
-    } catch {
-        throw new Error('Login failed: invalid JSON from server');
-    }
+    return await handleResponse(response) as { token: string };
 };
 
 export const register = async (userData: RegisterDto): Promise<any> => {
@@ -31,41 +49,42 @@ export const register = async (userData: RegisterDto): Promise<any> => {
         body: JSON.stringify(userData),
     });
 
-    const raw = await response.text(); // read once
+    return await handleResponse(response);
+}
 
-    if (!response.ok) {
-        // Attempt to parse structured errors
-        try {
-            const parsed = raw ? JSON.parse(raw) : {};
-            // Backend currently returns { Errors: [] } when identity fails
-            if (Array.isArray(parsed)) {
-                throw new Error(parsed.join(', '));
-            }
-            if (parsed.Errors && Array.isArray(parsed.Errors)) {
-                throw new Error(parsed.Errors.join(', '));
-            }
-            if (parsed.message) {
-                throw new Error(parsed.message);
-            }
-            throw new Error(raw || `Registration failed (${response.status})`);
-        } catch (e:any) {
-            // If JSON parse failed just bubble a generic with raw text
-            if (e instanceof Error && e.message && !e.message.startsWith('Registration failed')) {
-                throw e;
-            }
-            throw new Error(raw || 'Registration failed');
-        }
-    }
+export const updateContact = async (updateContact: UpdateContactDTO, token?: string): Promise<any> => {
+    const response = await fetch(`${API_URL}/api/Auth/update`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', ...authHeader(token) } as HeadersInit,
+        body: JSON.stringify(updateContact),
+    });
+    return await handleResponse(response);
+}
 
-    if (!raw) {
-        // Gracefully handle empty 200 OK
-        return { message: 'User registered successfully (no body)' };
-    }
-    try {
-        return JSON.parse(raw);
-    } catch {
-        return { message: 'User registered (unparseable response)', raw };
-    }
-};
+export const changePassword = async (changePassword: ChangePasswordDTO, token?: string): Promise<any> => {
+    const response = await fetch(`${API_URL}/api/Auth/change-password`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', ...authHeader(token) } as HeadersInit,
+        body: JSON.stringify(changePassword)
+    });
+    return await handleResponse(response);
+}
 
-// Logout is handled client-side by clearing the token.
+export const fetchProfile = async (token: string): Promise<any> => {
+    const headers = { 'Content-Type': 'application/json', ...authHeader(token) } as HeadersInit;
+
+    const response = await fetch(`${API_URL}/api/Auth/profile`, {
+        method: 'GET',
+        headers,
+    });
+    return await handleResponse(response);
+}
+
+export const deleteAccount = async (token: string): Promise<any> => {
+    const response = await fetch(`${API_URL}/api/Auth/delete`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json', ...authHeader(token) } as HeadersInit,
+    });
+
+    return await handleResponse(response);
+}

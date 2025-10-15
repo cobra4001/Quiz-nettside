@@ -1,7 +1,7 @@
 import React, { createContext, useState, useContext, useEffect, type ReactNode } from 'react';
 import { jwtDecode } from 'jwt-decode';
 import type { User } from '../types/user';
-import type { LoginDto, RegisterDto } from '../types/auth';
+import type { ChangePasswordDTO, LoginDto, RegisterDto, UpdateContactDTO } from '../types/auth';
 import * as authService from './AuthService';
 
 interface AuthContextType { // Define the shape of the auth context
@@ -9,6 +9,10 @@ interface AuthContextType { // Define the shape of the auth context
     token: string | null;
     login: (credentials: LoginDto) => Promise<void>;
     register: (userData: RegisterDto ) => Promise<void>;
+    fetchProfile: (recievedToken: string) => Promise<void>;
+    updateContact: (updateContact: UpdateContactDTO) => Promise<void>;
+    changePassword: (changePassword: ChangePasswordDTO) => Promise<void>;
+    deleteAccount: () => Promise<void>;
     logout: () => void;
     isLoading: boolean;
 }
@@ -61,8 +65,26 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         setToken(null);
     };
 
+    const fetchProfile = async () => { 
+        return await authService.fetchProfile(token as string);
+    }
+
+    const updateContact = async (updateContact: UpdateContactDTO) => { 
+        await authService.updateContact(updateContact, token as string);
+    }
+
+    const changePassword = async (changePassword: ChangePasswordDTO) => {
+        await authService.changePassword(changePassword, token as string);
+    }
+
+    const deleteAccount = async () => { 
+        await authService.deleteAccount(token as string);
+        logout();
+    }
+
     return ( // Provide context to children
-        <AuthContext.Provider value={{ user, token, login, logout, register, isLoading }}>
+        <AuthContext.Provider value={{ user, token, login, logout, register, 
+        updateContact, changePassword, deleteAccount, fetchProfile, isLoading }}>
             {!isLoading && children}
         </AuthContext.Provider>
     );

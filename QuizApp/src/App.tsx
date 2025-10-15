@@ -12,6 +12,7 @@ const QuizTakingPage = lazy(() => import("./pages/quiz/QuizTakingPage"));
 const UserCreationPage = lazy(() => import("./pages/user/UserCreationPage"));
 const QuizList = lazy(() => import("./pages/quiz/QuizList"));
 const MyQuizzes = lazy(() => import("./pages/quiz/MyQuizzes"));
+const UserProfile = lazy(() => import("./pages/user/UserProfile"));
 
 const App: React.FC = () => {
   return (
@@ -25,6 +26,7 @@ const App: React.FC = () => {
             <Route path="/HomePage" element={<HomePage />} />
             <Route path="/QuizList" element={<QuizList />} />
             <Route path="/MyQuizzes" element={<MyQuizzes />} />
+            <Route path="/UserProfile" element={<UserProfile />} />
             <Route path="/QuizTakingPage/:quizId" element={<QuizTakingPage />} />
             <Route path="/quizcreate" element={<QuizCreationPage />} />
             <Route path="/CreateUser" element={<UserCreationPage />} />

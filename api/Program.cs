@@ -44,6 +44,8 @@ builder.Services.AddCors(options =>
     });
 });
 
+JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
+JwtSecurityTokenHandler.DefaultOutboundClaimTypeMap.Clear();
 builder.Services.AddAuthorization();
 builder.Services.AddAuthentication(options =>
 {

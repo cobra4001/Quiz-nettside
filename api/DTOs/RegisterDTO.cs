@@ -13,16 +13,8 @@ namespace api.DTOs
         public string Email { get; set; } = string.Empty;
 
         [Required]
-        [Compare("Email", ErrorMessage = "Emails do not match.")]
-        public string ConfirmEmail { get; set; } = string.Empty;
-
-        [Required]
         [RegularExpression(@"^\d{8}$", ErrorMessage = "Phone number must be exactly 8 digits.")]
         public string Phonenumber { get; set; } = string.Empty;
-
-        [Required]
-        [Compare("Phonenumber", ErrorMessage = "Phone numbers do not match.")]
-        public string ConfirmPhonenumber { get; set; } = string.Empty;
 
         [Required]
         [MinLength(8)]
