@@ -81,7 +81,7 @@ const QuizList: React.FC<QuizListProps> = () => {
                         className="badge bg-info text-dark rounded-pill py-2 px-3 fw-bold"
                         title="Number of questions"
                       >
-                        {quiz.questionCount ?? (quiz.questions ? quiz.questions.length : 0)} questions
+                        {quiz.questionCount} {quiz.questionCount === 1 ? 'question' : 'questions'}
                       </span>
                     </div>
                   </div>
