@@ -81,8 +81,8 @@ const UserProfile: React.FC = () => {
     setError(null);
     setSuccess(null);
 
-    if (newPassword.length < 6) {
-      setError("Password must be at least 6 characters.");
+    if (newPassword.length < 8) {
+      setError("Password must be at least 8 characters.");
       return;
     }
     if (newPassword !== confirmPassword) {
@@ -169,6 +169,7 @@ const UserProfile: React.FC = () => {
                   <Form.Control
                     value={phonenumber}
                     onChange={(e) => setPhonenumber(e.target.value)}
+                    maxLength={8}
                     placeholder="+47 123 45 678"
                   />
                 </Form.Group>
