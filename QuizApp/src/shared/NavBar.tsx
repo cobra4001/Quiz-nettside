@@ -21,8 +21,15 @@ const NavBar: React.FC = () => {
 
   return (
     <Navbar expand="lg" fixed="top" bg="success" variant="dark">
-      <Nav className="mx-auto">
-        <Navbar.Brand href="/HomePage">QuizTask</Navbar.Brand>
+      <Nav className="mx-auto justify-content-between">
+        <Navbar.Brand href="/HomePage">
+          <img
+            src="src/img/Logo.png"
+            width="30"
+            height="30"
+            className="d-inline-block align-top"/>
+          {' QuizApp'}
+        </Navbar.Brand>
         <Navbar.Toggle aria-controls="basic-navbar-nav" />
         <Navbar.Collapse id="basic-navbar-nav">
             
@@ -34,7 +41,7 @@ const NavBar: React.FC = () => {
               <Nav.Link onClick={() => navigate("/LoginPage", { state: { from: "/NavBar", message: "" }})}>Login</Nav.Link>
             ) : (
               
-              <NavDropdown title={user.unique_name} id="basic-nav-dropdown" > 
+              <NavDropdown title={user.unique_name} id="basic-nav-dropdown"> 
               <NavDropdown.Item>My scores</NavDropdown.Item> {/* Eventuel oppgradering til siden, hvor man kan se ens score */}
               <NavDropdown.Item onClick={() => navigate("/MyQuizzes")}>My Quizzes</NavDropdown.Item> {/* Navigerer til oversigt over ens egen quizzer */}
               <NavDropdown.Item onClick={() => { logout(); navigate("/", {state: { message: "You have been logged out of the website."}}); }}>Logout</NavDropdown.Item>
