@@ -34,7 +34,7 @@ const NavBar: React.FC = () => {
               <Nav.Link onClick={() => navigate("/LoginPage", { state: { from: "/NavBar", message: "" }})}>Login</Nav.Link>
             ) : (
               // @ts-ignore ignorerer feil med user.sub, da da fungere (den som viser brukernavnet i dropdown)
-              <NavDropdown title={user.unique_name} id="basic-nav-dropdown" >
+              <NavDropdown title={user.sub} id="basic-nav-dropdown" > {/* must be sub here, or change the JWT token parsing of username*/}
               <NavDropdown.Item>My scores</NavDropdown.Item> {/* Eventuel oppgradering til siden, hvor man kan se ens score */}
               <NavDropdown.Item onClick={() => navigate("/MyQuizzes")}>My Quizzes</NavDropdown.Item> {/* Navigerer til oversigt over ens egen quizzer */}
               <NavDropdown.Item onClick={() => { logout(); navigate("/", {state: { message: "You have been logged out of the website."}}); }}>Logout</NavDropdown.Item>

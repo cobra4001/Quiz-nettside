@@ -220,16 +220,17 @@ const QuizCreatePage: React.FC = () => {
                 className="form-control form-control-lg"
                 value={quizTitle}
                 onChange={e => setQuizTitle(e.target.value)}
+                placeholder="Enter quiz title"
                 required
               />
             </div>
             <div className="mb-4">
               <label className="form-label fw-bold">Quiz Description</label>
-              <input
-                type="text"
+              <textarea
                 className="form-control form-control-lg"
                 value={quizDescription}
                 onChange={e => setQuizDescription(e.target.value)}
+                placeholder="Enter quiz description"
                 required
               />
             </div>

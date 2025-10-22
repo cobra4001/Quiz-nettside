@@ -265,8 +265,8 @@ const QuizUpdatePage: React.FC = () => {
           {successMsg && <div className="alert alert-success">{successMsg}</div>}
 
           <form onSubmit={handleSubmit}>
-            <div className="mb-3">
-              <label htmlFor="quizTitle" className="form-label">Quiz Title*</label>
+            <div className="mb-4">
+              <label htmlFor="quizTitle" className="form-label fw-bold">Quiz Title*</label>
               <input
                 type="text"
                 id="quizTitle"
@@ -279,7 +279,7 @@ const QuizUpdatePage: React.FC = () => {
             </div>
 
             <div className="mb-4">
-              <label htmlFor="quizDescription" className="form-label">Quiz Description*</label>
+              <label htmlFor="quizDescription" className="form-label fw-bold">Quiz Description*</label>
               <textarea
                 id="quizDescription"
                 className="form-control"
