@@ -255,17 +255,18 @@ const QuizUpdatePage: React.FC = () => {
   }
 
   return (
-    <div className="container mt-5">
-      <div className="row justify-content-center">
-        <div className="col-md-8">
-          <h1 className="text-center mb-4">Update Quiz</h1>
+    
+     <div className="container my-5">
+      <div className="card shadow-lg border-0 rounded-4">
+        <div className="card-body p-5">
+          <h1 className="card-title fw-bold fs-1 text-center mb-3">Update quiz</h1>
           
           {errorMsg && <div className="alert alert-danger">{errorMsg}</div>}
           {successMsg && <div className="alert alert-success">{successMsg}</div>}
 
           <form onSubmit={handleSubmit}>
-            <div className="mb-3">
-              <label htmlFor="quizTitle" className="form-label">Quiz Title*</label>
+            <div className="mb-4">
+              <label htmlFor="quizTitle" className="form-label fw-bold">Quiz Title*</label>
               <input
                 type="text"
                 id="quizTitle"
@@ -278,7 +279,7 @@ const QuizUpdatePage: React.FC = () => {
             </div>
 
             <div className="mb-4">
-              <label htmlFor="quizDescription" className="form-label">Quiz Description*</label>
+              <label htmlFor="quizDescription" className="form-label fw-bold">Quiz Description*</label>
               <textarea
                 id="quizDescription"
                 className="form-control"
@@ -333,17 +334,18 @@ const QuizUpdatePage: React.FC = () => {
 
                   <h6>Answer Options</h6>
                   {question.answerOptions.map((option, optionIndex) => (
-                    <div key={option.id} className="row mb-2">
-                      <div className="col-1">
-                        <input
-                          type="radio"
+                    <div key={option.id} className="input-group mb-2">
+                        <div className="input-group-text">
+                          <input
+                          type="checkbox"
                           name={`correct-${question.id}`}
                           checked={option.isCorrect}
                           onChange={() => handleCorrectAnswerChange(question.id, option.id)}
-                          title="Mark as correct answer"
                         />
-                      </div>
-                      <div className="col-9">
+                        <label className="ms-2">Correct</label>
+                        </div>
+                      
+                      
                         <input
                           type="text"
                           className="form-control"
@@ -352,15 +354,15 @@ const QuizUpdatePage: React.FC = () => {
                           placeholder={`Answer option ${optionIndex + 1}`}
                           required
                         />
-                      </div>
-                      <div className="col-2">
+                      
+                      <div className="col-2 ms-2">
                         {question.answerOptions.length > 2 && (
                           <button
                             type="button"
                             className="btn btn-outline-danger btn-sm"
                             onClick={() => removeAnswerOption(question.id, option.id)}
                           >
-                            Remove
+                            Delete
                           </button>
                         )}
                       </div>
@@ -386,7 +388,7 @@ const QuizUpdatePage: React.FC = () => {
               Add Question
             </button>
 
-            <div className="d-flex gap-2">
+            <div className="d-flex gap-2 justify-content-center">
               <button
                 type="submit"
                 className="btn btn-primary"

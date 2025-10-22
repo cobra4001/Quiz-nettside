@@ -43,12 +43,17 @@ const LoginPage: React.FC = () => {
       await login({ username, password } as LoginDto);
       setError(null);
 
-      const state = location.state as { from?: string };
+      {/*  const state = location.state as { from?: string };
       if (state?.from) {
         navigate(state.from, { replace: true });
       } else {
         navigate("/HomePage", { replace: true });
       }
+*/} //ændret til bare at den altid går til homepage
+
+      navigate("/HomePage", { replace: true });
+      
+
     } catch (err) {
       setError("Invalid username or password.");
     }

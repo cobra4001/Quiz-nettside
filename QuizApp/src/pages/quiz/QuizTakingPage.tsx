@@ -162,7 +162,7 @@ const QuizTaker: React.FC<QuizTakerProps> = () => {
                 {currentQuestion.answerOptions.map(option => (
                     <Button
                         key={option.id}
-                        variant={userAnswers[currentQuestion.id] === option.id ? 'primary' : 'outline-primary'}
+                        variant={userAnswers[currentQuestion.id] === option.id ? 'info' : 'outline-dark'}
                         size="lg"
                         onClick={() => handleAnswerSelect(option.id)}
                         className="text-start"
@@ -221,7 +221,7 @@ const QuizTaker: React.FC<QuizTakerProps> = () => {
                     <p className="h5">({scorePercentage.toFixed(1)}%)</p>
                 </Alert>
                 <Button 
-                    variant="primary" 
+                    variant="success" 
                     className="mt-3 me-2"
                     onClick={() => {
                         setCurrentQuestionIndex(0);
@@ -247,7 +247,7 @@ const QuizTaker: React.FC<QuizTakerProps> = () => {
     return (
         <div className="py-5">
             <Card className="shadow-lg mx-auto" style={{ maxWidth: '700px' }}>
-                <Card.Header className="bg-primary text-white text-center">
+                <Card.Header className="bg-success text-white text-center">
                     <h2 className="mb-0">{currentQuiz.title}</h2>
                 </Card.Header>
                 <Card.Body>

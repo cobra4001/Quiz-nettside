@@ -220,16 +220,17 @@ const QuizCreatePage: React.FC = () => {
                 className="form-control form-control-lg"
                 value={quizTitle}
                 onChange={e => setQuizTitle(e.target.value)}
+                placeholder="Enter quiz title"
                 required
               />
             </div>
             <div className="mb-4">
               <label className="form-label fw-bold">Quiz Description</label>
-              <input
-                type="text"
+              <textarea
                 className="form-control form-control-lg"
                 value={quizDescription}
                 onChange={e => setQuizDescription(e.target.value)}
+                placeholder="Enter quiz description"
                 required
               />
             </div>
@@ -271,7 +272,7 @@ const QuizCreatePage: React.FC = () => {
                   <div key={opt.id} className="input-group mb-2">
                     <div className="input-group-text">
                       <input
-                        type="radio"
+                        type="checkbox"
                         name={`correct-answer-${q.id}`}
                         checked={opt.isCorrect}
                         onChange={() => handleCorrectAnswerChange(q.id, opt.id)}
@@ -322,10 +323,10 @@ const QuizCreatePage: React.FC = () => {
           </button>
           </div>
 
-                  </form>
-                </div>
-              </div>
-            </div>
+          </form>
+        </div>
+      </div>
+    </div>
           );
           };
 
