@@ -141,7 +141,7 @@ const UserProfile: React.FC = () => {
             <Card.Body>
               <Form>
                 <Form.Group className="mb-3">
-                  <Form.Label>Username</Form.Label>
+                  <Form.Label className="fw-bold">Username</Form.Label>
                   <p className="form-control-plaintext">{username}</p>
                 </Form.Group>
               </Form>
@@ -155,7 +155,7 @@ const UserProfile: React.FC = () => {
             <Card.Body>
               <Form onSubmit={update}>
                 <Form.Group className="mb-3">
-                  <Form.Label>Email</Form.Label>
+                  <Form.Label className="fw-bold">Email</Form.Label>
                   <Form.Control
                     type="email"
                     value={email}
@@ -165,7 +165,7 @@ const UserProfile: React.FC = () => {
                 </Form.Group>
 
                 <Form.Group className="mb-3">
-                  <Form.Label>Phone</Form.Label>
+                  <Form.Label className="fw-bold">Phone</Form.Label>
                   <Form.Control
                     value={phonenumber}
                     onChange={(e) => setPhonenumber(e.target.value)}
@@ -190,7 +190,7 @@ const UserProfile: React.FC = () => {
             <Card.Body>
               <Form onSubmit={updatePassword}>
                 <Form.Group className="mb-3">
-                  <Form.Label>Current password</Form.Label>
+                  <Form.Label className="fw-bold">Current password</Form.Label>
                   <Form.Control
                     type="password"
                     value={oldPassword}
@@ -200,7 +200,7 @@ const UserProfile: React.FC = () => {
                 </Form.Group>
 
                 <Form.Group className="mb-3">
-                  <Form.Label>New password</Form.Label>
+                  <Form.Label className="fw-bold">New password</Form.Label>
                   <Form.Control
                     type="password"
                     value={newPassword}
@@ -210,7 +210,7 @@ const UserProfile: React.FC = () => {
                 </Form.Group>
 
                 <Form.Group className="mb-3">
-                  <Form.Label>Confirm new password</Form.Label>
+                  <Form.Label className="fw-bold">Confirm new password</Form.Label>
                   <Form.Control
                     type="password"
                     value={confirmPassword}
