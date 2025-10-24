@@ -4,6 +4,7 @@ import { fetchQuizById, submitQuiz } from './QuizService';
 import "bootstrap/dist/css/bootstrap.min.css";
 import { Card, Button, ProgressBar, Alert } from 'react-bootstrap';
 import { useParams, useNavigate } from 'react-router-dom';
+import '../../App.css';
 /**
  * QuizTaker-komponenten viser spørsmålene for en valgt quiz og håndterer spilllogikken.
  */
@@ -246,7 +247,7 @@ const QuizTaker: React.FC<QuizTakerProps> = () => {
 
     return (
         <div className="py-5">
-            <Card className="shadow-lg mx-auto" style={{ maxWidth: '1400px' }}>
+            <Card className="shadow-lg mx-auto TakeQuiz">
                 <Card.Header className="bg-success text-white text-center">
                     <h2 className="mb-0">{currentQuiz.title}</h2>
                 </Card.Header>
