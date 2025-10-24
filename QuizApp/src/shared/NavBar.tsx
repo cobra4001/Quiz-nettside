@@ -1,5 +1,5 @@
 import React from "react";
-import { Nav, Navbar, NavDropdown } from 'react-bootstrap';
+ import { Navbar, Nav, NavDropdown, Container } from "react-bootstrap";
 import { useAuth } from "../auth/AuthContext";
 import { useNavigate } from "react-router-dom";
 
@@ -9,49 +9,88 @@ const NavBar: React.FC = () => {
 
   const handleCreateClick = () => {
     if (!user) {
-      // Bruker er ikke logget inn – send til login med redirect info
+      // User is not logged in, go to login page
       navigate("/LoginPage", { state: { from: "/quizcreate", message: "You have to login first" } });
     } else {
-      // Bruker er logget inn – gå til quizcreate
+      // user is logged in, go to Quiz create
       navigate("/quizcreate");
     }
   };
 
   console.log(user);
-
   return (
+    /* This navbar is dynamic and changes based on whether user is logged in or not, it also collapses at smaller screen sizes
+       making it responsive for mobile phones aswell*/
     <Navbar expand="lg" fixed="top" bg="success" variant="dark">
-      <Nav className="mx-auto justify-content-between">
+      <Container className={user ? "" : "justify-content-center"}>
         <Navbar.Brand href="/HomePage">
           <img
-            src="src/img/Logo.png"
-            width="30"
-            height="30"
-            className="d-inline-block align-top"/>
-          {' QuizApp'}
-        </Navbar.Brand>
-        <Navbar.Toggle aria-controls="basic-navbar-nav" />
-        <Navbar.Collapse id="basic-navbar-nav">
-            
+        src="src/img/Logo.png"
+        width="30"
+        height="30"
+        className="d-inline-block align-top me-2"
+        alt="Logo"
+      />
+      QuizApp
+    </Navbar.Brand>
+    <Navbar.Toggle 
+        aria-controls="basic-navbar-nav" 
+        className={!user ? "d-lg-none" : ""} 
+    />
+    
+    <Navbar.Collapse 
+        id="basic-navbar-nav"
+        className={!user ? "flex-grow-0" : ""} 
+    >
+      {user ? (
+        <>
+          <Nav className="me-auto">
             <Nav.Link href="/QuizList">Quizzes</Nav.Link>
+            <Nav.Link onClick={handleCreateClick} style={{ cursor: "pointer" }}>
+              Create quiz
+            </Nav.Link>
+          </Nav>
 
-            {!user ? <Nav.Link href="/CreateUser">Create account</Nav.Link> : <Nav.Link onClick={handleCreateClick} style={{ cursor: 'pointer' }}>Create quiz</Nav.Link> }
-
-            {!user ? (
-              <Nav.Link onClick={() => navigate("/LoginPage", { state: { from: "/NavBar", message: "" }})}>Login</Nav.Link>
-            ) : (
-              
-              <NavDropdown title={user.unique_name} id="basic-nav-dropdown"> 
-              <NavDropdown.Item>My scores</NavDropdown.Item> {/* Eventuel oppgradering til siden, hvor man kan se ens score */}
-              <NavDropdown.Item onClick={() => navigate("/MyQuizzes")}>My Quizzes</NavDropdown.Item> {/* Navigerer til oversigt over ens egen quizzer */}
-              <NavDropdown.Item onClick={() => { logout(); navigate("/", {state: { message: "You have been logged out of the website."}}); }}>Logout</NavDropdown.Item>
-              <NavDropdown.Item onClick={() => navigate("/UserProfile")}>Profile</NavDropdown.Item>
-              </NavDropdown>
-
-            )}
-        </Navbar.Collapse>
-      </Nav>
-    </Navbar>
+          <Nav className="ms-auto">
+            <NavDropdown title={user.unique_name} id="user-dropdown" align="end">
+              <NavDropdown.Item>My scores</NavDropdown.Item>
+              <NavDropdown.Item onClick={() => navigate("/MyQuizzes")}>
+                My Quizzes
+              </NavDropdown.Item>
+              <NavDropdown.Item
+                onClick={() => {
+                  logout();
+                  navigate("/", {
+                    state: { message: "You have been logged out of the website." },
+                  });
+                }}
+              >
+                Logout
+              </NavDropdown.Item>
+              <NavDropdown.Item onClick={() => navigate("/UserProfile")}>
+                Profile
+              </NavDropdown.Item>
+            </NavDropdown>
+          </Nav>
+        </>
+      ) : (
+        <Nav className="mx-auto text-center">
+          <Nav.Link href="/QuizList">Quizzes</Nav.Link>
+          <Nav.Link href="/CreateUser">Create account</Nav.Link>
+          <Nav.Link
+            onClick={() =>
+              navigate("/LoginPage", {
+                state: { from: "/NavBar", message: "" },
+              })
+            }
+          >
+            Login
+          </Nav.Link>
+        </Nav>
+      )}
+    </Navbar.Collapse>
+  </Container>
+</Navbar>
   );
 };
 
