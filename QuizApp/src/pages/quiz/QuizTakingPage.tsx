@@ -179,7 +179,7 @@ const QuizTaker: React.FC<QuizTakerProps> = () => {
                     onClick={handlePrevious} 
                     disabled={currentQuestionIndex === 0}
                 >
-                    <i className="bi bi-arrow-left me-2"></i> Previous
+                    Previous
                 </Button>
                 <p>Question <br></br>{currentQuestionIndex + 1} of {totalQuestions}</p>
                 <Button 
@@ -188,7 +188,6 @@ const QuizTaker: React.FC<QuizTakerProps> = () => {
                     disabled={userAnswers[currentQuestion.id] === undefined || isSubmitting}
                 >
                     {currentQuestionIndex === totalQuestions - 1 ? (isSubmitting ? 'Sender...' : 'Submit Quiz') : 'Next question'}
-                    <i className="bi bi-arrow-right ms-2"></i>
                 </Button>
             </div>
         </>
@@ -196,18 +195,18 @@ const QuizTaker: React.FC<QuizTakerProps> = () => {
 
     const renderResults = () => {
         if (isSubmitting) {
-            return <div className="text-center p-4"><h4>Sender inn resultat...</h4></div>;
+            return <div className="text-center p-4"><h4>Sending in results</h4></div>;
         }
         if (submitError) {
             return (
                 <Alert variant="danger" className="text-center">
                     <p>{submitError}</p>
-                    <Button variant="secondary" onClick={() => navigate('/QuizList')}>Tilbake</Button>
+                    <Button variant="secondary" onClick={() => navigate('/QuizList')}>Back</Button>
                 </Alert>
             );
         }
         if (!result) {
-            return <div className="text-center p-4"><h4>Mottar resultat...</h4></div>;
+            return <div className="text-center p-4"><h4>Receiving results...</h4></div>;
         }
         const totalPoints = calculateTotalPoints();
         const finalScore = result.score;
@@ -239,7 +238,7 @@ const QuizTaker: React.FC<QuizTakerProps> = () => {
                     className="mt-3"
                     onClick={() => navigate('/QuizList')} // Går tilbake til listen
                 >
-                    <i className="bi bi-list-task me-2"></i> Back to Quiz-list
+                     Back to Quiz-list
                 </Button>
             </div>
         );
