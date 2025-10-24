@@ -246,7 +246,7 @@ const QuizTaker: React.FC<QuizTakerProps> = () => {
 
     return (
         <div className="py-5">
-            <Card className="shadow-lg mx-auto" style={{ maxWidth: '700px' }}>
+            <Card className="shadow-lg mx-auto" style={{ maxWidth: '1400px' }}>
                 <Card.Header className="bg-success text-white text-center">
                     <h2 className="mb-0">{currentQuiz.title}</h2>
                 </Card.Header>

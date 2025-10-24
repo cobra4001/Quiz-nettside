@@ -70,20 +70,22 @@ const QuizList: React.FC<QuizListProps> = () => {
                     borderRadius: '1rem'
                   }}
                 >
+                  <div className="position-absolute bottom-0 end-0">
+                      <span
+                        className="badge text-dark px-3"
+                        title="Number of questions"
+                      >
+                        {quiz.questionCount} {quiz.questionCount === 1 ? 'question' : 'questions'}
+                      </span>
+                    </div>
+
                   <div className="d-flex align-items-start position-relative">
                     <div className="text-center mx-auto">
                       <h2 className="card-title fw-bolder fs-4 text-dark mb-2">{quiz.title}</h2>
                       <p className="card-text mb-3">{quiz.description}</p>
                     </div>
 
-                    <div className="position-absolute top-0 end-0">
-                      <span
-                        className="badge bg-info text-dark rounded-pill py-2 px-3 fw-bold"
-                        title="Number of questions"
-                      >
-                        {quiz.questionCount} {quiz.questionCount === 1 ? 'question' : 'questions'}
-                      </span>
-                    </div>
+                    
                   </div>
 
                   <div className="mt-3">
