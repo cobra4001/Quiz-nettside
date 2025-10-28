@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import type { QuizListProps } from '../../types/quiz';
 import { useNavigate } from 'react-router-dom';
-import { fetchQuizzes } from './QuizService';
+import { fetchQuizzes, deleteQuiz } from './QuizService';
+import { useAuth } from "../../auth/AuthContext";
 
 const QuizList: React.FC<QuizListProps> = () => {
   const navigate = useNavigate();
@@ -9,6 +10,7 @@ const QuizList: React.FC<QuizListProps> = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
    const [successMsg, setSuccessMsg] = useState<string | null>(null);
+   const { user } = useAuth() as any;
 
   // Get all quizzes
   useEffect(() => {
@@ -32,6 +34,24 @@ const QuizList: React.FC<QuizListProps> = () => {
     navigate(`/QuizTakingPage/${quizId}`);
   };
 
+  // Delete quiz and show success message
+    const handleQuizDeleted = async (quizId: number) => {
+      const confirmDelete = window.confirm(
+        "Are you sure you want to delete this quiz? This action cannot be undone!"
+      );
+      if (!confirmDelete) return;
+  
+      try {
+        await deleteQuiz(quizId);
+        setQuizzes(prev => prev.filter(q => q.id !== quizId));
+  
+        setSuccessMsg("Quiz deleted successfully!");
+        setTimeout(() => setSuccessMsg(null), 3000);
+      } catch (error: any) {
+        console.error("Could not delete quiz:", error);
+        alert(error?.message || "Could not delete quiz.");
+      }
+    };
  
   return (
     <div className="d-flex justify-content-center min-vh-100 p-3">
@@ -95,6 +115,15 @@ const QuizList: React.FC<QuizListProps> = () => {
                     >
                       Start Quiz
                     </button>
+                    // Admin username = Admin password = Admin1234
+                    {user?.unique_name === "Admin" && (
+                    <button
+                      onClick={(e) => { e.stopPropagation(); handleQuizDeleted(quiz.id); }}
+                      className="btn btn-danger fw-bold rounded-pill px-4 me-2"
+                    >
+                      Delete
+                    </button>
+                    )} 
 
                   </div>
                 </div>
