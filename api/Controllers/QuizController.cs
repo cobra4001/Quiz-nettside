@@ -19,7 +19,7 @@ namespace api.Controllers
         }
 
         // POST: api/Quiz/create
-        // Oppretter en ny quiz. Krever autentisering.
+        // Creating a new quiz. Requires authentication.
         [Authorize]
         [HttpPost("create")]
         public async Task<IActionResult> CreateQuiz([FromBody] QuizCreationDto quizDto)
@@ -39,7 +39,7 @@ namespace api.Controllers
 
             string? resolvedUserId = null;
 
-            // Først anta at claim allerede inneholder GUID Id (Identity primærnøkkel) som er den som skal knyttes opp mot user 
+            // First assume that the claim already contains the GUID Id (Identity primary key) which is the one that should be linked to the user.
             if (!string.IsNullOrWhiteSpace(rawIdentifier))
             {
                 var candidate = await _context.Users.FindAsync(rawIdentifier);
@@ -69,7 +69,7 @@ namespace api.Controllers
                 return Unauthorized(new { Message = "Kunne ikke validere bruker fra token (mangler eller ugyldig). Logg inn på nytt." });
             }
 
-            //Sørg for at quizen har minst ett spørsmål og at hvert spørsmål har svar
+            //Make sure that every Quiz has questions and that every question has at least one answer 
             if (quizDto.Questions == null || !quizDto.Questions.Any())
                 return BadRequest(new { Message = "Quiz må ha minst ett spørsmål." });
             if (quizDto.Questions.Any(q => q.Answers == null || !q.Answers.Any()))
@@ -112,24 +112,21 @@ namespace api.Controllers
         }
 
         // GET: api/Quiz
-        // Henter en liste over alle tilgjengelige quizer.
+        // Brings a list of all available quizzes
         [HttpGet]
         public async Task<IActionResult> GetQuizzes()
         {
-            // Bruker en LINQ-projeksjon for å velge kun nødvendige data og unngå overføring.
+            // Using a LINQ projection to select only necessary data and avoid too much fetching/ too much posting.
             var quizzes = await _context.Quizzes
-                                      .Include(q => q.Creator) // Sikrer at Creator-info hentes
+                                      .Include(q => q.Creator) // Secures that we can access Creator navigation property 
                                       .Select(q => new
                                       {
                                           q.Id,
                                           q.Title,
                                           q.Description,
-                                          // Merk: Questions-samlingen må lastes (enten ivrig eller lat) 
-                                          // for at .Count skal fungere i EF Core.
+                                
                                           QuestionCount = q.Questions.Count,
-                                          // Vi bruker null-tilgivende operatoren på UserName her 
-                                          // for å løse advarselen, da Creator er sjekket for null, 
-                                          // og UserName generelt ikke er null på en autentisert bruker.
+                            
                                           Creator = q.Creator != null ? q.Creator.UserName! : "Unknown"
                                       })
                                       .ToListAsync();

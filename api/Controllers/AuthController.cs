@@ -38,7 +38,7 @@ namespace api.Controllers
         public async Task<IActionResult> Register([FromBody] RegisterDTO registerDto)
         {
         if (!ModelState.IsValid)
-            return BadRequest(ModelState); // Automatisk validering med [Compare], [Required], [RegularExpression], etc.
+            return BadRequest(ModelState); // Automatic validation with [Compare], [Required], [RegularExpression], etc.
 
         var user = new AuthUser
         {
@@ -55,7 +55,7 @@ namespace api.Controllers
             return Ok(new { Message = "User registered successfully" });
         }
 
-        // Konverter feilliste til array av beskrivelser
+        // Convert error list to array of descriptions
         var errors = result.Errors.Select(e => e.Description).ToArray();
         return BadRequest(new { Errors = errors });
         }
