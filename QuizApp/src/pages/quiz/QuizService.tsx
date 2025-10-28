@@ -1,6 +1,6 @@
 const API_URL = import.meta.env.VITE_API_URL;
 
-// Vanlig responsbehandler
+// Response handler
 const handleResponse = async (response: Response) => {
     if (response.ok) {
         if (response.status === 204) return null;
@@ -17,7 +17,7 @@ const handleResponse = async (response: Response) => {
     }
 };
 
-// Bygg autorisasjonshoder dynamisk slik at vi alltid får det nyeste tokenet
+// Builds autorization headers dynamically to always get the latest token
 const buildHeaders = (extra: Record<string, string> = {}) => {
     const token = localStorage.getItem('token');
     return {
@@ -52,7 +52,6 @@ export const fetchQuizById = async (id: number) => {
 };
 
 // POST /api/Quiz/create
-
 export const createQuiz = async (quizDto: any) => {
     const response = await fetch(`${API_URL}/api/Quiz/create`, {
         method: 'POST',
@@ -62,7 +61,7 @@ export const createQuiz = async (quizDto: any) => {
     return handleResponse(response);
 };
 
-//Videre legg inn retserende CRUD, med update og remove
+//Submit quiz answers
 export const submitQuiz = async (submission: { quizId: number; selectedAnswers: Record<number, number>; }) => {
     const response = await fetch(`${API_URL}/api/Quiz/submit`, {
         method: 'POST',
