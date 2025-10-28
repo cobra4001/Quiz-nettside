@@ -4,7 +4,7 @@ namespace api.Models
 {
     public class Quiz
     {
-        // Primærnøkkel
+        // Primary key
         public int Id { get; set; }
 
         [Required(ErrorMessage = "Title is required")]
@@ -17,10 +17,10 @@ namespace api.Models
         [Required]
         public string UserId { get; set; } = string.Empty;
 
-        // Navigasjonsfelt til brukeren som opprettet quizen
+        // Navigation property to the user who created the quiz
         public virtual AuthUser? Creator { get; set; }
 
-        // Spørsmålene i quizen
+        // Questions in the quiz
         public virtual ICollection<Question> Questions { get; set; } = new List<Question>();
     }
 }
