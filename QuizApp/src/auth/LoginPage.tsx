@@ -4,14 +4,17 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "./AuthContext";
 import type { LoginDto } from "../types/auth";
 
+// Login page component
 const LoginPage: React.FC = () => {
   const { login } = useAuth();
+  // Local form state
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
   const location = useLocation();
 
+  // Show message passed from protected-route redirects
   useEffect(() => {
     const state = location.state as { message?: string; from?: string };
     if (state?.message) {
@@ -19,9 +22,11 @@ const LoginPage: React.FC = () => {
     }
   }, [location.state]);
 
+  // Handle login submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    // Basic client-side validation
     if (username.length < 3) {
       setError("Please write a username with at least 3 characters.");
       return;
@@ -59,6 +64,7 @@ const LoginPage: React.FC = () => {
     }
   };
 
+  // Navigate to registration page
   const handleCreateUser = () => {
     navigate("/CreateUser");
   };
@@ -70,6 +76,7 @@ const LoginPage: React.FC = () => {
           <h2 className="mb-4 text-center">Login</h2>
           {error && <Alert variant="danger">{error}</Alert>}
           <Form onSubmit={handleSubmit}>
+            {/* Username field */}
             <Form.Group className="mb-3" controlId="formUsername">
               <Form.Label>Username</Form.Label>
               <Form.Control
@@ -80,6 +87,7 @@ const LoginPage: React.FC = () => {
                 autoComplete="username"
               />
             </Form.Group>
+            {/* Password field */}
             <Form.Group className="mb-4" controlId="formPassword">
               <Form.Label>Password</Form.Label>
               <Form.Control
@@ -90,9 +98,11 @@ const LoginPage: React.FC = () => {
                 autoComplete="current-password"
               />
             </Form.Group>
+            {/* Submit login */}
             <Button variant="primary" type="submit" className="w-100 mb-2">
               Login
             </Button>
+            {/* Go to registration */}
             <Button
               variant="secondary"
               type="button"

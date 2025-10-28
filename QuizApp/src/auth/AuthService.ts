@@ -1,14 +1,16 @@
 import type { LoginDto, RegisterDto, UpdateContactDTO, ChangePasswordDTO } from '../types/auth';
 
+// API base URL
 const API_URL = import.meta.env.VITE_API_URL;
 
 
-
+// Build Authorization header from token or localStorage
 function authHeader(token?: string) {
     const t = token ?? localStorage.getItem('token') ?? '';
     return t ? { Authorization: `Bearer ${t}` } : {};
 }
 
+// Parse response body and throw on HTTP errors
 async function handleResponse(response: Response): Promise<any> {
     const text = await response.text();
     let parsed: any = null;
@@ -33,6 +35,7 @@ async function handleResponse(response: Response): Promise<any> {
     return parsed ?? null;
 }
 
+// Log in and return JWT token
 export const login = async (credentials: LoginDto): Promise<{ token: string }> => {
     const response = await fetch(`${API_URL}/api/Auth/login`, {
         method: 'POST',
@@ -42,6 +45,7 @@ export const login = async (credentials: LoginDto): Promise<{ token: string }> =
     return await handleResponse(response) as { token: string };
 };
 
+// Register a new user
 export const register = async (userData: RegisterDto): Promise<any> => {
     const response = await fetch(`${API_URL}/api/Auth/register`, {
         method: 'POST',
@@ -52,6 +56,7 @@ export const register = async (userData: RegisterDto): Promise<any> => {
     return await handleResponse(response);
 }
 
+// Update contact information
 export const updateContact = async (updateContact: UpdateContactDTO, token?: string): Promise<any> => {
     const response = await fetch(`${API_URL}/api/Auth/update`, {
         method: 'PATCH',
@@ -61,6 +66,7 @@ export const updateContact = async (updateContact: UpdateContactDTO, token?: str
     return await handleResponse(response);
 }
 
+// Change account password
 export const changePassword = async (changePassword: ChangePasswordDTO, token?: string): Promise<any> => {
     const response = await fetch(`${API_URL}/api/Auth/change-password`, {
         method: 'PATCH',
@@ -70,6 +76,7 @@ export const changePassword = async (changePassword: ChangePasswordDTO, token?: 
     return await handleResponse(response);
 }
 
+// Fetch the current user's profile
 export const fetchProfile = async (token: string): Promise<any> => {
     const headers = { 'Content-Type': 'application/json', ...authHeader(token) } as HeadersInit;
 
@@ -80,6 +87,7 @@ export const fetchProfile = async (token: string): Promise<any> => {
     return await handleResponse(response);
 }
 
+// Permanently delete the current user's account
 export const deleteAccount = async (token: string): Promise<any> => {
     const response = await fetch(`${API_URL}/api/Auth/delete`, {
         method: 'DELETE',

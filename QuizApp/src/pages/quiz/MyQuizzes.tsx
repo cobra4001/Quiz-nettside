@@ -3,8 +3,10 @@ import type { QuizListProps } from '../../types/quiz';
 import { useNavigate } from 'react-router-dom';
 import { fetchMyQuizzes, deleteQuiz } from './QuizService';
 
+// Page showing the user's quizzes
 const MyQuizzes: React.FC<QuizListProps> = () => {
   const navigate = useNavigate();
+  // Local state
   const [quizzes, setQuizzes] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -28,6 +30,7 @@ const MyQuizzes: React.FC<QuizListProps> = () => {
     return () => { mounted = false; };
   }, []);
 
+  // Go to quiz taking page
   const navigateOnclick = async (quizId: number) => {
     navigate(`/QuizTakingPage/${quizId}`);
   };
@@ -57,7 +60,7 @@ const MyQuizzes: React.FC<QuizListProps> = () => {
         <h1 className="text-center fw-bold text-success mb-5 display-4">
           My Quizzes
         </h1>
-
+        {/* Status and alerts */}
         {loading && (
           <div className="alert alert-secondary text-center" role="status">
             Loading your quizzes...
@@ -75,6 +78,7 @@ const MyQuizzes: React.FC<QuizListProps> = () => {
           </div>
         )}
 
+        {/* Quiz list */}
         {!loading && !error && quizzes.length > 0 && (
           <div className="row row-cols-1 g-4">
             {quizzes.map((quiz: any) => (
