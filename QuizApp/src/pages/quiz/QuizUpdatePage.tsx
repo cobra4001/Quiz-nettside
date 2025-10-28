@@ -2,19 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "../../auth/AuthContext";
 import * as QuizService from './QuizService';
-
-interface IAnswerOption {
-  id: number;
-  text: string;
-  isCorrect: boolean;
-}
-
-interface IQuestion {
-  id: number;
-  questionText: string;
-  points: number;
-  answerOptions: IAnswerOption[];
-}
+import type { IAnswerOption, IQuestion } from '../../types/quiz';
 
 const QuizUpdatePage: React.FC = () => {
   const { user } = useAuth();
@@ -228,7 +216,7 @@ const QuizUpdatePage: React.FC = () => {
 
       await QuizService.updateQuiz(parseInt(quizId!), quizDto);
       window.scrollTo(0, 0);
-      setSuccessMsg('Quiz updated successfully!');
+      setSuccessMsg('Quiz updated successfully! Redirecting to My Quizzes...');
       
       setTimeout(() => {
         navigate('/MyQuizzes');
