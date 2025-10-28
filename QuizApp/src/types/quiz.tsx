@@ -8,7 +8,7 @@ export interface IQuiz {
 export interface IAnswerOption {
     id: number;
     text: string;
-    
+    isCorrect: boolean;
 }
 
 export interface IQuestion {
@@ -16,7 +16,6 @@ export interface IQuestion {
     questionText: string;
     points: number;
     answerOptions: IAnswerOption[];
-    correctOptionId: number; 
 }
 
 export interface QuizListProps {

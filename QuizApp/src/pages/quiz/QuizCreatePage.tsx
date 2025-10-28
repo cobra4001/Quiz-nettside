@@ -2,19 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../auth/AuthContext"; // Adjust path according to your project
 import * as QuizService from './QuizService';
-
-interface IAnswerOption {
-  id: number;
-  text: string;
-  isCorrect: boolean;
-}
-
-interface IQuestion {
-  id: number;
-  questionText: string;
-  points: number;
-  answerOptions: IAnswerOption[];
-}
+import type { IAnswerOption, IQuestion } from '../../types/quiz';
 
 const QuizCreatePage: React.FC = () => {
   const { user } = useAuth();
@@ -136,11 +124,12 @@ const QuizCreatePage: React.FC = () => {
     );
   };
 
+  //Submits a quiz after validation, gives feedback messages if something is wrong
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg(null);
     setSuccessMsg(null);
-
+    window.scrollTo(0, 0);
     if (!quizTitle.trim()) {
       setErrorMsg('Quiz title is required.');
       return;
