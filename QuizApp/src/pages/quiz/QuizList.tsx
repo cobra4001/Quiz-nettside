@@ -76,7 +76,7 @@ const QuizList: React.FC<QuizListProps> = () => {
             No quizzes yet. Create one!
           </div>
         )}
-
+      
         {!loading && !error && quizzes.length > 0 && (
           <div className="row row-cols-1 g-4">
             {quizzes.map((quiz: any) => (
@@ -115,7 +115,7 @@ const QuizList: React.FC<QuizListProps> = () => {
                     >
                       Start Quiz
                     </button>
-                    // Admin username = Admin password = Admin1234
+                    {/*Adminuser username = Admin password = Admin1234 */}
                     {user?.unique_name === "Admin" && (
                     <button
                       onClick={(e) => { e.stopPropagation(); handleQuizDeleted(quiz.id); }}
