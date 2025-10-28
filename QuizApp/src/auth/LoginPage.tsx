@@ -49,7 +49,7 @@ const LoginPage: React.FC = () => {
       } else {
         navigate("/HomePage", { replace: true });
       }
-*/} //ændret til bare at den altid går til homepage
+*/} //changed to always go to Homepage 
 
       navigate("/HomePage", { replace: true });
       

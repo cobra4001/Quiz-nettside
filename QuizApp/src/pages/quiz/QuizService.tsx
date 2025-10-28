@@ -8,7 +8,7 @@ const handleResponse = async (response: Response) => {
         const text = await response.text();
         return text ? JSON.parse(text) : null;
     }
-    // Prøver å finne feil som fant sted tidligere i fasen
+    // Trying to find errors that occurred earlier in the phase
     try {
         const errorData = await response.json();
         throw new Error(errorData.message || JSON.stringify(errorData));

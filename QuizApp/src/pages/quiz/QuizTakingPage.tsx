@@ -6,7 +6,7 @@ import { Card, Button, ProgressBar, Alert } from 'react-bootstrap';
 import { useParams, useNavigate } from 'react-router-dom';
 import '../../App.css';
 /**
- * QuizTaker-komponenten viser spørsmålene for en valgt quiz og håndterer spilllogikken.
+ * The QuizTaker component displays the questions for a selected quiz and handles the game logic.
  */
 const QuizTaker: React.FC<QuizTakerProps> = () => {
    const { quizId } = useParams<{ quizId: string }>();
@@ -20,7 +20,7 @@ const QuizTaker: React.FC<QuizTakerProps> = () => {
     const [submitError, setSubmitError] = useState<string | null>(null);
     const [result, setResult] = useState<{ score: number; correctAnswers: number; totalQuestions: number } | null>(null);
 
-    // Laster quiz-data ved oppstart basert på URL-parameter
+    // Loads quiz data on startup based on URL parameter
     useEffect(() => {
         const load = async () => {
             if (!quizId) return;
@@ -29,7 +29,7 @@ const QuizTaker: React.FC<QuizTakerProps> = () => {
             try {
                 const data = await fetchQuizById(id);
                 if (!data) return;
-                // Backend returner
+                // Backend returns
         
                 const mapped: IQuiz = {
                     id: data.id,
@@ -39,7 +39,7 @@ const QuizTaker: React.FC<QuizTakerProps> = () => {
                         id: q.id,
                         questionText: q.questionText,
                         points: q.points,
-                        // Gjem svaret til å begynne med
+                        // Hide the answer initially
                         correctOptionId: -1,
                         answerOptions: (q.answers || []).map((a: any) => ({ id: a.id, text: a.answerText }))
                     }))
@@ -52,7 +52,7 @@ const QuizTaker: React.FC<QuizTakerProps> = () => {
         load();
     }, [quizId]);
 
-    // Håndterer feil hvis quiz ikke finnes
+    // Handles error if quiz not found
     if (!currentQuiz) {
         return (
             <Alert variant="danger" className="mt-5 text-center">
@@ -78,7 +78,7 @@ const QuizTaker: React.FC<QuizTakerProps> = () => {
         if (currentQuestionIndex < totalQuestions - 1) {
             setCurrentQuestionIndex(currentQuestionIndex + 1);
         } else {
-            // Siste spørsmål besvart,send til backend for poengsum
+            // Last question answered, send to backend for score
             if (!currentQuiz) return;
             if (isSubmitting) return;
             setIsSubmitting(true);
@@ -86,7 +86,7 @@ const QuizTaker: React.FC<QuizTakerProps> = () => {
             try {
                 const payload = { quizId: currentQuiz.id, selectedAnswers: userAnswers };
                 console.debug('Submitting quiz payload', payload);
-                // Sjekk for å se om svar tilhører spørsmålet sitt
+                // Validate user answers against quiz structure
                 const invalidMappings: Array<{ questionId: number; answerId: number }> = [];
                 currentQuiz.questions.forEach(q => {
                     const chosen = userAnswers[q.id];
@@ -108,7 +108,7 @@ const QuizTaker: React.FC<QuizTakerProps> = () => {
                         correctAnswers: correctFromServer,
                         totalQuestions: totalFromServer
                     });
-                    // Loggfør detaljer hvis serveren gir feil 
+                    // Log details if server returns error
                     if (scoreFromServer === 0 && Object.keys(userAnswers).length > 0) {
                         console.warn('Server returned score=0; debugging details', {
                             answered: userAnswers,
@@ -140,7 +140,7 @@ const QuizTaker: React.FC<QuizTakerProps> = () => {
         }
     };
 
-    //Serveren bestemmer hva som er korrekt svar
+    // Server determines what is the correct answer
     const calculateScore = () => 0;
 
     const calculateTotalPoints = () => {
@@ -236,7 +236,7 @@ const QuizTaker: React.FC<QuizTakerProps> = () => {
                 <Button 
                     variant="secondary" 
                     className="mt-3"
-                    onClick={() => navigate('/QuizList')} // Går tilbake til listen
+                    onClick={() => navigate('/QuizList')} // Goes back to the list
                 >
                      Back to Quiz-list
                 </Button>

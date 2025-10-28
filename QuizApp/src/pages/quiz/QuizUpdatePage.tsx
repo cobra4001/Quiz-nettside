@@ -227,6 +227,7 @@ const QuizUpdatePage: React.FC = () => {
       };
 
       await QuizService.updateQuiz(parseInt(quizId!), quizDto);
+      window.scrollTo(0, 0);
       setSuccessMsg('Quiz updated successfully!');
       
       setTimeout(() => {

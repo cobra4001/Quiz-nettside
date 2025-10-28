@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../../auth/AuthContext"; // Juster sti etter prosjektet ditt
+import { useAuth } from "../../auth/AuthContext"; // Adjust path according to your project
 import * as QuizService from './QuizService';
 
 interface IAnswerOption {
