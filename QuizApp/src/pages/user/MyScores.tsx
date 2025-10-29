@@ -36,6 +36,7 @@ const MyScores: React.FC = () => {
     fetchScores();
   }, [user]);
 
+  //show errors message if user is not logged in
   if (!user) {
     return (
       <Container className="mt-5">
@@ -43,6 +44,7 @@ const MyScores: React.FC = () => {
       </Container>
     );
   }
+
 
   if (loading) {
     return (
@@ -62,6 +64,7 @@ const MyScores: React.FC = () => {
     );
   }
 
+  //returns a table showing the users quiz scores
   return (
     <Container className="mt-5">
       <h2 className="mb-4">My Quiz Scores</h2>
@@ -81,6 +84,7 @@ const MyScores: React.FC = () => {
             </tr>
           </thead>
           <tbody>
+            {/* Calculates the percantage of correct anwsers */}
             {scores.map((score, idx) => {
               const percentage = score.maxScore > 0 ? ((score.score / score.maxScore) * 100).toFixed(1) : 0;
               
