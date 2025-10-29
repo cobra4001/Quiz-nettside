@@ -4,10 +4,10 @@ import { Container, Table, Alert, Spinner } from "react-bootstrap";
 import { fetchMyScores } from "../quiz/QuizService";
 
 interface Score {
-  QuizTitle: string;
-  Score: number;
-  MaxScore: number;
-  SubmittedAt: string;
+  quizTitle: string;
+  score: number;
+  maxScore: number;
+  submittedAt: string;
 }
 
 const MyScores: React.FC = () => {
