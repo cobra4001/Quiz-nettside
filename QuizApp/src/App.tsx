@@ -10,7 +10,7 @@ const QuizUpdatePage = lazy(() => import("./pages/quiz/QuizUpdatePage"));
 const LoginPage = lazy(() => import("./auth/LoginPage"));
 const QuizTakingPage = lazy(() => import("./pages/quiz/QuizTakingPage"));
 const UserCreationPage = lazy(() => import("./pages/user/UserCreationPage"));
-const QuizList = lazy(() => import("./pages/quiz/QuizList"));
+const QuizList = lazy(() => import("./pages/quiz/AllQuizzes"));
 const MyQuizzes = lazy(() => import("./pages/quiz/MyQuizzes"));
 const UserProfile = lazy(() => import("./pages/user/UserProfile"));
 const MyScores = lazy(() => import("./pages/user/MyScores"));

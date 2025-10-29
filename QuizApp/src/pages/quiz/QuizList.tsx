@@ -1,63 +1,60 @@
-import React, { useEffect, useState } from 'react';
-import type { QuizListProps } from '../../types/quiz';
-import { useNavigate } from 'react-router-dom';
-import { fetchQuizzes, deleteQuiz } from './QuizService';
-import { useAuth } from "../../auth/AuthContext";
+import React from "react";
+import { useNavigate } from "react-router-dom";
+import { deleteQuiz } from "./QuizService";
 
-const QuizList: React.FC<QuizListProps> = () => {
+interface QuizListProps {
+  quizzes: any[];
+  loading: boolean;
+  error: string | null;
+  successMsg: string | null;
+  onQuizDeleted: (quizId: number) => void;
+  title: string;
+  emptyMessage: string;
+  showUpdateButton?: boolean;
+  showDeleteButton?: boolean;
+  showAdminDelete?: boolean;
+  currentUserName?: string;
+}
+
+const QuizList: React.FC<QuizListProps> = ({
+  quizzes,
+  loading,
+  error,
+  successMsg,
+  onQuizDeleted,
+  title,
+  emptyMessage,
+  showUpdateButton = false,
+  showDeleteButton = false,
+  showAdminDelete = false,
+  currentUserName = "",
+}) => {
   const navigate = useNavigate();
-  const [quizzes, setQuizzes] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-   const [successMsg, setSuccessMsg] = useState<string | null>(null);
-   const { user } = useAuth() as any;
 
-  // Get all quizzes
-  useEffect(() => {
-    let mounted = true;
-    (async () => {
-      try {
-        const data = await fetchQuizzes();
-        if (!mounted) return;
-        setQuizzes(Array.isArray(data) ? data : []);
-      } catch (e: any) {
-        if (!mounted) return;
-        setError(e.message || 'Failed to load quizzes');
-      } finally {
-        if (mounted) setLoading(false);
-      }
-    })();
-    return () => { mounted = false; };
-  }, []);
-
-  const navigateOnclick = async (quizId: number) => {
+  const navigateOnclick = (quizId: number) => {
     navigate(`/QuizTakingPage/${quizId}`);
   };
 
-  // Delete quiz and show success message
-    const handleQuizDeleted = async (quizId: number) => {
-      const confirmDelete = window.confirm(
-        "Are you sure you want to delete this quiz? This action cannot be undone!"
-      );
-      if (!confirmDelete) return;
-  
-      try {
-        await deleteQuiz(quizId);
-        setQuizzes(prev => prev.filter(q => q.id !== quizId));
-  
-        setSuccessMsg("Quiz deleted successfully!");
-        setTimeout(() => setSuccessMsg(null), 3000);
-      } catch (error: any) {
-        console.error("Could not delete quiz:", error);
-        alert(error?.message || "Could not delete quiz.");
-      }
-    };
- 
+  const handleQuizDeleted = async (quizId: number) => {
+    const confirmDelete = window.confirm(
+      "Are you sure you want to delete this quiz? This action cannot be undone!"
+    );
+    if (!confirmDelete) return;
+
+    try {
+      await deleteQuiz(quizId);
+      onQuizDeleted(quizId);
+    } catch (error: any) {
+      console.error("Could not delete quiz:", error);
+      alert(error?.message || "Could not delete quiz.");
+    }
+  };
+
   return (
     <div className="d-flex justify-content-center min-vh-100 p-3">
       <div className="container py-5" style={{ maxWidth: "800px" }}>
         <h1 className="text-center fw-bold text-success mb-5 display-4">
-          Available Quizzes
+          {title}
         </h1>
 
         {loading && (
@@ -66,65 +63,106 @@ const QuizList: React.FC<QuizListProps> = () => {
           </div>
         )}
         {error && (
-          <div className="alert alert-danger text-center" role="alert">{error}</div>
+          <div className="alert alert-danger text-center" role="alert">
+            {error}
+          </div>
         )}
         {successMsg && (
           <div className="alert alert-success text-center">{successMsg}</div>
         )}
         {!loading && !error && quizzes.length === 0 && (
           <div className="alert alert-info text-center" role="alert">
-            No quizzes yet. Create one!
+            {emptyMessage}
           </div>
         )}
-      
+
         {!loading && !error && quizzes.length > 0 && (
           <div className="row row-cols-1 g-4">
             {quizzes.map((quiz: any) => (
               <div className="col" key={quiz.id}>
                 <div
-                  className="card shadow-sm h-100 border-0 p-3 p-md-4 bg-primary-subtle hover-zoom"
-                  onClick={() => navigateOnclick(quiz.id)}
+                  className={`card shadow-sm h-100 border-0 p-3 p-md-4 bg-primary-subtle ${
+                    !showUpdateButton && !showDeleteButton ? "hover-zoom" : ""
+                  }`}
+                  onClick={
+                    !showUpdateButton && !showDeleteButton
+                      ? () => navigateOnclick(quiz.id)
+                      : undefined
+                  }
                   style={{
-                    cursor: 'pointer',
-                    transition: 'transform 0.2s ease, box-shadow 0.2s ease',
-                    borderRadius: '1rem'
+                    cursor:
+                      !showUpdateButton && !showDeleteButton
+                        ? "pointer"
+                        : "default",
+                    transition: "transform 0.2s ease, box-shadow 0.2s ease",
+                    borderRadius: "1rem",
                   }}
                 >
                   <div className="position-absolute bottom-0 end-0">
-                      <span
-                        className="badge text-dark px-3"
-                        title="Number of questions"
-                      >
-                        {quiz.questionCount} {quiz.questionCount === 1 ? 'question' : 'questions'}
-                      </span>
-                    </div>
+                    <span
+                      className="badge text-dark px-3"
+                      title="Number of questions"
+                    >
+                      {quiz.questionCount}{" "}
+                      {quiz.questionCount === 1 ? "question" : "questions"}
+                    </span>
+                  </div>
 
                   <div className="d-flex align-items-start position-relative">
                     <div className="text-center mx-auto">
-                      <h2 className="card-title fw-bolder fs-4 text-dark mb-2">{quiz.title}</h2>
+                      <h2 className="card-title fw-bolder fs-4 text-dark mb-2">
+                        {quiz.title}
+                      </h2>
                       <p className="card-text mb-3">{quiz.description}</p>
                     </div>
-
-                    
                   </div>
 
                   <div className="mt-3">
                     <button
-                      onClick={(e) => { e.stopPropagation(); navigateOnclick(quiz.id); }}
-                      className="btn btn-success fw-bold rounded-pill px-4 me-2"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigateOnclick(quiz.id);
+                      }}
+                      className="btn btn-success fw-bold rounded-pill px-4 me-2 my-1"
                     >
                       Start Quiz
                     </button>
-                    {/*Adminuser username = Admin password = Admin1234 */}
-                    {user?.unique_name === "Admin" && (
-                    <button
-                      onClick={(e) => { e.stopPropagation(); handleQuizDeleted(quiz.id); }}
-                      className="btn btn-danger fw-bold rounded-pill px-4 me-2"
-                    >
-                      Delete
-                    </button>
-                    )} 
 
+                    {showUpdateButton && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigate(`/QuizUpdate/${quiz.id}`);
+                        }}
+                        className="btn btn-primary fw-bold rounded-pill px-4 me-2 my-1"
+                      >
+                        Update Quiz
+                      </button>
+                    )}
+
+                    {showDeleteButton && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleQuizDeleted(quiz.id);
+                        }}
+                        className="btn btn-danger fw-bold rounded-pill px-4 my-1"
+                      >
+                        Delete Quiz
+                      </button>
+                    )}
+
+                    {showAdminDelete && currentUserName === "Admin" && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleQuizDeleted(quiz.id);
+                        }}
+                        className="btn btn-danger fw-bold rounded-pill px-4 me-2 my-1"
+                      >
+                        Delete
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>
