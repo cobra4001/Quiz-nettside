@@ -470,12 +470,110 @@ namespace api.Controllers
                 }
             }
 
+            // Get user ID from token
+            var rawIdentifier = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var subjectClaim = User.FindFirstValue("sub");
+            var usernameFallback = User.Identity?.Name;
+            string? resolvedUserId = null;
+
+            if (!string.IsNullOrWhiteSpace(rawIdentifier))
+            {
+                var candidate = await _context.Users.FindAsync(rawIdentifier);
+                if (candidate != null)
+                {
+                    resolvedUserId = candidate.Id;
+                }
+            }
+
+            if (resolvedUserId == null)
+            {
+                var possibleUsername = rawIdentifier ?? subjectClaim ?? usernameFallback;
+                if (!string.IsNullOrWhiteSpace(possibleUsername))
+                {
+                    var userByName = await _context.Users.FirstOrDefaultAsync(u => u.UserName == possibleUsername);
+                    if (userByName != null)
+                    {
+                        resolvedUserId = userByName.Id;
+                    }
+                }
+            }
+
+            // Save submission to database if user is authenticated
+            if (!string.IsNullOrWhiteSpace(resolvedUserId))
+            {
+                var submission = new QuizSubmission
+                {
+                    UserId = resolvedUserId,
+                    QuizId = quiz.Id,
+                    Score = totalScore,
+                    MaxScore = quiz.Questions.Sum(q => q.Points),
+                    SubmittedAt = DateTime.UtcNow
+                };
+                _context.QuizSubmissions.Add(submission);
+                await _context.SaveChangesAsync();
+            }
+
             return Ok(new
             {
                 Score = totalScore,
                 CorrectAnswers = correctAnswers,
                 TotalQuestions = questionCount
             });
+        }
+
+        // GET: api/Quiz/myscores
+        // Returns all quiz results for the user 
+        [Authorize]
+        [HttpGet("myscores")]
+        public async Task<IActionResult> GetMyScores()
+        {
+            var rawIdentifier = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var subjectClaim = User.FindFirstValue("sub");
+            var usernameFallback = User.Identity?.Name;
+
+            string? resolvedUserId = null;
+
+            if (!string.IsNullOrWhiteSpace(rawIdentifier))
+            {
+                var candidate = await _context.Users.FindAsync(rawIdentifier);
+                if (candidate != null)
+                {
+                    resolvedUserId = candidate.Id;
+                }
+            }
+
+            if (resolvedUserId == null)
+            {
+                var possibleUsername = rawIdentifier ?? subjectClaim ?? usernameFallback;
+                if (!string.IsNullOrWhiteSpace(possibleUsername))
+                {
+                    var userByName = await _context.Users.FirstOrDefaultAsync(u => u.UserName == possibleUsername);
+                    if (userByName != null)
+                    {
+                        resolvedUserId = userByName.Id;
+                    }
+                }
+            }
+
+            if (resolvedUserId == null)
+            {
+                return Unauthorized(new { Message = "Kunne ikke validere bruker fra token." });
+            }
+
+            var myScores = await _context.QuizSubmissions
+                .Where(s => s.UserId == resolvedUserId)
+                .Include(s => s.Quiz)
+                .OrderByDescending(s => s.SubmittedAt)
+                .Select(s => new
+                {
+                    QuizTitle = s.Quiz != null ? s.Quiz.Title : "Unknown Quiz",
+                    s.Score,
+                    s.MaxScore,
+                    s.SubmittedAt
+                })
+                .ToListAsync();
+
+            return Ok(myScores);
         }
     }
 }

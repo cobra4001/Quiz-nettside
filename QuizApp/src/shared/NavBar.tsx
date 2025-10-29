@@ -53,7 +53,9 @@ const NavBar: React.FC = () => {
 
           <Nav className="ms-auto">
             <NavDropdown title={user.unique_name} id="user-dropdown" align="end">
-              <NavDropdown.Item>My scores</NavDropdown.Item>
+              <NavDropdown.Item onClick={() => navigate("/MyScores")}>
+                My scores
+              </NavDropdown.Item>
               <NavDropdown.Item onClick={() => navigate("/MyQuizzes")}>
                 My Quizzes
               </NavDropdown.Item>

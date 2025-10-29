@@ -13,6 +13,7 @@ namespace api.Models
         public DbSet<Quiz> Quizzes { get; set; } = null!;
         public DbSet<Question> Questions { get; set; } = null!;
         public DbSet<Answer> Answers { get; set; } = null!;
+        public DbSet<QuizSubmission> QuizSubmissions { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder builder)
         {

@@ -104,3 +104,13 @@ export const deleteQuiz = async (id: number): Promise<void> => {
         throw new Error(`Failed to delete quiz: ${msg}`);
     }
 };
+
+// Get quiz results by quiz ID and user ID
+export const fetchMyScores = async () => {
+    const response = await fetch(`${API_URL}/api/Quiz/myscores`, {
+        headers: buildHeaders(),
+    });
+    return handleResponse(response);
+};
+
+
