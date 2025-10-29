@@ -1,3 +1,5 @@
+// Page showing all available quizzes
+
 import React, { useEffect, useState } from 'react';
 import type { QuizListProps } from '../../types/quiz';
 import { fetchQuizzes } from './QuizService';
@@ -35,6 +37,7 @@ const AllQuizzes: React.FC<QuizListProps> = () => {
     setTimeout(() => setSuccessMsg(null), 3000);
   };
 
+  // Returns a view using the QuizList component to show all available quizzes
   return (
     <QuizList
       quizzes={quizzes}

@@ -20,9 +20,19 @@ export interface IQuestion {
 }
 
 export interface QuizListProps {
-    // Function for navigating on click (used by react-router-dom's useNavigate)
-    onQuizSelect?: (quizId: number) => void;
+  quizzes: any[];
+  loading: boolean;
+  error: string | null;
+  successMsg: string | null;
+  onQuizDeleted: (quizId: number) => void;
+  title: string;
+  emptyMessage: string;
+  showUpdateButton?: boolean;
+  showDeleteButton?: boolean;
+  showAdminDelete?: boolean;
+  currentUserName?: string;
 }
+
 
 // Interface for the QuizTaker component
 export interface QuizTakerProps {

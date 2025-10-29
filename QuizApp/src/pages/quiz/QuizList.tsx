@@ -1,20 +1,9 @@
+// a reusable component to show a list of quizzes. with logic for Users and Admin
+
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { deleteQuiz } from "./QuizService";
-
-interface QuizListProps {
-  quizzes: any[];
-  loading: boolean;
-  error: string | null;
-  successMsg: string | null;
-  onQuizDeleted: (quizId: number) => void;
-  title: string;
-  emptyMessage: string;
-  showUpdateButton?: boolean;
-  showDeleteButton?: boolean;
-  showAdminDelete?: boolean;
-  currentUserName?: string;
-}
+import type { QuizListProps } from "../../types/quiz";
 
 const QuizList: React.FC<QuizListProps> = ({
   quizzes,
@@ -57,11 +46,6 @@ const QuizList: React.FC<QuizListProps> = ({
           {title}
         </h1>
 
-        {loading && (
-          <div className="alert alert-secondary text-center" role="status">
-            Loading quizzes...
-          </div>
-        )}
         {error && (
           <div className="alert alert-danger text-center" role="alert">
             {error}
@@ -152,6 +136,7 @@ const QuizList: React.FC<QuizListProps> = ({
                       </button>
                     )}
 
+                    {/*If the user is Admin, show a delete button */}
                     {showAdminDelete && currentUserName === "Admin" && (
                       <button
                         onClick={(e) => {
@@ -169,16 +154,16 @@ const QuizList: React.FC<QuizListProps> = ({
             ))}
           </div>
         )}
-
-        <style>{`
-          .hover-zoom:hover {
+        {/*Extra styling for the list component */}
+        <style>{
+        `.hover-zoom:hover {
             transform: translateY(-5px);
             box-shadow: 0 0.5rem 1rem rgba(0,0,0,.15)!important; 
           }
           .hover-zoom {
             transform: translateY(0);
-          }
-        `}</style>
+          }`
+        }</style>
       </div>
     </div>
   );
