@@ -4,6 +4,7 @@ import { fetchQuizById, submitQuiz } from './QuizService';
 import "bootstrap/dist/css/bootstrap.min.css";
 import { Card, Button, ProgressBar, Alert } from 'react-bootstrap';
 import { useParams, useNavigate } from 'react-router-dom';
+import Spinner from 'react-bootstrap/Spinner';
 import '../../App.css';
 /**
  * The QuizTaker component displays the questions for a selected quiz and handles the game logic.
@@ -17,6 +18,7 @@ const QuizTaker: React.FC<QuizTakerProps> = () => {
     const [userAnswers, setUserAnswers] = useState<{ [key: number]: number }>({}); // {questionId: selectedOptionId}
     const [showResults, setShowResults] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [loading, setLoading] = useState(true);
     const [submitError, setSubmitError] = useState<string | null>(null);
     const [result, setResult] = useState<{ score: number; correctAnswers: number; totalQuestions: number } | null>(null);
 
@@ -24,17 +26,24 @@ const QuizTaker: React.FC<QuizTakerProps> = () => {
     useEffect(() => {
         const load = async () => {
             if (!quizId) return;
+            setLoading(true);
             const id = parseInt(quizId, 10);
-            if (Number.isNaN(id)) return;
+            if (Number.isNaN(id)) {
+                setLoading(false);
+                return;
+            };
             try {
                 const data = await fetchQuizById(id);
-                if (!data) return;
+                if (!data) {
+                    setLoading(false);
+                    return;
+                }
                 // Backend returns
-        
                 const mapped: IQuiz = {
                     id: data.id,
                     title: data.title,
                     description: data.description || 'No description provided.',
+                    answerOptions: [], // Not used at quiz level
                     questions: (data.questions || []).map((q: any) => ({
                         id: q.id,
                         questionText: q.questionText,
@@ -48,9 +57,21 @@ const QuizTaker: React.FC<QuizTakerProps> = () => {
             } catch (err) {
                 console.error('Failed to load quiz', err);
             }
+            finally {
+                setLoading(false);
+            }
         };
         load();
     }, [quizId]);
+
+    if (loading) {
+        return (
+            <div className="text-center mt-5">
+                <Spinner animation="border" role="status" />
+                <div>Loading quiz...</div>
+            </div>
+        );
+    }
 
     // Handles error if quiz not found
     if (!currentQuiz) {
@@ -139,9 +160,6 @@ const QuizTaker: React.FC<QuizTakerProps> = () => {
             setCurrentQuestionIndex(currentQuestionIndex - 1);
         }
     };
-
-    // Server determines what is the correct answer
-    const calculateScore = () => 0;
 
     const calculateTotalPoints = () => {
         return currentQuiz.questions.reduce((sum, q) => sum + q.points, 0);
