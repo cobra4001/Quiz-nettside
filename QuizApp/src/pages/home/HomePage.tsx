@@ -27,6 +27,7 @@ const HomePage: React.FC = () => {
 
     return (
     <>
+    {/* Gives user feedback on actions */}
       <ToastContainer
         position="top-center"
         className="p-3"
