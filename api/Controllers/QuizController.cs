@@ -358,6 +358,7 @@ namespace api.Controllers
 
             if (quiz == null)
             {
+                _logger.LogWarning("[QuizController] Quiz with ID {@quizId} not found for submission.", submissionDto.QuizId);
                 return NotFound("Quiz not found.");
             }
 
@@ -381,23 +382,32 @@ namespace api.Controllers
             }
 
             // Get user ID from token
-            var resolvedUserId = await ResolveUserIdAsync();
+            var userId = await ResolveUserIdAsync();
 
             // Save submission to database if user is authenticated
-            if (!string.IsNullOrWhiteSpace(resolvedUserId))
+            if (!string.IsNullOrWhiteSpace(userId))
             {
-                var submission = new QuizSubmission
+                try
                 {
-                    UserId = resolvedUserId,
-                    QuizId = quiz.Id,
-                    Score = totalScore,
-                    MaxScore = quiz.Questions.Sum(q => q.Points),
-                    SubmittedAt = DateTime.UtcNow
-                };
-                _context.QuizSubmissions.Add(submission);
-                await _context.SaveChangesAsync();
-            }
 
+
+                    var submission = new QuizSubmission
+                    {
+                        UserId = userId,
+                        QuizId = quiz.Id,
+                        Score = totalScore,
+                        MaxScore = quiz.Questions.Sum(q => q.Points),
+                        SubmittedAt = DateTime.UtcNow
+                    };
+                    _context.QuizSubmissions.Add(submission);
+                    await _context.SaveChangesAsync();
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "[QuizController] Failed to save quiz submission for user {@userId} on quiz {@quizId}", userId, quiz.Id);
+                    // Proceed without failing the submission response
+                }
+            }
             return Ok(new
             {
                 Score = totalScore,
@@ -418,20 +428,28 @@ namespace api.Controllers
                 return Unauthorized(new { Message = "could not validate user." });
             }
 
-            var myScores = await _context.QuizSubmissions
-                .Where(s => s.UserId == resolvedUserId)
-                .Include(s => s.Quiz)
-                .OrderByDescending(s => s.SubmittedAt)
-                .Select(s => new
-                {
-                    QuizTitle = s.Quiz != null ? s.Quiz.Title : "Unknown Quiz",
-                    s.Score,
-                    s.MaxScore,
-                    s.SubmittedAt
-                })
-                .ToListAsync();
+           try
+            {
+                var myScores = await _context.QuizSubmissions
+                    .Where(s => s.UserId == resolvedUserId)
+                    .Include(s => s.Quiz)
+                    .OrderByDescending(s => s.SubmittedAt)
+                    .Select(s => new
+                    {
+                        QuizTitle = s.Quiz != null ? s.Quiz.Title : "Unknown Quiz",
+                        s.Score,
+                        s.MaxScore,
+                        s.SubmittedAt
+                    })
+                    .ToListAsync();
 
-            return Ok(myScores);
+                return Ok(myScores);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "[QuizController] Failed to retrieve scores for user {@userId}", resolvedUserId);
+                return StatusCode(500, new { Message = "Failed to retrieve quiz scores." });
+            }
         }
     }
 }
