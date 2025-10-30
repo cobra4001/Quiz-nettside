@@ -25,8 +25,11 @@ namespace api.Controllers
             var userId = await Task.Run(() => User.FindFirstValue(ClaimTypes.NameIdentifier));
             if (userId != null)
                 return userId;
-            else
+            else{
+                _logger.LogWarning("[QuizController] Could not resolve user ID from token claims.");
                 return null;
+            }
+                
         }
 
         // POST: api/Quiz/create
@@ -116,6 +119,11 @@ namespace api.Controllers
                                           Creator = q.Creator != null ? q.Creator.UserName! : "Unknown"
                                       })
                                       .ToListAsync();
+            if(!quizzes.Any())
+            {
+                _logger.LogInformation("[QuizController] No quizzes found in database.");
+                return NotFound(new { Message = "No quizzes available." });
+            }
             return Ok(quizzes);
         }
 
@@ -144,12 +152,10 @@ namespace api.Controllers
                                              Creator = q.Creator != null ? q.Creator.UserName! : "Unknown"
                                          })
                                          .ToListAsync();
-
-            if (!myQuizzes.Any())
-            {
-                _logger.LogInformation("[QuizController] User {@userId} has no created quizzes.", resolvedUserId);
-                return NotFound(new { Message = "You have not created any quizzes yet." });
-            }
+            // USIKKER PÅ OM LOGGING GIVER  MENING HER???
+           /* if (!myQuizzes.Any()) 
+                _logger.LogInformation("[QuizController] User {@userId} has no created quizzes.", resolvedUserId); */
+                
             return Ok(myQuizzes);
         }
 
@@ -166,11 +172,12 @@ namespace api.Controllers
 
             if (quiz == null)
             {
-                return NotFound();
+                _logger.LogWarning("[QuizController] Quiz with ID {@quizId} not found.", id);
+                return NotFound(new { Message = "Quiz not found for the QuizID" });
             }
 
             // Create an anonymous DTO to ensure that 'IsCorrect' is not exposed to the client.
-            var quizDetails = new
+            return Ok(new
             {
                 quiz.Id,
                 quiz.Title,
@@ -185,9 +192,9 @@ namespace api.Controllers
                         a.AnswerText
                     }).ToList()
                 }).ToList()
-            };
+            });
 
-            return Ok(quizDetails);
+            //return Ok(quizDetails);
         }
 
         // GET: api/Quiz/{id}/edit
@@ -196,8 +203,8 @@ namespace api.Controllers
         [HttpGet("{id}/edit")]
         public async Task<IActionResult> GetQuizForEdit(int id)
         {
-            var resolvedUserId = await ResolveUserIdAsync();
-            if (resolvedUserId == null)
+            var userId = await ResolveUserIdAsync();
+            if (userId == null)
             {
                 return Unauthorized(new { Message = "Could not validate user" });
             }
@@ -210,16 +217,18 @@ namespace api.Controllers
 
             if (quiz == null)
             {
+                _logger.LogWarning("[QuizController] Quiz with ID {@quizId} not found for editing.", id);   
                 return NotFound(new { Message = "Quiz not found." });
             }
-
-            if (quiz.UserId != resolvedUserId)
+            if (quiz.UserId != userId)
             {
+                _logger.LogWarning("[QuizController] User {@userId} attempted to edit quiz {@quizId} without permission.", userId, id);
                 return StatusCode(403, new { Message = "You do not have permission to edit this quiz." });
             }
+                
 
-            // Returns the full quiz details including correct answers
-            var quizForEdit = new
+            // Return the quiz directly with questions and answers (including IsCorrect)
+            return Ok(new
             {
                 quiz.Id,
                 quiz.Title,
@@ -236,9 +245,7 @@ namespace api.Controllers
                         a.IsCorrect
                     }).ToList()
                 }).ToList()
-            };
-
-            return Ok(quizForEdit);
+            });
         }
 
         // PUT: api/Quiz/{id}
@@ -253,14 +260,22 @@ namespace api.Controllers
             var userId = await ResolveUserIdAsync();
             if (userId == null)
             {
-                return Unauthorized(new { Message = "Kunne ikke validere bruker fra token." });
+                return Unauthorized(new { Message = "could not validate user" });
             }
 
             // Validate the quiz data
             if (quizDto.Questions == null || !quizDto.Questions.Any())
+            {
+                _logger.LogWarning("[QuizController] UpdateQuiz failed");
                 return BadRequest(new { Message = "Quiz må ha minst ett spørsmål." });
+            }
+
             if (quizDto.Questions.Any(q => q.Answers == null || !q.Answers.Any()))
+            {
+                _logger.LogWarning("[QuizController] UpdateQuiz failed");
                 return BadRequest(new { Message = "Hvert spørsmål må ha minst ett svar." });
+            }
+
 
             // Get the existing quiz
             var existingQuiz = await _context.Quizzes
@@ -270,73 +285,65 @@ namespace api.Controllers
 
             if (existingQuiz == null)
             {
+                _logger.LogWarning("[QuizController] Quiz with ID {@quizId} not found", id);
                 return NotFound(new { Message = "Quiz not found." });
             }
-
             // Check if the user owns the quiz
             if (existingQuiz.UserId != userId)
             {
+                _logger.LogWarning("[QuizController] User {@userId} attempted to update quiz {@quizId} without permission.", userId, id);
                 return StatusCode(403, new { Message = "You do not have permission to update this quiz." });
             }
 
-            try
+
+            // Update quiz properties
+            existingQuiz.Title = quizDto.Title;
+            existingQuiz.Description = quizDto.Description;
+
+            // Remove all existing questions and answers
+            _context.Questions.RemoveRange(existingQuiz.Questions);
+
+            // Add new questions and answers
+            existingQuiz.Questions = quizDto.Questions.Select(qDto => new Question
             {
-                // Update quiz properties
-                existingQuiz.Title = quizDto.Title;
-                existingQuiz.Description = quizDto.Description;
-
-                // Remove all existing questions and answers
-                _context.Questions.RemoveRange(existingQuiz.Questions);
-
-                // Add new questions and answers
-                existingQuiz.Questions = quizDto.Questions.Select(qDto => new Question
+                QuestionText = qDto.QuestionText,
+                Points = qDto.Points,
+                Answers = qDto.Answers.Select(aDto => new Answer
                 {
-                    QuestionText = qDto.QuestionText,
-                    Points = qDto.Points,
-                    Answers = qDto.Answers.Select(aDto => new Answer
-                    {
-                        AnswerText = aDto.AnswerText,
-                        IsCorrect = aDto.IsCorrect
-                    }).ToList()
-                }).ToList();
+                    AnswerText = aDto.AnswerText,
+                    IsCorrect = aDto.IsCorrect
+                }).ToList()
+            }).ToList();
 
-                await _context.SaveChangesAsync();
+            if (await _context.SaveChangesAsync() > 0)
                 return Ok(new { Message = "Quiz updated!", QuizId = existingQuiz.Id });
-            }
-            catch (DbUpdateException ex)
-            {
-                //Console.WriteLine($"[QuizController] DbUpdateException: {ex.Message}\nInner: {ex.InnerException?.Message}");
-                return StatusCode(500, new { Message = "Update failed (DbUpdateException).", Detail = ex.InnerException?.Message });
-            }
-            catch (Exception ex)
-            {
-                //Console.WriteLine($"[QuizController] Unexpected error: {ex}");
-                return StatusCode(500, new { Message = "Unexpected error occurred while updating quiz.", Detail = ex.Message });
-            }
+
+            _logger.LogError("[QuizController] Failed to update quiz {@quizId} for user {@userId}", id, userId);
+            return StatusCode(500, new { Message = "Failed to update quiz." });
         }
 
         //Method for deleting a quiz by id
+        // EVENTUELT TRY CATCH BLOCK HER?
         [Authorize]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteQuiz(int id)
         {
-            // Find the quiz including its questions and answers (for cascade delete)
+            // Find the quiz including its questions and answers (for cascade delete) Then remove it, and return 204 
             var quiz = await _context.Quizzes
             .Include(q => q.Questions)
             .ThenInclude(q => q.Answers)
             .FirstOrDefaultAsync(q => q.Id == id);
 
-            if (quiz == null)
-                return NotFound(new { Message = "Quiz not found." });
-
-            // Remove the quiz
-            _context.Quizzes.Remove(quiz);
-            await _context.SaveChangesAsync();
-
-            // Return 204 No Content to indicate success
-            return NoContent();
+            if (quiz != null)
+            {
+                _context.Quizzes.Remove(quiz);
+                await _context.SaveChangesAsync();
+                return NoContent();
+            }
+            // If quiz not found, log and return 500
+            _logger.LogError("[QuizController] Unexpected error occurred while deleting quiz {@quizId}", id);
+            return StatusCode(500, new { Message = "Unexpected error occurred while deleting quiz."});
         }   
-    
     
         // POST: api/Quiz/submit
         // sends a quiz submission and calculates the score.
