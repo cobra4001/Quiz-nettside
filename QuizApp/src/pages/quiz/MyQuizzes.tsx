@@ -1,11 +1,10 @@
 // Page showing the user's quizzes
 
 import React, { useEffect, useState } from 'react';
-import type { QuizListProps } from '../../types/quiz';
 import { fetchMyQuizzes } from './QuizService';
 import QuizList from './QuizList';
 
-const MyQuizzes: React.FC<QuizListProps> = () => {
+const MyQuizzes: React.FC = () => {
   const [quizzes, setQuizzes] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

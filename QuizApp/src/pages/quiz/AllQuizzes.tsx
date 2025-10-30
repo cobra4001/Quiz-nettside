@@ -1,12 +1,11 @@
 // Page showing all available quizzes
 
 import React, { useEffect, useState } from 'react';
-import type { QuizListProps } from '../../types/quiz';
 import { fetchQuizzes } from './QuizService';
 import { useAuth } from "../../auth/AuthContext";
 import QuizList from './QuizList';
 
-const AllQuizzes: React.FC<QuizListProps> = () => {
+const AllQuizzes: React.FC = () => {
   const [quizzes, setQuizzes] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
