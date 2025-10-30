@@ -12,41 +12,21 @@ namespace api.Controllers
     public class QuizController : ControllerBase
     {
         private readonly AuthUserDbContext _context;
-
-        public QuizController(AuthUserDbContext context)
+        private readonly ILogger<QuizController> _logger;
+        public QuizController(AuthUserDbContext context, ILogger<QuizController> logger)
         {
             _context = context;
+            _logger = logger;
         }
 
         // Helper method to resolve user ID from JWT token claims
         private async Task<string?> ResolveUserIdAsync()
         {
-            var rawIdentifier = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            var subjectClaim = User.FindFirstValue("sub");
-            var usernameFallback = User.Identity?.Name;
-
-            // First attempt: try to find user by ID directly
-            if (!string.IsNullOrWhiteSpace(rawIdentifier))
-            {
-                var candidate = await _context.Users.FindAsync(rawIdentifier);
-                if (candidate != null)
-                {
-                    return candidate.Id;
-                }
-            }
-
-            // Fallback: try to find user by username
-            var possibleUsername = rawIdentifier ?? subjectClaim ?? usernameFallback;
-            if (!string.IsNullOrWhiteSpace(possibleUsername))
-            {
-                var userByName = await _context.Users.FirstOrDefaultAsync(u => u.UserName == possibleUsername);
-                if (userByName != null)
-                {
-                    return userByName.Id;
-                }
-            }
-
-            return null;
+            var userId = await Task.Run(() => User.FindFirstValue(ClaimTypes.NameIdentifier));
+            if (userId != null)
+                return userId;
+            else
+                return null;
         }
 
         // POST: api/Quiz/create
@@ -55,27 +35,28 @@ namespace api.Controllers
         [HttpPost("create")]
         public async Task<IActionResult> CreateQuiz([FromBody] QuizCreationDto quizDto)
         {
-        
+
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var resolvedUserId = await ResolveUserIdAsync();
-            if (resolvedUserId == null)
+            var userId = await ResolveUserIdAsync();
+            if (userId == null)
             {
                 return Unauthorized(new { Message = "Kunne ikke validere bruker fra token (mangler eller ugyldig). Logg inn på nytt." });
             }
 
-            //Make sure that every Quiz has questions and that every question has at least one answer 
+            //format validation (questions and answers)
             if (quizDto.Questions == null || !quizDto.Questions.Any())
                 return BadRequest(new { Message = "Quiz må ha minst ett spørsmål." });
             if (quizDto.Questions.Any(q => q.Answers == null || !q.Answers.Any()))
                 return BadRequest(new { Message = "Hvert spørsmål må ha minst ett svar." });
 
+            // Creates the quiz entry
             var quiz = new Quiz
             {
                 Title = quizDto.Title,
                 Description = quizDto.Description,
-                UserId = resolvedUserId,
+                UserId = userId,
                 Questions = quizDto.Questions.Select(qDto => new Question
                 {
                     QuestionText = qDto.QuestionText,
@@ -88,8 +69,17 @@ namespace api.Controllers
                 }).ToList()
             };
 
+            //submits to database and logs if unsuccessfull
             _context.Quizzes.Add(quiz);
-            try
+
+            bool returnOk = await _context.SaveChangesAsync() > 0;
+            if (returnOk)
+                return Ok(new { Message = "Quiz opprettet!", QuizId = quiz.Id });
+
+            _logger.LogError("[QuizController] Failed to create quiz for user {@userId}", userId);
+            return StatusCode(500, new { Message = "Internal server error." });
+            //Old code: delete if okay with Thomas
+            /*try
             {
                 await _context.SaveChangesAsync();
                 return Ok(new { Message = "Quiz opprettet!", QuizId = quiz.Id });
@@ -104,11 +94,13 @@ namespace api.Controllers
             {
                 Console.WriteLine($"[QuizController] Uventet feil: {ex}");
                 return StatusCode(500, new { Message = "Uventet feil ved opprettelse av quiz.", Detail = ex.Message });
-            }
+            }*/
         }
 
         // GET: api/Quiz
         // Brings a list of all available quizzes
+        
+        //DENNE OG NÆSTE KAN VI EVENTULTIG BYTTE UD MED EN FÆLLES METODE SOM TAGER EN OPTIONAL USERID
         [HttpGet]
         public async Task<IActionResult> GetQuizzes()
         {
@@ -120,9 +112,7 @@ namespace api.Controllers
                                           q.Id,
                                           q.Title,
                                           q.Description,
-                                
                                           QuestionCount = q.Questions.Count,
-                            
                                           Creator = q.Creator != null ? q.Creator.UserName! : "Unknown"
                                       })
                                       .ToListAsync();
@@ -130,7 +120,7 @@ namespace api.Controllers
         }
 
         // GET: api/Quiz/my
-        // Henter alle quizzer som tilhører den innloggede brukeren.
+        // Get quizzes created by the logged-in user.
         [Authorize]
         [HttpGet("my")]
         public async Task<IActionResult> GetMyQuizzes()
@@ -138,10 +128,10 @@ namespace api.Controllers
             var resolvedUserId = await ResolveUserIdAsync();
             if (resolvedUserId == null)
             {
-                return Unauthorized(new { Message = "Kunne ikke validere bruker fra token." });
+                return Unauthorized(new { Message = "could not validate user." });
             }
 
-            // Hent kun quizzer som tilhører den innloggede brukeren
+            // Only get the users quizzes
             var myQuizzes = await _context.Quizzes
                                          .Where(q => q.UserId == resolvedUserId)
                                          .Include(q => q.Creator)
@@ -154,16 +144,21 @@ namespace api.Controllers
                                              Creator = q.Creator != null ? q.Creator.UserName! : "Unknown"
                                          })
                                          .ToListAsync();
-            
+
+            if (!myQuizzes.Any())
+            {
+                _logger.LogInformation("[QuizController] User {@userId} has no created quizzes.", resolvedUserId);
+                return NotFound(new { Message = "You have not created any quizzes yet." });
+            }
             return Ok(myQuizzes);
         }
 
         // GET: api/Quiz/{id}
-        // Henter en spesifikk quiz via ID, uten de riktige svarene.
+        // Gets a specific quiz using ID, without anwsers
         [HttpGet("{id}")]
         public async Task<IActionResult> GetQuiz(int id)
         {
-            // Eagerly laster spørsmål og deres svar for quizen
+            // Eagerly loads questions and their answers for the quiz
             var quiz = await _context.Quizzes
                 .Include(q => q.Questions)
                 .ThenInclude(q => q.Answers)
@@ -174,7 +169,7 @@ namespace api.Controllers
                 return NotFound();
             }
 
-            // Oppretter en anonym DTO for å sikre at 'IsCorrect' ikke blir eksponert for klienten.
+            // Create an anonymous DTO to ensure that 'IsCorrect' is not exposed to the client.
             var quizDetails = new
             {
                 quiz.Id,
@@ -196,7 +191,7 @@ namespace api.Controllers
         }
 
         // GET: api/Quiz/{id}/edit
-        // Henter en quiz for redigering med alle detaljer inkludert riktige svar.
+        // gets a quiz for editing with all details
         [Authorize]
         [HttpGet("{id}/edit")]
         public async Task<IActionResult> GetQuizForEdit(int id)
@@ -204,10 +199,10 @@ namespace api.Controllers
             var resolvedUserId = await ResolveUserIdAsync();
             if (resolvedUserId == null)
             {
-                return Unauthorized(new { Message = "Kunne ikke validere bruker fra token." });
+                return Unauthorized(new { Message = "Could not validate user" });
             }
 
-            // Hent quizen med alle detaljer
+            // Get the quiz including questions and answers
             var quiz = await _context.Quizzes
                 .Include(q => q.Questions)
                 .ThenInclude(q => q.Answers)
@@ -215,16 +210,15 @@ namespace api.Controllers
 
             if (quiz == null)
             {
-                return NotFound(new { Message = "Quiz ikke funnet." });
+                return NotFound(new { Message = "Quiz not found." });
             }
 
-            // Sjekk om brukeren eier quizen
             if (quiz.UserId != resolvedUserId)
             {
-                return StatusCode(403, new { Message = "Du har ikke tilgang til å redigere denne quizen." });
+                return StatusCode(403, new { Message = "You do not have permission to edit this quiz." });
             }
 
-            // Returner full quiz data for redigering inkludert riktige svar
+            // Returns the full quiz details including correct answers
             var quizForEdit = new
             {
                 quiz.Id,
@@ -256,19 +250,19 @@ namespace api.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var resolvedUserId = await ResolveUserIdAsync();
-            if (resolvedUserId == null)
+            var userId = await ResolveUserIdAsync();
+            if (userId == null)
             {
                 return Unauthorized(new { Message = "Kunne ikke validere bruker fra token." });
             }
 
-            // Valider quiz data
+            // Validate the quiz data
             if (quizDto.Questions == null || !quizDto.Questions.Any())
                 return BadRequest(new { Message = "Quiz må ha minst ett spørsmål." });
             if (quizDto.Questions.Any(q => q.Answers == null || !q.Answers.Any()))
                 return BadRequest(new { Message = "Hvert spørsmål må ha minst ett svar." });
 
-            // Hent den eksisterende quizen
+            // Get the existing quiz
             var existingQuiz = await _context.Quizzes
                 .Include(q => q.Questions)
                 .ThenInclude(q => q.Answers)
@@ -276,25 +270,25 @@ namespace api.Controllers
 
             if (existingQuiz == null)
             {
-                return NotFound(new { Message = "Quiz ikke funnet." });
+                return NotFound(new { Message = "Quiz not found." });
             }
 
-            // Sjekk om brukeren eier quizen
-            if (existingQuiz.UserId != resolvedUserId)
+            // Check if the user owns the quiz
+            if (existingQuiz.UserId != userId)
             {
-                return StatusCode(403, new { Message = "Du har ikke tilgang til å oppdatere denne quizen." });
+                return StatusCode(403, new { Message = "You do not have permission to update this quiz." });
             }
 
             try
             {
-                // Oppdater quiz-egenskaper
+                // Update quiz properties
                 existingQuiz.Title = quizDto.Title;
                 existingQuiz.Description = quizDto.Description;
 
-                // Fjern alle eksisterende spørsmål og svar (cascade delete)
+                // Remove all existing questions and answers
                 _context.Questions.RemoveRange(existingQuiz.Questions);
 
-                // Legg til nye spørsmål og svar
+                // Add new questions and answers
                 existingQuiz.Questions = quizDto.Questions.Select(qDto => new Question
                 {
                     QuestionText = qDto.QuestionText,
@@ -307,17 +301,17 @@ namespace api.Controllers
                 }).ToList();
 
                 await _context.SaveChangesAsync();
-                return Ok(new { Message = "Quiz oppdatert!", QuizId = existingQuiz.Id });
+                return Ok(new { Message = "Quiz updated!", QuizId = existingQuiz.Id });
             }
             catch (DbUpdateException ex)
             {
-                Console.WriteLine($"[QuizController] DbUpdateException: {ex.Message}\nInner: {ex.InnerException?.Message}");
-                return StatusCode(500, new { Message = "Oppdatering feilet (DbUpdateException).", Detail = ex.InnerException?.Message });
+                //Console.WriteLine($"[QuizController] DbUpdateException: {ex.Message}\nInner: {ex.InnerException?.Message}");
+                return StatusCode(500, new { Message = "Update failed (DbUpdateException).", Detail = ex.InnerException?.Message });
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[QuizController] Uventet feil: {ex}");
-                return StatusCode(500, new { Message = "Uventet feil ved oppdatering av quiz.", Detail = ex.Message });
+                //Console.WriteLine($"[QuizController] Unexpected error: {ex}");
+                return StatusCode(500, new { Message = "Unexpected error occurred while updating quiz.", Detail = ex.Message });
             }
         }
 
@@ -345,11 +339,11 @@ namespace api.Controllers
     
     
         // POST: api/Quiz/submit
-        // Sender inn en quiz og beregner poengsummen.
+        // sends a quiz submission and calculates the score.
         [HttpPost("submit")]
         public async Task<IActionResult> SubmitQuiz([FromBody] QuizSubmissionDto submissionDto)
         {
-            // Eagerly laster hele quiz-strukturen (spørsmål og svar)
+            // Eagerly loads the entire quiz structure (questions and answers)
             var quiz = await _context.Quizzes
                 .Include(q => q.Questions)
                 .ThenInclude(q => q.Answers)
@@ -357,7 +351,7 @@ namespace api.Controllers
 
             if (quiz == null)
             {
-                return NotFound("Quiz ikke funnet.");
+                return NotFound("Quiz not found.");
             }
 
             var totalScore = 0;
@@ -368,7 +362,7 @@ namespace api.Controllers
             {
                 if (submissionDto.SelectedAnswers.TryGetValue(question.Id, out int selectedAnswerId))
                 {
-                    // Finner det riktige svaret for gjeldende spørsmål
+                    // Finds the correct anwser
                     var correctAnswer = question.Answers.FirstOrDefault(a => a.IsCorrect);
                     
                     if (correctAnswer != null && correctAnswer.Id == selectedAnswerId)
