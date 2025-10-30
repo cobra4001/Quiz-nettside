@@ -18,6 +18,37 @@ namespace api.Controllers
             _context = context;
         }
 
+        // Helper method to resolve user ID from JWT token claims
+        private async Task<string?> ResolveUserIdAsync()
+        {
+            var rawIdentifier = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var subjectClaim = User.FindFirstValue("sub");
+            var usernameFallback = User.Identity?.Name;
+
+            // First attempt: try to find user by ID directly
+            if (!string.IsNullOrWhiteSpace(rawIdentifier))
+            {
+                var candidate = await _context.Users.FindAsync(rawIdentifier);
+                if (candidate != null)
+                {
+                    return candidate.Id;
+                }
+            }
+
+            // Fallback: try to find user by username
+            var possibleUsername = rawIdentifier ?? subjectClaim ?? usernameFallback;
+            if (!string.IsNullOrWhiteSpace(possibleUsername))
+            {
+                var userByName = await _context.Users.FirstOrDefaultAsync(u => u.UserName == possibleUsername);
+                if (userByName != null)
+                {
+                    return userByName.Id;
+                }
+            }
+
+            return null;
+        }
+
         // POST: api/Quiz/create
         // Creating a new quiz. Requires authentication.
         [Authorize]
@@ -28,42 +59,7 @@ namespace api.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            
-            var rawIdentifier = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            var subjectClaim = User.FindFirstValue("sub");
-            var usernameFallback = User.Identity?.Name;
-
-            Console.WriteLine($"[QuizController] Raw NameIdentifier claim: {rawIdentifier}");
-            Console.WriteLine($"[QuizController] Sub claim: {subjectClaim}");
-            Console.WriteLine($"[QuizController] Identity.Name: {usernameFallback}");
-
-            string? resolvedUserId = null;
-
-            // First assume that the claim already contains the GUID Id (Identity primary key) which is the one that should be linked to the user.
-            if (!string.IsNullOrWhiteSpace(rawIdentifier))
-            {
-                var candidate = await _context.Users.FindAsync(rawIdentifier);
-                if (candidate != null)
-                {
-                    resolvedUserId = candidate.Id; 
-                }
-            }
-
-            
-            if (resolvedUserId == null)
-            {
-                var possibleUsername = rawIdentifier ?? subjectClaim ?? usernameFallback;
-                if (!string.IsNullOrWhiteSpace(possibleUsername))
-                {
-                    var userByName = await _context.Users.FirstOrDefaultAsync(u => u.UserName == possibleUsername);
-                    if (userByName != null)
-                    {
-                        resolvedUserId = userByName.Id;
-                        Console.WriteLine($"[QuizController] Resolved username '{possibleUsername}' to Id '{resolvedUserId}'.");
-                    }
-                }
-            }
-
+            var resolvedUserId = await ResolveUserIdAsync();
             if (resolvedUserId == null)
             {
                 return Unauthorized(new { Message = "Kunne ikke validere bruker fra token (mangler eller ugyldig). Logg inn på nytt." });
@@ -139,36 +135,7 @@ namespace api.Controllers
         [HttpGet("my")]
         public async Task<IActionResult> GetMyQuizzes()
         {
-            var rawIdentifier = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            var subjectClaim = User.FindFirstValue("sub");
-            var usernameFallback = User.Identity?.Name;
-
-            string? resolvedUserId = null;
-
-            // logik for at finde brugeren via JWT token claim
-            if (!string.IsNullOrWhiteSpace(rawIdentifier))
-            {
-                var candidate = await _context.Users.FindAsync(rawIdentifier);
-                if (candidate != null)
-                {
-                    resolvedUserId = candidate.Id; 
-                }
-            }
-
-            // Hvis ikke funnet via Id, prøv å finne via brukernavn igjennom databasen
-            if (resolvedUserId == null)
-            {
-                var possibleUsername = rawIdentifier ?? subjectClaim ?? usernameFallback;
-                if (!string.IsNullOrWhiteSpace(possibleUsername))
-                {
-                    var userByName = await _context.Users.FirstOrDefaultAsync(u => u.UserName == possibleUsername);
-                    if (userByName != null)
-                    {
-                        resolvedUserId = userByName.Id;
-                    }
-                }
-            }
-
+            var resolvedUserId = await ResolveUserIdAsync();
             if (resolvedUserId == null)
             {
                 return Unauthorized(new { Message = "Kunne ikke validere bruker fra token." });
@@ -234,36 +201,7 @@ namespace api.Controllers
         [HttpGet("{id}/edit")]
         public async Task<IActionResult> GetQuizForEdit(int id)
         {
-            var rawIdentifier = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            var subjectClaim = User.FindFirstValue("sub");
-            var usernameFallback = User.Identity?.Name;
-
-            string? resolvedUserId = null;
-
-            // Først anta at claim allerede inneholder GUID Id
-            if (!string.IsNullOrWhiteSpace(rawIdentifier))
-            {
-                var candidate = await _context.Users.FindAsync(rawIdentifier);
-                if (candidate != null)
-                {
-                    resolvedUserId = candidate.Id; 
-                }
-            }
-
-            // Fallback: prøv å finne bruker via brukernavn
-            if (resolvedUserId == null)
-            {
-                var possibleUsername = rawIdentifier ?? subjectClaim ?? usernameFallback;
-                if (!string.IsNullOrWhiteSpace(possibleUsername))
-                {
-                    var userByName = await _context.Users.FirstOrDefaultAsync(u => u.UserName == possibleUsername);
-                    if (userByName != null)
-                    {
-                        resolvedUserId = userByName.Id;
-                    }
-                }
-            }
-
+            var resolvedUserId = await ResolveUserIdAsync();
             if (resolvedUserId == null)
             {
                 return Unauthorized(new { Message = "Kunne ikke validere bruker fra token." });
@@ -310,7 +248,7 @@ namespace api.Controllers
         }
 
         // PUT: api/Quiz/{id}
-        // Oppdaterer en eksisterende quiz. Krever autentisering og eierskap.
+        // Oppdates an existing quiz that the user have created
         [Authorize]
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateQuiz(int id, [FromBody] QuizCreationDto quizDto)
@@ -318,36 +256,7 @@ namespace api.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var rawIdentifier = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            var subjectClaim = User.FindFirstValue("sub");
-            var usernameFallback = User.Identity?.Name;
-
-            string? resolvedUserId = null;
-
-            // Først anta at claim allerede inneholder GUID Id
-            if (!string.IsNullOrWhiteSpace(rawIdentifier))
-            {
-                var candidate = await _context.Users.FindAsync(rawIdentifier);
-                if (candidate != null)
-                {
-                    resolvedUserId = candidate.Id; 
-                }
-            }
-
-            // Fallback: prøv å finne bruker via brukernavn
-            if (resolvedUserId == null)
-            {
-                var possibleUsername = rawIdentifier ?? subjectClaim ?? usernameFallback;
-                if (!string.IsNullOrWhiteSpace(possibleUsername))
-                {
-                    var userByName = await _context.Users.FirstOrDefaultAsync(u => u.UserName == possibleUsername);
-                    if (userByName != null)
-                    {
-                        resolvedUserId = userByName.Id;
-                    }
-                }
-            }
-
+            var resolvedUserId = await ResolveUserIdAsync();
             if (resolvedUserId == null)
             {
                 return Unauthorized(new { Message = "Kunne ikke validere bruker fra token." });
@@ -471,32 +380,7 @@ namespace api.Controllers
             }
 
             // Get user ID from token
-            var rawIdentifier = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            var subjectClaim = User.FindFirstValue("sub");
-            var usernameFallback = User.Identity?.Name;
-            string? resolvedUserId = null;
-
-            if (!string.IsNullOrWhiteSpace(rawIdentifier))
-            {
-                var candidate = await _context.Users.FindAsync(rawIdentifier);
-                if (candidate != null)
-                {
-                    resolvedUserId = candidate.Id;
-                }
-            }
-
-            if (resolvedUserId == null)
-            {
-                var possibleUsername = rawIdentifier ?? subjectClaim ?? usernameFallback;
-                if (!string.IsNullOrWhiteSpace(possibleUsername))
-                {
-                    var userByName = await _context.Users.FirstOrDefaultAsync(u => u.UserName == possibleUsername);
-                    if (userByName != null)
-                    {
-                        resolvedUserId = userByName.Id;
-                    }
-                }
-            }
+            var resolvedUserId = await ResolveUserIdAsync();
 
             // Save submission to database if user is authenticated
             if (!string.IsNullOrWhiteSpace(resolvedUserId))
@@ -527,37 +411,10 @@ namespace api.Controllers
         [HttpGet("myscores")]
         public async Task<IActionResult> GetMyScores()
         {
-            var rawIdentifier = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            var subjectClaim = User.FindFirstValue("sub");
-            var usernameFallback = User.Identity?.Name;
-
-            string? resolvedUserId = null;
-
-            if (!string.IsNullOrWhiteSpace(rawIdentifier))
-            {
-                var candidate = await _context.Users.FindAsync(rawIdentifier);
-                if (candidate != null)
-                {
-                    resolvedUserId = candidate.Id;
-                }
-            }
-
+            var resolvedUserId = await ResolveUserIdAsync();
             if (resolvedUserId == null)
             {
-                var possibleUsername = rawIdentifier ?? subjectClaim ?? usernameFallback;
-                if (!string.IsNullOrWhiteSpace(possibleUsername))
-                {
-                    var userByName = await _context.Users.FirstOrDefaultAsync(u => u.UserName == possibleUsername);
-                    if (userByName != null)
-                    {
-                        resolvedUserId = userByName.Id;
-                    }
-                }
-            }
-
-            if (resolvedUserId == null)
-            {
-                return Unauthorized(new { Message = "Kunne ikke validere bruker fra token." });
+                return Unauthorized(new { Message = "could not validate user." });
             }
 
             var myScores = await _context.QuizSubmissions
