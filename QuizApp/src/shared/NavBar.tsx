@@ -110,8 +110,30 @@ const NavBar: React.FC = () => {
                   </NavDropdown>
                 </Nav>
 
-                {/* Small screens: place the switch at the bottom-right (inside offcanvas) */}
-                <div className="d-lg-none w-100 d-flex justify-content-end pb-3 px-3 offcanvas-switch-row">
+                {/* Small screens: show user menu items + theme switch at bottom-right */}
+                <Nav className="ms-auto text-center d-lg-none">
+                  <Nav.Link onClick={() => navigate("/MyScores")}>
+                    My scores
+                  </Nav.Link>
+                  <Nav.Link onClick={() => navigate("/MyQuizzes")}>
+                    My Quizzes
+                  </Nav.Link>
+                  <Nav.Link onClick={() => navigate("/UserProfile")}>
+                    Profile
+                  </Nav.Link>
+                  <Nav.Link
+                    onClick={() => {
+                      logout();
+                      navigate("/", {
+                        state: { message: "You have been logged out of the website." },
+                      });
+                    }}
+                  >
+                    Logout
+                  </Nav.Link>
+                </Nav>
+
+                <div className="d-lg-none offcanvas-switch-row">
                   <label className="theme-switch" aria-label="Toggle dark mode">
                     <input
                       type="checkbox"
@@ -154,8 +176,21 @@ const NavBar: React.FC = () => {
                   </Nav.Link>
                 </Nav>
 
-                {/* Small screens: place the switch at the bottom-right (inside offcanvas) */}
-                <div className="d-lg-none w-100 d-flex justify-content-end pb-3 px-3 offcanvas-switch-row">
+                {/* Small screens: show auth links + theme switch at bottom-right */}
+                <Nav className="ms-auto text-center d-lg-none">
+                  <Nav.Link href="/CreateUser">Create account</Nav.Link>
+                  <Nav.Link
+                    onClick={() =>
+                      navigate("/LoginPage", {
+                        state: { from: "/NavBar", message: "" },
+                      })
+                    }
+                  >
+                    Login
+                  </Nav.Link>
+                </Nav>
+
+                <div className="d-lg-none offcanvas-switch-row">
                   <label className="theme-switch" aria-label="Toggle dark mode">
                     <input
                       type="checkbox"

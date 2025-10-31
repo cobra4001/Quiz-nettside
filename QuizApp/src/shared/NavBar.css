@@ -76,7 +76,7 @@
 
 /* Make the offcanvas appear from the right and cover the whole right side on small screens.
    Adjust widths as needed. Bootstrap uses .offcanvas-end for right placement. */
-@media (max-width: 991.99px) { 
+@media (max-width: 991.99px) {
   /* cover the full viewport width from the right (change to desired width if you want a panel instead) */
   .offcanvas.offcanvas-end {
     width: 30% !important;
@@ -86,15 +86,18 @@
   /* keep switch anchored at bottom-right inside offcanvas */
   .offcanvas-switch-row {
     position: absolute;
-    right: 0.75rem;
+    right: 1rem;
     bottom: 1rem;
-    left: auto;
-    justify-content: flex-end !important;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
   }
 
   /* ensure offcanvas body has relative positioning so absolute switch positions correctly */
   .offcanvas-body {
     position: relative;
-    padding-bottom: 4rem; /* avoid overlap with absolute switch */
+    padding-bottom: 5rem; /* avoid overlap with absolute switch - increased for better spacing */
+    display: flex;
+    flex-direction: column;
   }
 }
