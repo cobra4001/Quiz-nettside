@@ -18,17 +18,19 @@ const NavBar: React.FC = () => {
     }
   };
 
-  const [isDark, setIsDark] = useState<boolean>(
-    () => document.body.getAttribute("data-bs-theme") === "dark"
-  );
-
   const [showOffcanvas, setShowOffcanvas] = useState(false);
 
-  useEffect(() => {
-    // keep body theme in sync with state
-    document.body.setAttribute("data-bs-theme", isDark ? "dark" : "light");
-  }, [isDark]);
+  const [isDark, setIsDark] = useState<boolean>(() => {
+    const savedTheme = localStorage.getItem('theme');
+    return savedTheme === 'dark' || document.body.getAttribute("data-bs-theme") === "dark";
+  });
 
+  useEffect(() => {
+    // keep body theme in sync with state and save to localStorage
+    document.body.setAttribute("data-bs-theme", isDark ? "dark" : "light");
+    localStorage.setItem('theme', isDark ? 'dark' : 'light');
+  }, [isDark]);
+  
   useEffect(() => {
     const handleResize = () => {
       // Bootstrap lg breakpoint is 992px
@@ -70,9 +72,9 @@ const NavBar: React.FC = () => {
           QuizApp
         </Navbar.Brand>
 
-        <Navbar.Toggle 
-          aria-controls={offcanvasId} 
-          className={!user ? "d-lg-none" : ""} 
+        <Navbar.Toggle
+          aria-controls={offcanvasId}
+          className={!user ? "d-lg-none" : ""}
           onClick={() => setShowOffcanvas(true)}
         />
 
@@ -85,14 +87,16 @@ const NavBar: React.FC = () => {
         >
           <Offcanvas.Header closeButton>
             <Offcanvas.Title id={offcanvasLabel}>
-              <img 
-                src="src/img/Logo.png"
-                width="35"
-                height="35"
-                className="d-inline-block align-top me-2"
-                alt="Logo"
-              />
-              QuizApp
+              <Nav.Link href="/HomePage">
+                <img
+                  src="src/img/Logo.png"
+                  width="35"
+                  height="35"
+                  className="d-inline-block align-top me-2"
+                  alt="Logo"
+                />
+                QuizApp
+              </Nav.Link>
             </Offcanvas.Title>
           </Offcanvas.Header>
 

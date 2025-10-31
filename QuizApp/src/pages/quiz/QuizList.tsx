@@ -4,6 +4,7 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import { deleteQuiz } from "./QuizService";
 import type { QuizListProps } from "../../types/quiz";
+import "./QuizList.css";
 
 const QuizList: React.FC<QuizListProps> = ({
   quizzes,
@@ -42,7 +43,7 @@ const QuizList: React.FC<QuizListProps> = ({
   return (
     <div className="d-flex justify-content-center min-vh-100 p-3">
       <div className="container py-5" style={{ maxWidth: "800px" }}>
-        <h1 className="text-center fw-bold text-success mb-5 display-4">
+        <h1 className="text-center fw-bold quiz-title mb-5 display-4">
           {title}
         </h1>
 
@@ -65,7 +66,7 @@ const QuizList: React.FC<QuizListProps> = ({
             {quizzes.map((quiz: any) => (
               <div className="col" key={quiz.id}>
                 <div
-                  className={`card shadow-sm h-100 border-0 p-3 p-md-4 bg-primary-subtle ${
+                  className={`card shadow-sm h-100 border-0 p-3 p-md-4 quiz-card ${
                     !showUpdateButton && !showDeleteButton ? "hover-zoom" : ""
                   }`}
                   onClick={
@@ -84,7 +85,7 @@ const QuizList: React.FC<QuizListProps> = ({
                 >
                   <div className="position-absolute bottom-0 end-0">
                     <span
-                      className="badge text-dark px-3"
+                      className="badge quiz-badge px-3"
                       title="Number of questions"
                     >
                       {quiz.questionCount}{" "}
@@ -94,10 +95,10 @@ const QuizList: React.FC<QuizListProps> = ({
 
                   <div className="d-flex align-items-start position-relative">
                     <div className="text-center mx-auto">
-                      <h2 className="card-title fw-bolder fs-4 text-dark mb-2">
+                      <h2 className="card-title fw-bolder fs-4 quiz-card-title mb-2">
                         {quiz.title}
                       </h2>
-                      <p className="card-text mb-3">{quiz.description}</p>
+                      <p className="card-text quiz-card-text mb-3">{quiz.description}</p>
                     </div>
                   </div>
 
@@ -154,16 +155,6 @@ const QuizList: React.FC<QuizListProps> = ({
             ))}
           </div>
         )}
-        {/*Extra styling for the list component */}
-        <style>{
-        `.hover-zoom:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 0.5rem 1rem rgba(0,0,0,.15)!important; 
-          }
-          .hover-zoom {
-            transform: translateY(0);
-          }`
-        }</style>
       </div>
     </div>
   );
