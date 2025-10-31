@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import type { IAnswerOption, IQuestion, QuizFormProps } from "../../types/quiz";
+import "./QuizList.css";
 
 const QuizForm: React.FC<QuizFormProps> = ({
   initialTitle = "",
@@ -278,7 +279,13 @@ const QuizForm: React.FC<QuizFormProps> = ({
                 <h6>Answer Options</h6>
                 {q.answerOptions.map((opt, optIdx) => (
                   <div key={opt.id} className="input-group mb-2">
-                    <div className="input-group-text">
+                    <div
+                      className="input-group-text"
+                      style={{ background: opt.isCorrect ? "var(--bs-success)" : "transparent",
+                        color: opt.isCorrect ? "white" : "inherit",
+                        transition: "background 0.2s ease"
+                       }}
+                    >
                       <input
                         type="checkbox"
                         name={`correct-answer-${q.id}`}
@@ -322,7 +329,7 @@ const QuizForm: React.FC<QuizFormProps> = ({
             <div className="d-flex justify-content-center gap-3 mt-5">
               <button
                 type="button"
-                className="btn btn-outline-dark"
+                className="btn btn-outline-dark quiz-answer-button"
                 onClick={handleAddQuestion}
               >
                 + Add Question
