@@ -51,7 +51,7 @@ const HomePage: React.FC = () => {
           style={{ maxWidth: "480px" }}
         >
           <div className="card-body text-center">
-            <h1 className="card-title fw-bold fs-1 text-dark mb-3">
+            <h1 className="card-title fw-bold fs-1 mb-3">
               {!user ? "Quiz Hub" : `Welcome back ${user.unique_name}`} 
             </h1>
             <p className="card-text lead text-muted mb-5">
