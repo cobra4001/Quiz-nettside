@@ -66,6 +66,15 @@
   box-shadow: 0 0 0 3px rgba(13,110,253,0.18);
 }
 
+.offcanvas.offcanvas-end {
+    background-color: var(--bs-success);
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.offcanvas-title {
+    color: rgba(255, 255, 255, 1);
+}
+
 /* Example: scale down on small screens (optional) */
 @media (max-width: 480px) {
   .theme-switch { --switch-scale: 0.9; }
@@ -95,6 +104,8 @@
   /* ensure offcanvas body has relative positioning so absolute switch positions correctly */
   .offcanvas-body {
     position: relative;
-    padding-bottom: 4rem; /* avoid overlap with absolute switch */
+    padding-bottom: 5rem; /* avoid overlap with absolute switch - increased for better spacing */
+    display: flex;
+    flex-direction: column;
   }
 }
