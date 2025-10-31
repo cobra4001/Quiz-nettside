@@ -8,16 +8,22 @@ const NavBar: React.FC = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
 
+  const handleNavigate = (path: string, state?: any) => {
+  setShowOffcanvas(false);
+  navigate(path, state);
+  };
+
+
   const handleCreateClick = () => {
     if (!user) {
       // User is not logged in, go to login page
-      navigate("/LoginPage", { state: { from: "/quizcreate", message: "You have to login first" } });
+      handleNavigate("/LoginPage", { state: { from: "/quizcreate", message: "You have to login first" } });
     } else {
       // user is logged in, go to Quiz create
-      navigate("/quizcreate");
+      handleNavigate("/quizcreate");
     }
   };
-
+  
   const [showOffcanvas, setShowOffcanvas] = useState(false);
 
   const [isDark, setIsDark] = useState<boolean>(() => {
@@ -125,23 +131,23 @@ const NavBar: React.FC = () => {
 
                 <Nav className="text-center d-none d-lg-flex align-items-center">
                   <NavDropdown title={user.unique_name} id="user-dropdown">
-                    <NavDropdown.Item onClick={() => navigate("/MyScores")}>
+                    <NavDropdown.Item onClick={() => handleNavigate("/MyScores")}>
                       My scores
                     </NavDropdown.Item>
-                    <NavDropdown.Item onClick={() => navigate("/MyQuizzes")}>
+                    <NavDropdown.Item onClick={() => handleNavigate("/MyQuizzes")}>
                       My Quizzes
                     </NavDropdown.Item>
                     <NavDropdown.Item
                       onClick={() => {
                         logout();
-                        navigate("/", {
+                        handleNavigate("/", {
                           state: { message: "You have been logged out of the website." },
                         });
                       }}
                     >
                       Logout
                     </NavDropdown.Item>
-                    <NavDropdown.Item onClick={() => navigate("/UserProfile")}>
+                    <NavDropdown.Item onClick={() => handleNavigate("/UserProfile")}>
                       Profile
                     </NavDropdown.Item>
                   </NavDropdown>
@@ -149,23 +155,23 @@ const NavBar: React.FC = () => {
 
                 <Nav className="text-center d-lg-none">
                   <NavDropdown title={user.unique_name} id="user-dropdown" align="end">
-                    <NavDropdown.Item onClick={() => navigate("/MyScores")}>
+                    <NavDropdown.Item onClick={() => handleNavigate("/MyScores")}>
                       My scores
                     </NavDropdown.Item>
-                    <NavDropdown.Item onClick={() => navigate("/MyQuizzes")}>
+                    <NavDropdown.Item onClick={() => handleNavigate("/MyQuizzes")}>
                       My Quizzes
                     </NavDropdown.Item>
                     <NavDropdown.Item
                       onClick={() => {
                         logout();
-                        navigate("/", {
+                        handleNavigate("/", {
                           state: { message: "You have been logged out of the website." },
                         });
                       }}
                     >
                       Logout
                     </NavDropdown.Item>
-                    <NavDropdown.Item onClick={() => navigate("/UserProfile")}>
+                    <NavDropdown.Item onClick={() => handleNavigate("/UserProfile")}>
                       Profile
                     </NavDropdown.Item>
                   </NavDropdown>
@@ -186,7 +192,7 @@ const NavBar: React.FC = () => {
             ) : (
               // User not logged in view
               <>
-                <Nav className="me-auto text-center">
+                <Nav className="text-center">
                   <Nav.Link href="/QuizList">Quizzes</Nav.Link>
                 </Nav>
 
@@ -206,7 +212,7 @@ const NavBar: React.FC = () => {
                   <Nav.Link href="/CreateUser">Create account</Nav.Link>
                   <Nav.Link
                     onClick={() =>
-                      navigate("/LoginPage", {
+                      handleNavigate("/LoginPage", {
                         state: { from: "/NavBar", message: "" },
                       })
                     }
@@ -220,7 +226,7 @@ const NavBar: React.FC = () => {
                   <Nav.Link href="/CreateUser">Create account</Nav.Link>
                   <Nav.Link
                     onClick={() =>
-                      navigate("/LoginPage", {
+                      handleNavigate("/LoginPage", {
                         state: { from: "/NavBar", message: "" },
                       })
                     }
