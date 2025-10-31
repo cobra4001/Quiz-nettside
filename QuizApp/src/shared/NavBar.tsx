@@ -18,14 +18,33 @@ const NavBar: React.FC = () => {
     }
   };
 
-  const [isDark, setIsDark] = useState<boolean>(
-    () => document.body.getAttribute("data-bs-theme") === "dark"
-  );
+  const [showOffcanvas, setShowOffcanvas] = useState(false);
+
+  const [isDark, setIsDark] = useState<boolean>(() => {
+    const savedTheme = localStorage.getItem('theme');
+    return savedTheme === 'dark' || document.body.getAttribute("data-bs-theme") === "dark";
+  });
 
   useEffect(() => {
-    // keep body theme in sync with state
+    // keep body theme in sync with state and save to localStorage
     document.body.setAttribute("data-bs-theme", isDark ? "dark" : "light");
+    localStorage.setItem('theme', isDark ? 'dark' : 'light');
   }, [isDark]);
+  
+  useEffect(() => {
+    const handleResize = () => {
+      // Bootstrap lg breakpoint is 992px
+      if (window.innerWidth >= 992) {
+        setShowOffcanvas(false);
+      }
+    };
+
+    // Add event listener
+    window.addEventListener('resize', handleResize);
+
+    // Cleanup
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const darkModeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setIsDark(e.target.checked);
@@ -53,40 +72,82 @@ const NavBar: React.FC = () => {
           QuizApp
         </Navbar.Brand>
 
-        <Navbar.Toggle aria-controls={offcanvasId} className={!user ? "d-lg-none" : ""} />
+        <Navbar.Toggle
+          aria-controls={offcanvasId}
+          className={!user ? "d-lg-none" : ""}
+          onClick={() => setShowOffcanvas(true)}
+        />
 
         <Navbar.Offcanvas
           id={offcanvasId}
           aria-labelledby={offcanvasLabel}
           placement="end"
+          show={showOffcanvas}
+          onHide={() => setShowOffcanvas(false)}
         >
           <Offcanvas.Header closeButton>
-            <Offcanvas.Title id={offcanvasLabel}>Menu</Offcanvas.Title>
+            <Offcanvas.Title id={offcanvasLabel}>
+              <Nav.Link href="/HomePage">
+                <img
+                  src="src/img/Logo.png"
+                  width="35"
+                  height="35"
+                  className="d-inline-block align-top me-2"
+                  alt="Logo"
+                />
+                QuizApp
+              </Nav.Link>
+            </Offcanvas.Title>
           </Offcanvas.Header>
 
           <Offcanvas.Body>
             {user ? (
+              // User logged in view
               <>
-                <Nav className="me-auto text-center">
+                <Nav className="text-center">
                   <Nav.Link href="/QuizList">Quizzes</Nav.Link>
                   <Nav.Link onClick={handleCreateClick} style={{ cursor: "pointer" }}>
                     Create quiz
                   </Nav.Link>
                 </Nav>
 
-                {/* Desktop / large screens: keep switch next to user menu */}
-                <Nav className="ms-auto text-center d-none d-lg-flex align-items-center">
-                  <div className="form-check form-switch mt-2 align-self-center">
-                    <label className="theme-switch mx-2" aria-label="Toggle dark mode">
-                      <input
-                        type="checkbox"
-                        id="darkModeToggle"
-                        checked={isDark}
-                        onChange={darkModeChange}
-                      />
-                      <span className="slider" />
-                    </label>
-                  </div>
+                <div className="ms-auto form-check form-switch mt-2 align-self-center d-none d-lg-flex">
+                  <label className="theme-switch mx-2" aria-label="Toggle dark mode">
+                    <input
+                      type="checkbox"
+                      id="darkModeToggle"
+                      checked={isDark}
+                      onChange={darkModeChange}
+                    />
+                    <span className="slider" />
+                  </label>
+                </div>
+
+                <Nav className="text-center d-none d-lg-flex align-items-center">
+                  <NavDropdown title={user.unique_name} id="user-dropdown">
+                    <NavDropdown.Item onClick={() => navigate("/MyScores")}>
+                      My scores
+                    </NavDropdown.Item>
+                    <NavDropdown.Item onClick={() => navigate("/MyQuizzes")}>
+                      My Quizzes
+                    </NavDropdown.Item>
+                    <NavDropdown.Item
+                      onClick={() => {
+                        logout();
+                        navigate("/", {
+                          state: { message: "You have been logged out of the website." },
+                        });
+                      }}
+                    >
+                      Logout
+                    </NavDropdown.Item>
+                    <NavDropdown.Item onClick={() => navigate("/UserProfile")}>
+                      Profile
+                    </NavDropdown.Item>
+                  </NavDropdown>
+                </Nav>
+
+                <Nav className="text-center d-lg-none">
                   <NavDropdown title={user.unique_name} id="user-dropdown" align="end">
                     <NavDropdown.Item onClick={() => navigate("/MyScores")}>
                       My scores
@@ -110,8 +171,7 @@ const NavBar: React.FC = () => {
                   </NavDropdown>
                 </Nav>
 
-                {/* Small screens: place the switch at the bottom-right (inside offcanvas) */}
-                <div className="d-lg-none w-100 d-flex justify-content-end pb-3 px-3 offcanvas-switch-row">
+                <div className="d-lg-none offcanvas-switch-row">
                   <label className="theme-switch" aria-label="Toggle dark mode">
                     <input
                       type="checkbox"
@@ -124,6 +184,7 @@ const NavBar: React.FC = () => {
                 </div>
               </>
             ) : (
+              // User not logged in view
               <>
                 <Nav className="me-auto text-center">
                   <Nav.Link href="/QuizList">Quizzes</Nav.Link>
@@ -154,8 +215,21 @@ const NavBar: React.FC = () => {
                   </Nav.Link>
                 </Nav>
 
-                {/* Small screens: place the switch at the bottom-right (inside offcanvas) */}
-                <div className="d-lg-none w-100 d-flex justify-content-end pb-3 px-3 offcanvas-switch-row">
+                {/* Small screens: show auth links + theme switch at bottom-right */}
+                <Nav className="text-center d-lg-none">
+                  <Nav.Link href="/CreateUser">Create account</Nav.Link>
+                  <Nav.Link
+                    onClick={() =>
+                      navigate("/LoginPage", {
+                        state: { from: "/NavBar", message: "" },
+                      })
+                    }
+                  >
+                    Login
+                  </Nav.Link>
+                </Nav>
+
+                <div className="d-lg-none offcanvas-switch-row">
                   <label className="theme-switch" aria-label="Toggle dark mode">
                     <input
                       type="checkbox"
