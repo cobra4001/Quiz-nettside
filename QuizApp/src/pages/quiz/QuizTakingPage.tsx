@@ -6,6 +6,8 @@ import { Card, Button, ProgressBar, Alert } from 'react-bootstrap';
 import { useParams, useNavigate } from 'react-router-dom';
 import Spinner from 'react-bootstrap/Spinner';
 import '../../App.css';
+import './QuizList.css';
+
 /**
  * The QuizTaker component displays the questions for a selected quiz and handles the game logic.
  */
@@ -184,7 +186,7 @@ const QuizTaker: React.FC<QuizTakerProps> = () => {
                         variant={userAnswers[currentQuestion.id] === option.id ? 'info' : 'outline-dark'}
                         size="lg"
                         onClick={() => handleAnswerSelect(option.id)}
-                        className="text-start"
+                        className={`text-start quiz-answer-button ${userAnswers[currentQuestion.id] === option.id ? 'selected' : ''}`}
                     >
                         {option.text}
                     </Button>
@@ -232,7 +234,7 @@ const QuizTaker: React.FC<QuizTakerProps> = () => {
 
         return (
             <div className="text-center p-4">
-                <h2 className="display-4 text-success mb-4">Quiz Completed!</h2>
+                <h2 className="display-4 quiz-completed-title mb-4">Quiz Completed!</h2>
                 <Alert variant={scorePercentage >= 50 ? 'success' : 'warning'}>
                     <p className="lead mb-1">your score:</p>
                     <h3 className="fw-bold">{finalScore} of {totalPoints} points</h3>

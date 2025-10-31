@@ -1,0 +1,112 @@
+.theme-switch {
+  /* change --switch-scale on parent or via media queries to scale */
+  --switch-scale: 1;          /* default scale */
+  --h: calc(1.25rem * var(--switch-scale));         /* track height */
+  --w: calc(var(--h) * 2.2);  /* track width */
+  --gap: 0.2rem;              /* inner gap for knob centering */
+
+  position: relative;
+  display: inline-block;
+  width: var(--w);
+  height: var(--h);
+  font-size: 1rem; /* keep emoji sizing consistent relative to root */
+}
+
+/* hide the native checkbox */
+.theme-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+  position: absolute;
+}
+
+/* the slider track */
+.theme-switch .slider {
+  position: absolute;
+  cursor: pointer;
+  inset: 0;
+  background: #e9ecef;
+  border-radius: 999px;
+  transition: background 0.25s, box-shadow 0.25s;
+  box-shadow: inset 0 0 0 1px rgba(0,0,0,0.05);
+}
+
+/* knob size derived from track height */
+.theme-switch .slider:before {
+  content: "☀️";
+  position: absolute;
+  left: var(--gap);
+  top: calc(var(--gap));
+  width: calc(var(--h) - (var(--gap) * 2));
+  height: calc(var(--h) - (var(--gap) * 2));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: calc((var(--h) - (var(--gap) * 2)) * 0.65);
+  transition: transform 0.25s, content 0.25s;
+  transform: translateX(0);
+  border-radius: 50%;
+  background: transparent;
+}
+
+/* checked state: track + knob slide + icon change */
+.theme-switch input:checked + .slider {
+  background: #374151; /* dark track */
+}
+
+/* translate amount depends on track width and knob size */
+.theme-switch input:checked + .slider:before {
+  transform: translateX(calc(var(--w) - var(--h)));
+  content: "🌙";
+  color: #fff;
+}
+
+/* optional focus styles for accessibility */
+.theme-switch input:focus + .slider {
+  box-shadow: 0 0 0 3px rgba(13,110,253,0.18);
+}
+
+.offcanvas.offcanvas-end {
+    background-color: var(--bs-success);
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.offcanvas-title {
+    color: rgba(255, 255, 255, 1);
+}
+
+/* Example: scale down on small screens (optional) */
+@media (max-width: 480px) {
+  .theme-switch { --switch-scale: 0.9; }
+}
+@media (min-width: 1200px) {
+  .theme-switch { --switch-scale: 1.1; }
+}
+
+/* Make the offcanvas appear from the right and cover the whole right side on small screens.
+   Adjust widths as needed. Bootstrap uses .offcanvas-end for right placement. */
+@media (max-width: 991.99px) {
+  /* cover the full viewport width from the right (change to desired width if you want a panel instead) */
+  .offcanvas.offcanvas-end {
+    width: 30% !important;
+    max-width: 30% !important;
+  }
+
+  /* keep switch anchored at bottom-right inside offcanvas */
+  .offcanvas-switch-row {
+    position: absolute;
+    right: 1rem;
+    bottom: 1rem;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+  }
+
+  /* ensure offcanvas body has relative positioning so absolute switch positions correctly */
+  .offcanvas-body {
+    position: relative;
+    padding-bottom: 5rem; /* avoid overlap with absolute switch - increased for better spacing */
+    display: flex;
+    flex-direction: column;
+  }
+}
