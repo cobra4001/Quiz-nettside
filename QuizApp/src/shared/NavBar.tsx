@@ -8,13 +8,19 @@ const NavBar: React.FC = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
 
+  const handleNavigate = (path: string, state?: any) => {
+  setShowOffcanvas(false);
+  navigate(path, state);
+  };
+
+
   const handleCreateClick = () => {
     if (!user) {
       // User is not logged in, go to login page
-      navigate("/LoginPage", { state: { from: "/quizcreate", message: "You have to login first" } });
+      handleNavigate("/LoginPage", { state: { from: "/quizcreate", message: "You have to login first" } });
     } else {
       // user is logged in, go to Quiz create
-      navigate("/quizcreate");
+      handleNavigate("/quizcreate");
     }
   };
 

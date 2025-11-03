@@ -61,10 +61,10 @@ const UserCreationPage: React.FC = () => {
     } as RegisterDto);
 
 
-    } catch (err: any) {
-      setError(err.message || "User creation failed.");
-      return;
-    }
+   } catch (err: any) {
+  setError(err.message || "User creation failed.");
+  return;
+}
 
     setSuccess("User created successfully!");
     setUsername("");

@@ -34,20 +34,27 @@ namespace api.Controllers
         }
         
 
-       [HttpPost("register")]
+        [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] RegisterDTO registerDto)
         {
-        if (!ModelState.IsValid)
+            if (!ModelState.IsValid)
             return BadRequest(ModelState); // Automatic validation with [Compare], [Required], [RegularExpression], etc.
 
-        var user = new AuthUser
-        {
+            // Check if email already exists in database
+            var existingEmail = await _userManager.FindByEmailAsync(registerDto.Email);
+            if (existingEmail != null)
+            {
+            return Conflict(new { Message = $"Email '{registerDto.Email}' is already registered." });
+            }
+
+            var user = new AuthUser
+            {
             UserName = registerDto.Username,
             Email = registerDto.Email,
             PhoneNumber = registerDto.Phonenumber
-        };
+            };
 
-        var result = await _userManager.CreateAsync(user, registerDto.Password);
+            var result = await _userManager.CreateAsync(user, registerDto.Password);
 
         if (result.Succeeded)
         {
@@ -55,12 +62,22 @@ namespace api.Controllers
             await _userManager.AddToRoleAsync(user, "User");
             _logger.LogInformation("[AuthAPIController] user registered for {@username}", registerDto.Username);
             return Ok(new { Message = "User registered successfully" });
+            }
+
+            // Get all error descriptions from identity
+            var errors = result.Errors.Select(e => e.Description).ToArray();
+
+            // Check if error is due to duplicate username
+            if (errors.Any(e => e.Contains("already taken", StringComparison.OrdinalIgnoreCase) ||
+                        e.Contains("is already", StringComparison.OrdinalIgnoreCase)))
+            {
+            return Conflict(new { Message = $"User '{registerDto.Username}' already exists." });
+            }
+
+            // If theres another error, return normal BadRequest
+            return BadRequest(new { Errors = errors });
         }
 
-        // Convert error list to array of descriptions
-        var errors = result.Errors.Select(e => e.Description).ToArray();
-        return BadRequest(new { Errors = errors });
-        }
 
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginDTO loginDto)
