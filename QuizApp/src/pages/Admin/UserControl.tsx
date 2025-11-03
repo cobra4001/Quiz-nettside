@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { Table, Button, Alert, Spinner, Container } from "react-bootstrap";
 import { useAuth } from "../../auth/AuthContext";
+import { isAdmin } from "../../utils/roleUtils";
+import { useNavigate } from "react-router-dom";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -12,7 +14,8 @@ interface UserDto {
 }
 
 const UserControl: React.FC = () => {
-  const { token } = useAuth();
+  const { token, user } = useAuth();
+  const navigate = useNavigate();
   const [users, setUsers] = useState<UserDto[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
@@ -56,7 +59,13 @@ const UserControl: React.FC = () => {
   };
 
   useEffect(() => {
-    fetchUsers();
+    if (!isAdmin(user)) {
+      navigate("/forbidden");
+    }
+    else {
+      fetchUsers();
+    }
+
   }, [token]);
 
   // Deletes a specific user by ID
