@@ -102,62 +102,60 @@ namespace api.Controllers
 
         // GET: api/Quiz
         // Brings a list of all available quizzes
-        
-        //DENNE OG NÆSTE KAN VI EVENTULTIG BYTTE UD MED EN FÆLLES METODE SOM TAGER EN OPTIONAL USERID
-        [HttpGet]
-        public async Task<IActionResult> GetQuizzes()
-        {
-            // Using a LINQ projection to select only necessary data and avoid too much fetching/ too much posting.
-            var quizzes = await _context.Quizzes
-                                      .Include(q => q.Creator) // Secures that we can access Creator navigation property 
-                                      .Select(q => new
-                                      {
-                                          q.Id,
-                                          q.Title,
-                                          q.Description,
-                                          QuestionCount = q.Questions.Count,
-                                          Creator = q.Creator != null ? q.Creator.UserName! : "Unknown"
-                                      })
-                                      .ToListAsync();
-            if(!quizzes.Any())
+            //DENNE OG NÆSTE KAN VI EVENTULTIG BYTTE UD MED EN FÆLLES METODE SOM TAGER EN OPTIONAL USERID
+            [HttpGet]
+            public async Task<IActionResult> GetQuizzes()
             {
-                _logger.LogInformation("[QuizController] No quizzes found in database.");
-                return NotFound(new { Message = "No quizzes available." });
-            }
-            return Ok(quizzes);
+             // Using a LINQ projection to select only necessary data and avoid too much fetching/ too much posting.
+             var quizzes = await _context.Quizzes
+                                        .Include(q => q.Creator) // Secures that we can access Creator navigation property 
+                                        .Select(q => new
+                                        {
+                                        q.Id,
+                                        q.Title,
+                                        q.Description,
+                                        QuestionCount = q.Questions.Count,
+                                        Creator = q.Creator != null ? q.Creator.UserName! : "Unknown"
+                                        })
+                                        .ToListAsync();
+
+            // No check nessesary if the list is empty returns 200 okay with []
+            return Ok(quizzes); 
         }
 
-        // GET: api/Quiz/my
-        // Get quizzes created by the logged-in user.
-        [Authorize]
-        [HttpGet("my")]
+    // GET: api/Quiz/my
+    // Get quizzes created by the logged-in user.
+    [Authorize]
+    [HttpGet("my")]
         public async Task<IActionResult> GetMyQuizzes()
         {
-            var resolvedUserId = await ResolveUserIdAsync();
-            if (resolvedUserId == null)
-            {
-                return Unauthorized(new { Message = "could not validate user." });
-            }
+        var resolvedUserId = await ResolveUserIdAsync();
+        if (resolvedUserId == null)
+        {
+        // Custom feilmelding her:
+        return Unauthorized(new { Message = "could not validate user." });
+        }
 
             // Only get the users quizzes
             var myQuizzes = await _context.Quizzes
-                                         .Where(q => q.UserId == resolvedUserId)
-                                         .Include(q => q.Creator)
-                                         .Select(q => new
-                                         {
-                                             q.Id,
-                                             q.Title,
-                                             q.Description,
-                                             QuestionCount = q.Questions.Count,
-                                             Creator = q.Creator != null ? q.Creator.UserName! : "Unknown"
-                                         })
-                                         .ToListAsync();
-            // USIKKER PÅ OM LOGGING GIVER  MENING HER???
+            .Where(q => q.UserId == resolvedUserId)
+            .Include(q => q.Creator)
+            .Select(q => new
+            {
+                q.Id,
+                q.Title,
+                q.Description,
+                QuestionCount = q.Questions.Count,
+                Creator = q.Creator != null ? q.Creator.UserName! : "Unknown"
+            })
+            .ToListAsync();
+     // USIKKER PÅ OM LOGGING GIVER  MENING HER???
            /* if (!myQuizzes.Any()) 
                 _logger.LogInformation("[QuizController] User {@userId} has no created quizzes.", resolvedUserId); */
-                
-            return Ok(myQuizzes);
-        }
+
+        // Hvis ingen quizer funnet, returneres 200 OK med tom liste.
+        return Ok(myQuizzes);
+    }
 
         // GET: api/Quiz/{id}
         // Gets a specific quiz using ID, without anwsers
