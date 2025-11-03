@@ -85,8 +85,6 @@ using (var scope = app.Services.CreateScope())
     await RoleSeeder.CreateDefaultAdmin(scope.ServiceProvider, builder.Configuration);
 }
 
-
-
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {

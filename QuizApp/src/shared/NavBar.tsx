@@ -128,51 +128,51 @@ const NavBar: React.FC = () => {
                     <span className="slider" />
                   </label>
                 </div>
-
+                {/* Desktop / large screens: show user dropdown inline */}
                 <Nav className="text-center d-none d-lg-flex align-items-center">
                   <NavDropdown title={user.unique_name} id="user-dropdown">
-                    <NavDropdown.Item onClick={() => navigate("/MyScores")}>
+                    <NavDropdown.Item onClick={() => handleNavigate("/MyScores")}>
                       My scores
                     </NavDropdown.Item>
-                    <NavDropdown.Item onClick={() => navigate("/MyQuizzes")}>
+                    <NavDropdown.Item onClick={() => handleNavigate("/MyQuizzes")}>
                       My Quizzes
+                    </NavDropdown.Item>
+                    <NavDropdown.Item onClick={() => handleNavigate("/UserProfile")}>
+                      Profile
                     </NavDropdown.Item>
                     <NavDropdown.Item
                       onClick={() => {
                         logout();
-                        navigate("/", {
+                        handleNavigate("/", {
                           state: { message: "You have been logged out of the website." },
                         });
                       }}
                     >
                       Logout
-                    </NavDropdown.Item>
-                    <NavDropdown.Item onClick={() => navigate("/UserProfile")}>
-                      Profile
                     </NavDropdown.Item>
                   </NavDropdown>
                 </Nav>
-
+                {/* Small screens: show user dropdown separately */}
                 <Nav className="text-center d-lg-none">
                   <NavDropdown title={user.unique_name} id="user-dropdown" align="end">
-                    <NavDropdown.Item onClick={() => navigate("/MyScores")}>
+                    <NavDropdown.Item onClick={() => handleNavigate("/MyScores")}>
                       My scores
                     </NavDropdown.Item>
-                    <NavDropdown.Item onClick={() => navigate("/MyQuizzes")}>
+                    <NavDropdown.Item onClick={() => handleNavigate("/MyQuizzes")}>
                       My Quizzes
+                    </NavDropdown.Item>
+                    <NavDropdown.Item onClick={() => handleNavigate("/UserProfile")}>
+                      Profile
                     </NavDropdown.Item>
                     <NavDropdown.Item
                       onClick={() => {
                         logout();
-                        navigate("/", {
+                        handleNavigate("/", {
                           state: { message: "You have been logged out of the website." },
                         });
                       }}
                     >
                       Logout
-                    </NavDropdown.Item>
-                    <NavDropdown.Item onClick={() => navigate("/UserProfile")}>
-                      Profile
                     </NavDropdown.Item>
                   </NavDropdown>
                 </Nav>
@@ -192,7 +192,7 @@ const NavBar: React.FC = () => {
             ) : (
               // User not logged in view
               <>
-                <Nav className="me-auto text-center">
+                <Nav className="text-center">
                   <Nav.Link href="/QuizList">Quizzes</Nav.Link>
                 </Nav>
 
@@ -212,7 +212,7 @@ const NavBar: React.FC = () => {
                   <Nav.Link href="/CreateUser">Create account</Nav.Link>
                   <Nav.Link
                     onClick={() =>
-                      navigate("/LoginPage", {
+                      handleNavigate("/LoginPage", {
                         state: { from: "/NavBar", message: "" },
                       })
                     }
@@ -226,7 +226,7 @@ const NavBar: React.FC = () => {
                   <Nav.Link href="/CreateUser">Create account</Nav.Link>
                   <Nav.Link
                     onClick={() =>
-                      navigate("/LoginPage", {
+                      handleNavigate("/LoginPage", {
                         state: { from: "/NavBar", message: "" },
                       })
                     }
