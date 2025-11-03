@@ -2,80 +2,71 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
-using api.DTOs;
-using api.Models;
+using api.DTOs; 
+using api.Models; 
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using Microsoft.Extensions.Logging; 
 
 namespace api.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class AuthController : ControllerBase // ControllerBase is sufficient for API controllers
+    public class AuthController : ControllerBase
     {
         private readonly UserManager<AuthUser> _userManager;
         private readonly SignInManager<AuthUser> _signInManager;
         private readonly IConfiguration _configuration;
         private readonly ILogger<AuthController> _logger;
-        private readonly AuthUserDbContext _context;
 
         public AuthController(UserManager<AuthUser> userManager,
-        SignInManager<AuthUser> signInManager,
-        IConfiguration configuration,
-        ILogger<AuthController> logger,
-        AuthUserDbContext context)
+                              SignInManager<AuthUser> signInManager,
+                              IConfiguration configuration,
+                              ILogger<AuthController> logger)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _configuration = configuration;
             _logger = logger;
-            _context = context;
         }
-        
+
+        // --- AUTHENTICATION ---
 
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] RegisterDTO registerDto)
         {
             if (!ModelState.IsValid)
-            return BadRequest(ModelState); // Automatic validation with [Compare], [Required], [RegularExpression], etc.
+                return BadRequest(ModelState);
 
-            // Check if email already exists in database
             var existingEmail = await _userManager.FindByEmailAsync(registerDto.Email);
             if (existingEmail != null)
-            {
-            return Conflict(new { Message = $"Email '{registerDto.Email}' is already registered." });
-            }
+                return Conflict(new { Message = $"Email '{registerDto.Email}' is already registered." });
 
             var user = new AuthUser
             {
-            UserName = registerDto.Username,
-            Email = registerDto.Email,
-            PhoneNumber = registerDto.Phonenumber
+                UserName = registerDto.Username,
+                Email = registerDto.Email,
+                PhoneNumber = registerDto.Phonenumber
             };
 
             var result = await _userManager.CreateAsync(user, registerDto.Password);
-
             if (result.Succeeded)
             {
-            _logger.LogInformation("[AuthAPIController] User registered for {@username}", registerDto.Username);
-            return Ok(new { Message = "User registered successfully" });
+                _logger.LogInformation("[AuthAPIController] User registered for {@username}", registerDto.Username);
+                return Ok(new { Message = "User registered successfully" });
             }
 
-            // Get all error descriptions from identity
             var errors = result.Errors.Select(e => e.Description).ToArray();
 
-            // Check if error is due to duplicate username
             if (errors.Any(e => e.Contains("already taken", StringComparison.OrdinalIgnoreCase) ||
-                        e.Contains("is already", StringComparison.OrdinalIgnoreCase)))
+                                e.Contains("is already", StringComparison.OrdinalIgnoreCase)))
             {
-            return Conflict(new { Message = $"User '{registerDto.Username}' already exists." });
+                return Conflict(new { Message = $"User '{registerDto.Username}' already exists." });
             }
 
-            // If theres another error, return normal BadRequest
             return BadRequest(new { Errors = errors });
         }
-
 
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginDTO loginDto)
@@ -93,7 +84,16 @@ namespace api.Controllers
             return Unauthorized();
         }
 
-
+        [Authorize]
+        [HttpPost("logout")]
+        public async Task<IActionResult> Logout()
+        {
+            await _signInManager.SignOutAsync();
+            _logger.LogInformation("[AuthAPIController] user logged out");
+            return Ok(new { Message = "Logout successful" });
+        }
+        
+        // --- PROFILE MANAGEMENT ---
 
         [Authorize]
         [HttpGet("profile")]
@@ -102,10 +102,7 @@ namespace api.Controllers
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
             if (userId == null)
-            {
-                _logger.LogWarning("UserId is null, returning Unauthorized");
                 return Unauthorized();
-            }
 
             var user = await _userManager.FindByIdAsync(userId);
             if (user == null)
@@ -118,7 +115,7 @@ namespace api.Controllers
                 Phonenumber = user.PhoneNumber
             });
         }
-        
+
         [Authorize]
         [HttpPatch("update")]
         public async Task<IActionResult> UpdateContact([FromBody] UpdateContactDTO updateContactDto)
@@ -131,6 +128,7 @@ namespace api.Controllers
             if (user == null)
                 return NotFound(new { Message = "User not found" });
 
+            // Update contact fields
             user.Email = updateContactDto.Email;
             user.PhoneNumber = updateContactDto.Phonenumber;
 
@@ -142,7 +140,6 @@ namespace api.Controllers
             }
 
             var errors = result.Errors.Select(e => e.Description).ToArray();
-            Console.WriteLine(errors);
             return BadRequest(new { Errors = errors });
         }
 
@@ -164,10 +161,9 @@ namespace api.Controllers
                 _logger.LogInformation("[AuthAPIController] user changed password for {@username}", user.UserName);
                 return Ok(new { Message = "Password changed successfully" });
             }
-            var errors = result.Errors.Select(e => e.Description).ToArray();
-            Console.WriteLine(errors);
-            return BadRequest(new { Errors = errors });
 
+            var errors = result.Errors.Select(e => e.Description).ToArray();
+            return BadRequest(new { Errors = errors });
         }
 
         [Authorize]
@@ -193,43 +189,84 @@ namespace api.Controllers
             return BadRequest(new { Errors = errors });
         }
 
-        [Authorize] // not strictly necessary for logout, but good practice
-        [HttpPost("logout")]
-        public async Task<IActionResult> Logout()
+        // --- ADMIN / USER CONTROL ENDPOINTS ---
+
+        /**
+         * Retrieves a list of all registered users. Access requires a valid JWT token.
+         */
+        [Authorize]
+        [HttpGet("users")]
+        public IActionResult GetAllUsers()
         {
-            // For token-based authentication, logout is typically handled on the client-side by clearing the token. This endpoint can be used for things like token invalidation if implemented.
-            await _signInManager.SignOutAsync(); // This is more for cookie-based auth, but doesn't hurt.
-            _logger.LogInformation("[AuthAPIController] user logged out");
-            return Ok(new { Message = "Logout successful" });
+            var users = _userManager.Users
+                .Select(u => new UserDto
+                {
+                    Id = u.Id,
+                    UserName = u.UserName ?? string.Empty, 
+                    Email = u.Email ?? string.Empty,
+                    PhoneNumber = u.PhoneNumber ?? string.Empty
+                })
+                .ToList();
+
+            return Ok(users);
         }
+
+        /**
+         * Deletes a specific user by ID. Uses the simplified route.
+         */
+        [Authorize]
+        [HttpDelete("user/{userId}")] // <--- FORENKLET RUTE
+        public async Task<IActionResult> DeleteUser(string userId)
+        {
+            // [Authorize] ensures the current user is logged in
+            
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null)
+                return NotFound(new { Message = $"User not found with ID: {userId}" });
+
+            // Prevents deletion of the hardcoded 'admin' user
+            if (user.UserName.ToLower() == "admin")
+                return BadRequest(new { Message = "Cannot delete the Admin user." });
+
+            var result = await _userManager.DeleteAsync(user);
+            
+            if (result.Succeeded)
+                return Ok(new { Message = $"User '{user.UserName}' deleted successfully." });
+
+            return BadRequest(new { Errors = result.Errors.Select(e => e.Description) });
+        }
+
+        // --- PRIVATE HELPER METHOD ---
 
         private string GenerateJwtToken(AuthUser user)
         {
-            var jwtKey = _configuration["Jwt:Key"]; // The secret key used for the signature
-            if (string.IsNullOrEmpty(jwtKey)) // Ensure the key is not null or empty
-            {   
-                _logger.LogError("[AuthAPIController] JWT key is missing from configuration.");
+            var jwtKey = _configuration["Jwt:Key"];
+            if (string.IsNullOrEmpty(jwtKey))
+            {
+                _logger.LogError("JWT key is missing from configuration.");
                 throw new InvalidOperationException("JWT key is missing from configuration.");
             }
-            var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)); // Reading the key from the configuration
-            var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256); // Using HMAC SHA256 algorithm for signing the token
+
+            var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey));
+            var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
 
             var claims = new[]
             {
                 new Claim(JwtRegisteredClaimNames.UniqueName, user.UserName!),
                 new Claim(JwtRegisteredClaimNames.NameId, user.Id),
-                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()), // Unique identifier for the token
-                new Claim(JwtRegisteredClaimNames.Iat, DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString()) // Issued at timestamp
+                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+                new Claim(JwtRegisteredClaimNames.Iat, DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString())
             };
 
             var token = new JwtSecurityToken(
                 issuer: _configuration["Jwt:Issuer"],
                 audience: _configuration["Jwt:Audience"],
                 claims: claims,
-                expires: DateTime.Now.AddMinutes(120), // Token expiration time set to 120 minutes
-                signingCredentials: credentials); // Signing the token with the specified credentials
+                expires: DateTime.Now.AddMinutes(120),
+                signingCredentials: credentials
+            );
 
-            _logger.LogInformation("[AuthAPIController] JWT token created for {@username}", user.UserName);
+            _logger.LogInformation("JWT token created for {@username}", user.UserName);
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
     }

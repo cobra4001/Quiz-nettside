@@ -14,6 +14,7 @@ const AllQuizzes = lazy(() => import("./pages/quiz/AllQuizzes"));
 const MyQuizzes = lazy(() => import("./pages/quiz/MyQuizzes"));
 const UserProfile = lazy(() => import("./pages/user/UserProfile"));
 const MyScores = lazy(() => import("./pages/user/MyScores"));
+const UserControlPage = lazy(() => import("./pages/Admin/UserControl"));
 
 const App: React.FC = () => {
   return (
@@ -33,6 +34,7 @@ const App: React.FC = () => {
             <Route path="/CreateUser" element={<UserCreationPage />} />
             <Route path="/QuizUpdate/:quizId" element={<QuizUpdatePage />} />
             <Route path="/MyScores" element={<MyScores />} />
+            <Route path="/UserControl" element={<UserControlPage />} />
             <Route path="*" element={<div>404 - Side ikke funnet</div>} />
           </Routes>
         </Container>

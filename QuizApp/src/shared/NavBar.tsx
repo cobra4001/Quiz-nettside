@@ -115,6 +115,12 @@ const NavBar: React.FC = () => {
                   <Nav.Link onClick={handleCreateClick} style={{ cursor: "pointer" }}>
                     Create quiz
                   </Nav.Link>
+                   {/*If the user is Admin, show UserControl page */}
+                   {user?.unique_name === "Admin" && (
+                    <Nav.Link onClick={() => handleNavigate("/UserControl")}>
+                      User Control
+                    </Nav.Link>
+                  )}
                 </Nav>
 
                 <div className="ms-auto form-check form-switch mt-2 align-self-center d-none d-lg-flex">
@@ -128,7 +134,7 @@ const NavBar: React.FC = () => {
                     <span className="slider" />
                   </label>
                 </div>
-
+                {/* Desktop / large screens: show user dropdown inline */}
                 <Nav className="text-center d-none d-lg-flex align-items-center">
                   <NavDropdown title={user.unique_name} id="user-dropdown">
                     <NavDropdown.Item onClick={() => handleNavigate("/MyScores")}>
@@ -152,7 +158,7 @@ const NavBar: React.FC = () => {
                     </NavDropdown.Item>
                   </NavDropdown> 
                 </Nav>
-
+                {/* Small screens: show user dropdown + theme switch at bottom-right */}
                 <Nav className="text-center d-lg-none">
                   <NavDropdown title={user.unique_name} id="user-dropdown" align="end">
                     <NavDropdown.Item onClick={() => handleNavigate("/MyScores")}>
@@ -160,6 +166,9 @@ const NavBar: React.FC = () => {
                     </NavDropdown.Item>
                     <NavDropdown.Item onClick={() => handleNavigate("/MyQuizzes")}>
                       My Quizzes
+                    </NavDropdown.Item>
+                    <NavDropdown.Item onClick={() => handleNavigate("/UserProfile")}>
+                      Profile
                     </NavDropdown.Item>
                     <NavDropdown.Item
                       onClick={() => {
@@ -170,9 +179,6 @@ const NavBar: React.FC = () => {
                       }}
                     >
                       Logout
-                    </NavDropdown.Item>
-                    <NavDropdown.Item onClick={() => handleNavigate("/UserProfile")}>
-                      Profile
                     </NavDropdown.Item>
                   </NavDropdown>
                 </Nav>
