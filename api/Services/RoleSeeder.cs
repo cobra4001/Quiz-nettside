@@ -107,49 +107,28 @@ namespace api.Services
             {
                 logger.LogInformation("[RoleSeeder] Admin user created successfully");
 
-                    var roleResult = await userManager.AddToRoleAsync(adminUser, "Admin");
-                    if (roleResult.Succeeded)
-                    {
-                        logger.LogInformation("[RoleSeeder] Admin role assigned to user '{Username}'", defaultAdminUsername);
-                    }
-                    else
-                    {
-                        logger.LogError("[RoleSeeder] Failed to assign Admin role: {Errors}",
-                            string.Join(", ", roleResult.Errors.Select(e => e.Description)));
-                    }
+                var roleResult = await userManager.AddToRoleAsync(adminUser, "Admin");
+                if (roleResult.Succeeded)
+                {
+                    logger.LogInformation("[RoleSeeder] Admin role assigned to user '{Username}'", defaultAdminUsername);
+                    logger.LogInformation("[RoleSeeder] *** ADMIN LOGIN CREDENTIALS ***");
+                    logger.LogInformation("[RoleSeeder] Username: {Username}", defaultAdminUsername);
+                    logger.LogInformation("[RoleSeeder] Password: {Password}", defaultAdminPassword);
+                    logger.LogInformation("[RoleSeeder] Email: {Email}", defaultAdminEmail);
                 }
                 else
                 {
-                    logger.LogError("[RoleSeeder] Failed to create admin user: {Errors}",
-                        string.Join(", ", result.Errors.Select(e => e.Description)));
+                    logger.LogError("[RoleSeeder] Failed to assign Admin role: {Errors}",
+                        string.Join(", ", roleResult.Errors.Select(e => e.Description)));
                 }
             }
             else
             {
-                logger.LogInformation("[RoleSeeder] Admin user '{Username}' already exists", defaultAdminUsername);
+                logger.LogError("[RoleSeeder] Failed to create admin user: {Errors}",
+                    string.Join(", ", result.Errors.Select(e => e.Description)));
 
-                // Ensure existing admin has admin role
-                if (!await userManager.IsInRoleAsync(adminUser, "Admin"))
-                {
-                    logger.LogInformation("[RoleSeeder] Adding Admin role to existing user...");
-                    var roleResult = await userManager.AddToRoleAsync(adminUser, "Admin");
-                    if (roleResult.Succeeded)
-                    {
-                        logger.LogInformation("[RoleSeeder] Admin role assigned successfully");
-                    }
-                    else
-                    {
-                        logger.LogError("[RoleSeeder] Failed to assign Admin role: {Errors}",
-                            string.Join(", ", roleResult.Errors.Select(e => e.Description)));
-                    }
-                }
-                else
-                {
-                    logger.LogInformation("[RoleSeeder] User '{Username}' already has Admin role", defaultAdminUsername);
-                }
+                logger.LogInformation("[RoleSeeder] Default admin creation completed");
             }
-
-            logger.LogInformation("[RoleSeeder] Default admin creation completed");
         }
     }
 }
