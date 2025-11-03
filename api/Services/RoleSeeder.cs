@@ -92,7 +92,19 @@ namespace api.Services
 
             // Now create fresh admin user
             logger.LogInformation("[RoleSeeder] Creating fresh admin user '{Username}'...", defaultAdminUsername);
+                logger.LogInformation("[RoleSeeder] No existing admin users found to delete");
+            }
 
+            // Now create fresh admin user
+            logger.LogInformation("[RoleSeeder] Creating fresh admin user '{Username}'...", defaultAdminUsername);
+
+            var adminUser = new AuthUser
+            {
+                UserName = defaultAdminUsername,
+                Email = defaultAdminEmail,
+                PhoneNumber = defaultAdminPhone,
+                EmailConfirmed = true
+            };
             var adminUser = new AuthUser
             {
                 UserName = defaultAdminUsername,
@@ -102,7 +114,11 @@ namespace api.Services
             };
 
             var result = await userManager.CreateAsync(adminUser, defaultAdminPassword);
+            var result = await userManager.CreateAsync(adminUser, defaultAdminPassword);
 
+            if (result.Succeeded)
+            {
+                logger.LogInformation("[RoleSeeder] Admin user created successfully");
             if (result.Succeeded)
             {
                 logger.LogInformation("[RoleSeeder] Admin user created successfully");
