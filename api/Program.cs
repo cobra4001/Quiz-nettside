@@ -7,6 +7,7 @@ using Microsoft.OpenApi.Models;
 using api.Models;
 using Microsoft.EntityFrameworkCore.Sqlite;
 using Microsoft.EntityFrameworkCore;
+using api.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -78,6 +79,10 @@ using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AuthUserDbContext>();
     db.Database.Migrate();
+
+    // Seed roles and create default admin user
+    await RoleSeeder.SeedRoles(scope.ServiceProvider);
+    await RoleSeeder.CreateDefaultAdmin(scope.ServiceProvider, builder.Configuration);
 }
 
 

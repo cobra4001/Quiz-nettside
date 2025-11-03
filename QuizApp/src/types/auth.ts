@@ -21,3 +21,16 @@ export interface ChangePasswordDTO {
   newPassword: string;
   confirmPassword: string;
 }
+
+export interface AdminUserDTO {
+  id: string;
+  username: string;
+  email: string;
+  phoneNumber: string;
+  roles: string[];
+}
+
+export interface UserRoleDTO {
+  userId: string;
+  role: string;
+}
