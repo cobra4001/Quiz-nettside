@@ -23,7 +23,7 @@ const NavBar: React.FC = () => {
       handleNavigate("/quizcreate");
     }
   };
-  
+
   const [showOffcanvas, setShowOffcanvas] = useState(false);
 
   const [isDark, setIsDark] = useState<boolean>(() => {
@@ -156,9 +156,9 @@ const NavBar: React.FC = () => {
                     >
                       Logout
                     </NavDropdown.Item>
-                  </NavDropdown> 
+                  </NavDropdown>
                 </Nav>
-                {/* Small screens: show user dropdown + theme switch at bottom-right */}
+                {/* Small screens: show user dropdown separately */}
                 <Nav className="text-center d-lg-none">
                   <NavDropdown title={user.unique_name} id="user-dropdown" align="end">
                     <NavDropdown.Item onClick={() => handleNavigate("/MyScores")}>

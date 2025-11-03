@@ -51,10 +51,13 @@ namespace api.Controllers
             };
 
             var result = await _userManager.CreateAsync(user, registerDto.Password);
-            if (result.Succeeded)
-            {
-                _logger.LogInformation("[AuthAPIController] User registered for {@username}", registerDto.Username);
-                return Ok(new { Message = "User registered successfully" });
+
+        if (result.Succeeded)
+        {
+            // Assign "User" role to newly registered users
+            await _userManager.AddToRoleAsync(user, "User");
+            _logger.LogInformation("[AuthAPIController] user registered for {@username}", registerDto.Username);
+            return Ok(new { Message = "User registered successfully" });
             }
 
             var errors = result.Errors.Select(e => e.Description).ToArray();
@@ -76,7 +79,7 @@ namespace api.Controllers
             if (user != null && await _userManager.CheckPasswordAsync(user, loginDto.Password))
             {
                 _logger.LogInformation("[AuthAPIController] user authorised for {@username}", loginDto.Username);
-                var token = GenerateJwtToken(user);
+                var token = await GenerateJwtToken(user);
                 return Ok(new { Token = token });
             }
 
@@ -108,11 +111,14 @@ namespace api.Controllers
             if (user == null)
                 return NotFound(new { Message = "User not found" });
 
+            var roles = await _userManager.GetRolesAsync(user);
+
             return Ok(new
             {
                 Username = user.UserName,
                 Email = user.Email,
-                Phonenumber = user.PhoneNumber
+                Phonenumber = user.PhoneNumber,
+                Roles = roles
             });
         }
 
@@ -238,25 +244,35 @@ namespace api.Controllers
 
         // --- PRIVATE HELPER METHOD ---
 
-        private string GenerateJwtToken(AuthUser user)
+
+        private async Task<string> GenerateJwtToken(AuthUser user)
         {
-            var jwtKey = _configuration["Jwt:Key"];
-            if (string.IsNullOrEmpty(jwtKey))
+            var jwtKey = _configuration["Jwt:Key"]; // The secret key used for the signature
+            if (string.IsNullOrEmpty(jwtKey)) // Ensure the key is not null or empty
             {
-                _logger.LogError("JWT key is missing from configuration.");
+                _logger.LogError("[AuthAPIController] JWT key is missing from configuration.");
                 throw new InvalidOperationException("JWT key is missing from configuration.");
             }
 
             var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey));
             var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
 
-            var claims = new[]
+            // Get user roles
+            var roles = await _userManager.GetRolesAsync(user);
+
+            var claims = new List<Claim>
             {
                 new Claim(JwtRegisteredClaimNames.UniqueName, user.UserName!),
                 new Claim(JwtRegisteredClaimNames.NameId, user.Id),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
                 new Claim(JwtRegisteredClaimNames.Iat, DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString())
             };
+
+            // Add role claims
+            foreach (var role in roles)
+            {
+                claims.Add(new Claim("role", role));
+            }
 
             var token = new JwtSecurityToken(
                 issuer: _configuration["Jwt:Issuer"],
@@ -266,7 +282,7 @@ namespace api.Controllers
                 signingCredentials: credentials
             );
 
-            _logger.LogInformation("JWT token created for {@username}", user.UserName);
+            _logger.LogInformation("[AuthAPIController] JWT token created for {@username} with roles: {roles}", user.UserName, string.Join(", ", roles));
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
     }

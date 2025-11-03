@@ -138,7 +138,6 @@ const QuizList: React.FC<QuizListProps> = ({
                     )}
 
                     {/*If the user is Admin, show a delete button */}
-                    {/*Username = Admin password = Admin1234 */}
                     {showAdminDelete && currentUserName === "Admin" && (
                       <button
                         onClick={(e) => {
