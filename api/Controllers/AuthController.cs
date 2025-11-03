@@ -231,7 +231,7 @@ namespace api.Controllers
                 return NotFound(new { Message = $"User not found with ID: {userId}" });
 
             // Prevents deletion of the hardcoded 'admin' user
-            if (user.UserName.ToLower() == "admin")
+            if (user.UserName?.ToLower() == "admin")
                 return BadRequest(new { Message = "Cannot delete the Admin user." });
 
             var result = await _userManager.DeleteAsync(user);
