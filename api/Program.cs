@@ -77,12 +77,27 @@ var app = builder.Build();
 // Apply pending EF Core migrations automatically at startup (dev convenience). In production consider manual migration deployment.
 using (var scope = app.Services.CreateScope())
 {
-    var db = scope.ServiceProvider.GetRequiredService<AuthUserDbContext>();
-    db.Database.Migrate();
+    try
+    {
+        var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+        logger.LogInformation("Starting database migration and seeding...");
 
-    // Seed roles and create default admin user
-    await RoleSeeder.SeedRoles(scope.ServiceProvider);
-    await RoleSeeder.CreateDefaultAdmin(scope.ServiceProvider, builder.Configuration);
+        var db = scope.ServiceProvider.GetRequiredService<AuthUserDbContext>();
+        db.Database.Migrate();
+        logger.LogInformation("Database migrations applied successfully");
+
+        // Seed roles and create default admin user
+        await RoleSeeder.SeedRoles(scope.ServiceProvider);
+        await RoleSeeder.CreateDefaultAdmin(scope.ServiceProvider, builder.Configuration);
+
+        logger.LogInformation("Database seeding completed successfully");
+    }
+    catch (Exception ex)
+    {
+        var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "An error occurred while migrating or seeding the database");
+        throw; // Re-throw to prevent app from starting with incomplete database setup
+    }
 }
 
 
