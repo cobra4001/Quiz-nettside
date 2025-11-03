@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { fetchQuizzes } from './QuizService';
 import { useAuth } from "../../auth/AuthContext";
 import QuizList from './QuizList';
+import { isAdmin } from '../../utils/roleUtils';
 
 const AllQuizzes: React.FC = () => {
   const [quizzes, setQuizzes] = useState<any[]>([]);
@@ -12,6 +13,9 @@ const AllQuizzes: React.FC = () => {
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const { user } = useAuth() as any;
 
+  console.log('Current user in AllQuizzes:', user);
+  console.log('Is user admin?', isAdmin(user));
+  console.log('User roles:', user ? (Array.isArray(user.role) ? user.role : [user.role]) : 'No user');
   // Get all quizzes
   useEffect(() => {
     let mounted = true;
@@ -46,7 +50,7 @@ const AllQuizzes: React.FC = () => {
       onQuizDeleted={handleQuizDeleted}
       title="Available Quizzes"
       emptyMessage="No quizzes yet. Create one!"
-      showAdminDelete={true}
+      showAdminDelete={isAdmin(user)}
       currentUserName={user?.unique_name}
     />
   );
