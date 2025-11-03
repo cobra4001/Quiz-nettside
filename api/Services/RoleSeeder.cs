@@ -53,69 +53,77 @@ namespace api.Services
             var defaultAdminPassword = configuration["DefaultAdmin:Password"] ?? "Admin123!";
             var defaultAdminPhone = configuration["DefaultAdmin:Phone"] ?? "12345678";
 
-            logger.LogInformation("[RoleSeeder] Looking for admin user '{Username}'", defaultAdminUsername);
+            logger.LogInformation("[RoleSeeder] Cleaning up any existing admin users (case-insensitive)...");
 
-            // Check if admin user already exists
-            var adminUser = await userManager.FindByNameAsync(defaultAdminUsername);
+            // Find and delete all users with username "admin" (case-insensitive)
+            var allUsers = userManager.Users.ToList();
+            var adminUsersToDelete = allUsers.Where(u =>
+                u.UserName != null &&
+                u.UserName.Equals("admin", StringComparison.OrdinalIgnoreCase))
+                .ToList();
 
-            if (adminUser == null)
+            if (adminUsersToDelete.Any())
             {
-                logger.LogInformation("[RoleSeeder] Admin user not found, creating new admin user...");
+                logger.LogInformation("[RoleSeeder] Found {Count} existing admin user(s) to delete", adminUsersToDelete.Count);
 
-                adminUser = new AuthUser
+                foreach (var existingAdmin in adminUsersToDelete)
                 {
-                    UserName = defaultAdminUsername,
-                    Email = defaultAdminEmail,
-                    PhoneNumber = defaultAdminPhone,
-                    EmailConfirmed = true
-                };
+                    logger.LogInformation("[RoleSeeder] Deleting user '{Username}' (ID: {UserId})", existingAdmin.UserName, existingAdmin.Id);
+                    var deleteResult = await userManager.DeleteAsync(existingAdmin);
 
-                var result = await userManager.CreateAsync(adminUser, defaultAdminPassword);
-
-                if (result.Succeeded)
-                {
-                    logger.LogInformation("[RoleSeeder] Admin user created successfully");
-
-                    var roleResult = await userManager.AddToRoleAsync(adminUser, "Admin");
-                    if (roleResult.Succeeded)
+                    if (deleteResult.Succeeded)
                     {
-                        logger.LogInformation("[RoleSeeder] Admin role assigned to user '{Username}'", defaultAdminUsername);
+                        logger.LogInformation("[RoleSeeder] Successfully deleted user '{Username}'", existingAdmin.UserName);
                     }
                     else
                     {
-                        logger.LogError("[RoleSeeder] Failed to assign Admin role: {Errors}",
-                            string.Join(", ", roleResult.Errors.Select(e => e.Description)));
+                        logger.LogError("[RoleSeeder] Failed to delete user '{Username}': {Errors}",
+                            existingAdmin.UserName,
+                            string.Join(", ", deleteResult.Errors.Select(e => e.Description)));
                     }
-                }
-                else
-                {
-                    logger.LogError("[RoleSeeder] Failed to create admin user: {Errors}",
-                        string.Join(", ", result.Errors.Select(e => e.Description)));
                 }
             }
             else
             {
-                logger.LogInformation("[RoleSeeder] Admin user '{Username}' already exists", defaultAdminUsername);
+                logger.LogInformation("[RoleSeeder] No existing admin users found to delete");
+            }
 
-                // Ensure existing admin has admin role
-                if (!await userManager.IsInRoleAsync(adminUser, "Admin"))
+            // Now create fresh admin user
+            logger.LogInformation("[RoleSeeder] Creating fresh admin user '{Username}'...", defaultAdminUsername);
+
+            var adminUser = new AuthUser
+            {
+                UserName = defaultAdminUsername,
+                Email = defaultAdminEmail,
+                PhoneNumber = defaultAdminPhone,
+                EmailConfirmed = true
+            };
+
+            var result = await userManager.CreateAsync(adminUser, defaultAdminPassword);
+
+            if (result.Succeeded)
+            {
+                logger.LogInformation("[RoleSeeder] Admin user created successfully");
+
+                var roleResult = await userManager.AddToRoleAsync(adminUser, "Admin");
+                if (roleResult.Succeeded)
                 {
-                    logger.LogInformation("[RoleSeeder] Adding Admin role to existing user...");
-                    var roleResult = await userManager.AddToRoleAsync(adminUser, "Admin");
-                    if (roleResult.Succeeded)
-                    {
-                        logger.LogInformation("[RoleSeeder] Admin role assigned successfully");
-                    }
-                    else
-                    {
-                        logger.LogError("[RoleSeeder] Failed to assign Admin role: {Errors}",
-                            string.Join(", ", roleResult.Errors.Select(e => e.Description)));
-                    }
+                    logger.LogInformation("[RoleSeeder] Admin role assigned to user '{Username}'", defaultAdminUsername);
+                    logger.LogInformation("[RoleSeeder] *** ADMIN LOGIN CREDENTIALS ***");
+                    logger.LogInformation("[RoleSeeder] Username: {Username}", defaultAdminUsername);
+                    logger.LogInformation("[RoleSeeder] Password: {Password}", defaultAdminPassword);
+                    logger.LogInformation("[RoleSeeder] Email: {Email}", defaultAdminEmail);
                 }
                 else
                 {
-                    logger.LogInformation("[RoleSeeder] User '{Username}' already has Admin role", defaultAdminUsername);
+                    logger.LogError("[RoleSeeder] Failed to assign Admin role: {Errors}",
+                        string.Join(", ", roleResult.Errors.Select(e => e.Description)));
                 }
+            }
+            else
+            {
+                logger.LogError("[RoleSeeder] Failed to create admin user: {Errors}",
+                    string.Join(", ", result.Errors.Select(e => e.Description)));
             }
 
             logger.LogInformation("[RoleSeeder] Default admin creation completed");
