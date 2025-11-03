@@ -46,8 +46,10 @@ export const getUserRoles = (user: User | null): string[] => {
     if (!user || !user.role) return [];
 
     if (typeof user.role === 'string') {
+        console.log('User role is a string:', user.role);
         return [user.role];
     }
 
+    console.log('User roles are an array:', user.role);
     return user.role;
 };
