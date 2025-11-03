@@ -137,6 +137,9 @@ const NavBar: React.FC = () => {
                     <NavDropdown.Item onClick={() => handleNavigate("/MyQuizzes")}>
                       My Quizzes
                     </NavDropdown.Item>
+                    <NavDropdown.Item onClick={() => handleNavigate("/UserProfile")}>
+                      Profile
+                    </NavDropdown.Item>
                     <NavDropdown.Item
                       onClick={() => {
                         logout();
@@ -147,10 +150,7 @@ const NavBar: React.FC = () => {
                     >
                       Logout
                     </NavDropdown.Item>
-                    <NavDropdown.Item onClick={() => handleNavigate("/UserProfile")}>
-                      Profile
-                    </NavDropdown.Item>
-                  </NavDropdown>
+                  </NavDropdown> 
                 </Nav>
 
                 <Nav className="text-center d-lg-none">
