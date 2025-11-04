@@ -446,20 +446,62 @@ namespace api.Controllers
                 return Unauthorized(new { Message = "could not validate user." });
             }
 
-           try
+            try
             {
-                var myScores = await _context.QuizSubmissions
+                var submissions = await _context.QuizSubmissions
                     .Where(s => s.UserId == resolvedUserId)
                     .Include(s => s.Quiz)
                     .OrderByDescending(s => s.SubmittedAt)
-                    .Select(s => new
-                    {
+                    .ToListAsync();
+
+                var myScores = submissions.Select(s => {
+                    // Parse the snapshots
+                    var questionsSnapshot = string.IsNullOrEmpty(s.QuestionsSnapshot) 
+                        ? new List<QuestionSnapshotDTO>() 
+                        : JsonSerializer.Deserialize<List<QuestionSnapshotDTO>>(s.QuestionsSnapshot) ?? new List<QuestionSnapshotDTO>();
+                    
+                    var answersSnapshot = string.IsNullOrEmpty(s.AnswersSnapshot) 
+                        ? new Dictionary<int, int>() 
+                        : JsonSerializer.Deserialize<Dictionary<int, int>>(s.AnswersSnapshot) ?? new Dictionary<int, int>();
+
+                    // Build question details
+                    var questionDetails = questionsSnapshot.Select(q => {
+                        // Correct answer text from snapshot answers
+                        var correctAnswerText = q.Answers.FirstOrDefault(a => a.IsCorrect)?.AnswerText ?? "Unknown";
+
+                        // Selected answer id (if any) from the answers snapshot
+                        int? selectedAnswerId = answersSnapshot.ContainsKey(q.Id) ? (int?)answersSnapshot[q.Id] : null;
+
+                        // Resolve user's answer text and correctness
+                        string userAnswerText;
+                        bool isCorrect = false;
+                        if (selectedAnswerId.HasValue)
+                        {
+                            var userAnswerObj = q.Answers.FirstOrDefault(a => a.Id == selectedAnswerId.Value);
+                            userAnswerText = userAnswerObj?.AnswerText ?? "Unknown";
+                            isCorrect = userAnswerObj != null && userAnswerObj.IsCorrect;
+                        }
+                        else
+                        {
+                            userAnswerText = "Not answered";
+                        }
+
+                        return new {
+                            QuestionText = q.QuestionText,
+                            CorrectAnswer = correctAnswerText,
+                            UserAnswer = userAnswerText,
+                            IsCorrect = isCorrect
+                        };
+                    }).ToList();
+
+                    return new {
                         QuizTitle = s.Quiz != null ? s.Quiz.Title : "Unknown Quiz",
                         s.Score,
                         s.MaxScore,
-                        s.SubmittedAt
-                    })
-                    .ToListAsync();
+                        s.SubmittedAt,
+                        Questions = questionDetails
+                    };
+                }).ToList();
 
                 return Ok(myScores);
             }
