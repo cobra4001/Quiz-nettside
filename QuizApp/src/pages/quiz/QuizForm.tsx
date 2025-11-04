@@ -43,7 +43,7 @@ const QuizForm: React.FC<QuizFormProps> = ({
     const newQuestion: IQuestion = {
       id: Date.now(),
       questionText: "",
-      points: 10,
+      points: 1,
       answerOptions: [
         { id: Date.now() + 1, text: "", isCorrect: false },
         { id: Date.now() + 2, text: "", isCorrect: false },
