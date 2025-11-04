@@ -488,6 +488,8 @@ namespace api.Controllers
 
                         return new {
                             QuestionText = q.QuestionText,
+                            Points = q.Points,
+                            AllAnswers = q.Answers.Select(a => a.AnswerText).ToList(),
                             CorrectAnswer = correctAnswerText,
                             UserAnswer = userAnswerText,
                             IsCorrect = isCorrect

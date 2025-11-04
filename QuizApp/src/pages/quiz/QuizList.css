@@ -20,6 +20,21 @@
   color: #212529; /* text-dark */
 }
 
+[data-bs-theme="light"] .score-success {
+  background-color: #d1e7dd; /* Bootstrap success background */
+  color: #0f5132; /* Bootstrap success text */
+}
+
+[data-bs-theme="light"] .score-danger {
+  background-color: #f8d7da; /* Bootstrap danger background */
+  color: #842029; /* Bootstrap danger text */
+}
+
+[data-bs-theme="light"] .score-warning {
+  background-color: #fff3cd; /* Bootstrap warning background */
+  color: #664d03; /* Bootstrap warning text */
+}
+
 /* Dark mode colors - lighter green for success, off-white for text */
 [data-bs-theme="dark"] .quiz-title {
   color: #4ade80; /* Lighter shade of green */
@@ -40,6 +55,21 @@
 [data-bs-theme="dark"] .quiz-badge {
   background-color: transparent;
   color: #f8f9fa; /* Off-white */
+}
+
+[data-bs-theme="dark"] .score-success {
+  background-color: #051b11; /* Darker green background */
+  color: #75b798; /* Lighter green text */
+}
+
+[data-bs-theme="dark"] .score-danger {
+  background-color: #2c0b0e; /* Darker red background */
+  color: #ea868f; /* Lighter red text */
+}
+
+[data-bs-theme="dark"] .score-warning {
+  background-color: #332701; /* Darker yellow background */
+  color: #ffda6a; /* Lighter yellow text */
 }
 
 /* Hover effect for interactive cards */
