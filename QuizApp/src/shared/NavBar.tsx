@@ -3,6 +3,7 @@ import { Navbar, Nav, NavDropdown, Container, Offcanvas } from "react-bootstrap"
 import { useAuth } from "../auth/AuthContext";
 import { useNavigate } from "react-router-dom";
 import './NavBar.css'
+import { isAdmin } from "../utils/roleUtils";
 
 const NavBar: React.FC = () => {
   const { user, logout } = useAuth();
@@ -116,7 +117,7 @@ const NavBar: React.FC = () => {
                     Create quiz
                   </Nav.Link>
                    {/*If the user is Admin, show UserControl page */}
-                   {user?.unique_name === "Admin" && (
+                   {isAdmin(user) && (
                     <Nav.Link onClick={() => handleNavigate("/UserControl")}>
                       User Control
                     </Nav.Link>

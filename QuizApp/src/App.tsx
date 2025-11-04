@@ -3,6 +3,7 @@ import React, { Suspense, lazy } from 'react';
 import { Container } from 'react-bootstrap';
 import NavBar from './shared/NavBar';
 import './App.css';
+import ProtectedRoute from './utils/ProtectedRoute';
 
 const HomePage = lazy(() => import("./pages/home/HomePage"));
 const QuizCreationPage = lazy(() => import("./pages/quiz/QuizCreatePage"));
@@ -27,14 +28,37 @@ const App: React.FC = () => {
             <Route path="/LoginPage" element={<LoginPage />} />
             <Route path="/HomePage" element={<HomePage />} />
             <Route path="/QuizList" element={<AllQuizzes />} />
-            <Route path="/MyQuizzes" element={<MyQuizzes />} />
-            <Route path="/UserProfile" element={<UserProfile />} />
+            <Route path="/MyQuizzes" element={
+              <ProtectedRoute>
+                <MyQuizzes />
+              </ProtectedRoute>
+            } />
+            <Route path="/UserProfile" element={
+              <ProtectedRoute>
+                <UserProfile />
+              </ProtectedRoute>
+            } />
             <Route path="/QuizTakingPage/:quizId" element={<QuizTakingPage />} />
-            <Route path="/quizcreate" element={<QuizCreationPage />} />
+            <Route path="/quizcreate" element={
+              <ProtectedRoute>
+                <QuizCreationPage />
+              </ProtectedRoute>
+            } />
             <Route path="/CreateUser" element={<UserCreationPage />} />
-            <Route path="/QuizUpdate/:quizId" element={<QuizUpdatePage />} />
-            <Route path="/MyScores" element={<MyScores />} />
-            <Route path="/UserControl" element={<UserControlPage />} />
+            <Route path="/QuizUpdate/:quizId" element={
+              <ProtectedRoute>
+                <QuizUpdatePage />
+              </ProtectedRoute>
+            } />
+            <Route path="/MyScores" element={
+              <ProtectedRoute>
+                <MyScores />
+              </ProtectedRoute>
+            } />
+            <Route path="/UserControl" element={
+              <ProtectedRoute requireAdmin={true}>
+                <UserControlPage />
+              </ProtectedRoute>} />
             <Route path="*" element={<div>404 - Side ikke funnet</div>} />
           </Routes>
         </Container>
