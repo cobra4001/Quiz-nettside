@@ -4,6 +4,8 @@ using Microsoft.EntityFrameworkCore;
 using api.DTOs;
 using api.Models;
 using System.Security.Claims;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace api.Controllers
 {
@@ -387,14 +389,32 @@ namespace api.Controllers
             {
                 try
                 {
-
-
                     var submission = new QuizSubmission
                     {
                         UserId = userId,
                         QuizId = quiz.Id,
                         Score = totalScore,
                         MaxScore = quiz.Questions.Sum(q => q.Points),
+                        QuestionsSnapshot = System.Text.Json.JsonSerializer.Serialize(
+                            quiz.Questions.Select(q => new {
+                                q.Id,
+                                q.QuestionText,
+                                q.Points,
+                                Answers = q.Answers.Select(a => new {
+                                    a.Id,
+                                    a.AnswerText,
+                                    a.IsCorrect
+                                }).ToList()
+                            }).ToList(),
+                            new JsonSerializerOptions { 
+                                ReferenceHandler = ReferenceHandler.IgnoreCycles 
+                            }),
+                        AnswersSnapshot = System.Text.Json.JsonSerializer.Serialize(
+                            submissionDto.SelectedAnswers,
+                            new JsonSerializerOptions { 
+                                ReferenceHandler = ReferenceHandler.IgnoreCycles 
+                            }
+                        ),
                         SubmittedAt = DateTime.UtcNow
                     };
                     _context.QuizSubmissions.Add(submission);

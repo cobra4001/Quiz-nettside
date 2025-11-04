@@ -287,8 +287,16 @@ namespace api.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
+                    b.Property<string>("AnswersSnapshot")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
                     b.Property<int>("MaxScore")
                         .HasColumnType("INTEGER");
+
+                    b.Property<string>("QuestionsSnapshot")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
 
                     b.Property<int>("QuizId")
                         .HasColumnType("INTEGER");

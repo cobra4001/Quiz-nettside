@@ -37,7 +37,19 @@ namespace api.Models
                 .WithMany() // If you later add a collection navigation on AuthUser, adjust this.
                 .HasForeignKey(q => q.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            // Explicit mapping for QuizSubmission to avoid FK failures on delete
+            builder.Entity<QuizSubmission>()
+                .HasOne(s => s.User)
+                .WithMany()
+                .HasForeignKey(s => s.UserId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            builder.Entity<QuizSubmission>()
+                .HasOne(s => s.Quiz)
+                .WithMany()
+                .HasForeignKey(s => s.QuizId)
+                .OnDelete(DeleteBehavior.SetNull);
         }
     }
 }
-
