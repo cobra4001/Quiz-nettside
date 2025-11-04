@@ -132,8 +132,8 @@ const QuizTaker: React.FC<QuizTakerProps> = () => {
                         totalQuestions: totalFromServer
                     });
                     // Log details if server returns error
-                    if (scoreFromServer === 0 && Object.keys(userAnswers).length > 0) {
-                        console.warn('Server returned score=0; debugging details', {
+                    if (scoreFromServer === 0 && Object.keys(userAnswers).length > 0 && correctFromServer !== 0) {
+                        console.warn('Server returned score = 0 when there should be a score; debugging details', {
                             answered: userAnswers,
                             questions: currentQuiz.questions.map(q => ({ qid: q.id, answers: q.answerOptions.map(a => a.id) }))
                         });
