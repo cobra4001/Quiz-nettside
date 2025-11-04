@@ -21,7 +21,7 @@ const QuizForm: React.FC<QuizFormProps> = ({
       {
         id: Date.now(),
         questionText: "",
-        points: 10,
+        points: 1,
         answerOptions: [
           { id: Date.now() + 1, text: "", isCorrect: false },
           { id: Date.now() + 2, text: "", isCorrect: false },
@@ -263,16 +263,19 @@ const QuizForm: React.FC<QuizFormProps> = ({
                 />
 
                 <div className="mb-3">
-                  <label className="form-label">Points</label>
+                  <label className="form-label text-start d-block">Points</label>
                   <input
                     type="number"
                     className="form-control w-25"
                     min={1}
                     max={100}
                     value={q.points}
-                    onChange={(e) =>
-                      handlePointsChange(q.id, Number(e.target.value))
-                    }
+                    onChange={(e) => {
+                      let value = Number(e.target.value);
+                      if (value < 1) value = 1;
+                      if (value > 100) value = 100;
+                      handlePointsChange(q.id, value);
+                    }}
                   />
                 </div>
 
