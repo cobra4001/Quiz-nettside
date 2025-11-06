@@ -200,22 +200,32 @@ namespace api.Controllers
         /**
          * Retrieves a list of all registered users. Access requires a valid JWT token.
          */
-        [Authorize]
+        [Authorize(Roles = "Admin")] // Only admin can get all users
         [HttpGet("users")]
-        public IActionResult GetAllUsers()
+        public async Task<IActionResult> GetAllUsers()
         {
-            var users = _userManager.Users
-                .Select(u => new UserDto
-                {
-                    Id = u.Id,
-                    UserName = u.UserName ?? string.Empty, 
-                    Email = u.Email ?? string.Empty,
-                    PhoneNumber = u.PhoneNumber ?? string.Empty
-                })
-                .ToList();
+            var users = _userManager.Users.ToList(); // Get all users
+            var userDtos = new List<UserDto>();
 
-            return Ok(users);
+            foreach (var user in users)
+            {
+                // Get roles for each user
+                var userRoles = await _userManager.GetRolesAsync(user);
+
+                // Make UserDTO
+                userDtos.Add(new UserDto
+                {
+                    Id = user.Id,
+                    UserName = user.UserName ?? string.Empty,
+                    Email = user.Email ?? string.Empty,
+                    PhoneNumber = user.PhoneNumber ?? string.Empty,
+                    Role = userRoles.FirstOrDefault() ?? "User"
+                });
+            }
+
+            return Ok(userDtos);
         }
+
 
         /**
          * Deletes a specific user by ID. Uses the simplified route.

@@ -11,6 +11,7 @@ interface UserDto {
   userName: string; 
   email: string | null;
   phoneNumber: string | null;
+  role: string | null;
 }
 
 const UserControl: React.FC = () => {
@@ -128,6 +129,7 @@ const UserControl: React.FC = () => {
             <th>Username</th>
             <th>Email</th>
             <th>Phone</th>
+            <th>Role</th>
             <th>Actions</th>
           </tr>
         </thead>
@@ -140,6 +142,7 @@ const UserControl: React.FC = () => {
                 <td>{user.userName}</td>
                 <td>{user.email ?? "-"}</td>
                 <td>{user.phoneNumber ?? "-"}</td>
+                <td>{user.role ?? "-"}</td>
                 <td>
                   <Button
                     variant="danger"
