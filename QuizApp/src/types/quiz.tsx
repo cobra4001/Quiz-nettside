@@ -30,7 +30,7 @@ export interface QuizListProps {
   showUpdateButton?: boolean;
   showDeleteButton?: boolean;
   showAdminDelete?: boolean;
-  currentUserName?: string;
+  currentUserRole?: string;
 }
 
 

@@ -263,7 +263,7 @@ const QuizForm: React.FC<QuizFormProps> = ({
                 />
 
                 <div className="mb-3">
-                  <label className="form-label text-start d-block">Points</label>
+                  <label className="form-label text-start d-block">Points (max 100)</label>
                   <input
                     type="number"
                     className="form-control w-25"
