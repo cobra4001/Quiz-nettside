@@ -4,14 +4,9 @@ import { useNavigate } from "react-router-dom";
 import { deleteQuiz } from "./QuizService";
 import type { QuizListProps } from "../../types/quiz";
 import "./QuizList.css";
+import { isAdminRole } from "../../utils/roleUtils";
 
 // Checker to check if user is admin
-const isAdmin = (role?: string, roles?: string[]) => {
-  if (!role && !roles) return false;
-  if (role?.toLowerCase() === "admin") return true;
-  if (roles?.some(r => r.toLowerCase() === "admin")) return true;
-  return false;
-};
 
 const QuizList: React.FC<QuizListProps> = ({
   quizzes,
@@ -147,7 +142,7 @@ const QuizList: React.FC<QuizListProps> = ({
                     )}
 
                     {/* Admin delete button */}
-                    {showAdminDelete && isAdmin(currentUserRole) && (
+                    {showAdminDelete && isAdminRole(currentUserRole) && (
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
