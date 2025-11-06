@@ -145,14 +145,15 @@ const UserControl: React.FC = () => {
                 <td>{user.role ?? "-"}</td>
                 <td>
                   <Button
-                    variant="danger"
-                    size="sm"
-                    onClick={() => handleDelete(user.id, user.userName)}
-                    // Disable deletion for the 'admin' user
-                    disabled={user.userName.toLowerCase() === "admin"}
-                  >
-                    Delete
-                  </Button>
+                  variant="danger"
+                  size="sm"
+                  onClick={() => handleDelete(user.id, user.userName)}
+                  // Disable deletion for admin role
+                  disabled={user.role?.toLowerCase() === "admin"}
+                >
+                  Delete
+                </Button>
+
                 </td>
               </tr>
             );
