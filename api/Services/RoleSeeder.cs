@@ -48,10 +48,10 @@ namespace api.Services
             logger.LogInformation("[RoleSeeder] Starting default admin creation...");
 
             // Get default admin credentials from configuration or use defaults
-            var defaultAdminUsername = configuration["DefaultAdmin:Username"] ?? "admin";
+            var defaultAdminUsername = configuration["DefaultAdmin:Username"] ?? "Admin";
             var defaultAdminEmail = configuration["DefaultAdmin:Email"] ?? "admin@example.com";
-            var defaultAdminPassword = configuration["DefaultAdmin:Password"] ?? "Admin123!";
-            var defaultAdminPhone = configuration["DefaultAdmin:Phone"] ?? "12345678";
+            var defaultAdminPassword = configuration["DefaultAdmin:Password"] ?? "Admin1234";
+            var defaultAdminPhone = configuration["DefaultAdmin:Phone"] ?? "41234567";
 
             logger.LogInformation("[RoleSeeder] Cleaning up any existing admin users (case-insensitive)...");
 
