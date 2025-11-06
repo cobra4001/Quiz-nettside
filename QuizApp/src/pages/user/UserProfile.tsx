@@ -237,21 +237,22 @@ const UserProfile: React.FC = () => {
         Deleting your account is permanent and cannot be undone.
       </p>
 
-      {user?.unique_name?.toLowerCase() === "admin" ? (
-        <Alert variant="warning" className="mt-2">
-          You can't delete the Admin user.
-        </Alert>
-      ) : (
-        <div className="d-flex justify-content-end">
-          <Button
-            variant="outline-danger"
-            onClick={() => setShowConfirmDelete(true)}
-            disabled={isSubmitting}
-          >
-            Delete account
-          </Button>
-        </div>
-      )}
+        {user?.role?.toLowerCase() === "admin" ? (
+      <Alert variant="warning" className="mt-2">
+        You can't delete the Admin user.
+      </Alert>
+    ) : (
+      <div className="d-flex justify-content-end">
+        <Button
+          variant="outline-danger"
+          onClick={() => setShowConfirmDelete(true)}
+          disabled={isSubmitting}
+        >
+          Delete account
+        </Button>
+      </div>
+    )}
+
     </Card.Body>
   </Card>
 </Col>
