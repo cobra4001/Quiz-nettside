@@ -29,6 +29,15 @@ export const isAdmin = (user: User | null): boolean => {
 };
 
 /**
+ * Check if role is  admin
+ * @param string - The passed role, can be null
+ * @returns true if user has Admin role, false otherwise
+ */
+export const isAdminRole = (role: string | undefined): boolean => {
+  return role === 'Admin';
+};
+
+/**
  * Check if user is a regular user
  * @param user - The decoded JWT user object
  * @returns true if user has User role, false otherwise

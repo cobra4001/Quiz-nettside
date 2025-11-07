@@ -10,6 +10,7 @@ const UserProfile: React.FC = () => {
   const navigate = useNavigate();
 
   const [username, setUsername] = useState("");
+  const [role, setRole] = useState(""); // state for role
   const [email, setEmail] = useState("");
   const [phonenumber, setPhonenumber] = useState("");
   const [oldPassword, setOldPassword] = useState("");
@@ -22,30 +23,38 @@ const UserProfile: React.FC = () => {
   const [showConfirmDelete, setShowConfirmDelete] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Fetch profile data
   useEffect(() => {
     if (!user) {
-        navigate("/LoginPage", { state: { message: "Please log in to access your profile.", from: "/UserProfile" } });
-        return;
+      navigate("/LoginPage", { state: { message: "Please log in to access your profile.", from: "/UserProfile" } });
+      return;
     }
+
     let mounted = true;
     (async () => {
       try {
         const data = await fetchProfile();
         if (!mounted) return;
-        // Fixed: Match the casing from your C# API response
+
         setUsername(data.username || "");
+
+        // FIX: Set role to first role from Roles array
+        setRole(Array.isArray(data.roles) && data.roles.length > 0 ? data.roles[0] : "");
+
         setEmail(data.email || "");
         setPhonenumber(data.phonenumber || "");
       } catch (e: any) {
         if (!mounted) return;
-        setError(e.message || 'Failed to load profile');
+        setError(e.message || "Failed to load profile");
       } finally {
         if (mounted) setLoading(false);
       }
     })();
+
     return () => { mounted = false; };
   }, []);
 
+  // Update contact info
   const update = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -55,7 +64,6 @@ const UserProfile: React.FC = () => {
       setError("Email and/or phone number cannot be empty.");
       return;
     }
-
     if (!isValidEmail(email)) {
       setError("Please enter a valid email address.");
       return;
@@ -67,16 +75,16 @@ const UserProfile: React.FC = () => {
 
     setIsSubmitting(true);
     try {
-      // Fixed: Pass individual values as per AuthContext signature
-      await updateContact( { email, phonenumber } as UpdateContactDTO);
+      await updateContact({ email, phonenumber } as UpdateContactDTO);
       setSuccess("Contact information updated successfully!");
     } catch (err: any) {
       setError(err.message || "Update failed");
     } finally {
       setIsSubmitting(false);
     }
-  }
+  };
 
+  // Update password
   const updatePassword = async () => {
     setError(null);
     setSuccess(null);
@@ -104,6 +112,7 @@ const UserProfile: React.FC = () => {
     }
   };
 
+  // Confirm account deletion
   const confirmDelete = async () => {
     setError(null);
     setIsSubmitting(true);
@@ -135,6 +144,7 @@ const UserProfile: React.FC = () => {
       {success && <Alert variant="success">{success}</Alert>}
 
       <Row className="g-4">
+        {/* Account Info */}
         <Col md={6}>
           <Card>
             <Card.Header>Account</Card.Header>
@@ -144,11 +154,16 @@ const UserProfile: React.FC = () => {
                   <Form.Label className="fw-bold">Username</Form.Label>
                   <p className="form-control-plaintext">{username}</p>
                 </Form.Group>
+                <Form.Group className="mb-3">
+                  <Form.Label className="fw-bold">Role</Form.Label>
+                  <p className="form-control-plaintext">{role}</p>
+                </Form.Group>
               </Form>
             </Card.Body>
           </Card>
         </Col>
 
+        {/* Contact Info */}
         <Col md={6}>
           <Card>
             <Card.Header>Contact</Card.Header>
@@ -176,7 +191,7 @@ const UserProfile: React.FC = () => {
 
                 <div className="d-flex justify-content-end">
                   <Button variant="primary" type="submit" disabled={isSubmitting}>
-                    {isSubmitting ? 'Saving...' : 'Save Contact'}
+                    {isSubmitting ? "Saving..." : "Save Contact"}
                   </Button>
                 </div>
               </Form>
@@ -184,6 +199,7 @@ const UserProfile: React.FC = () => {
           </Card>
         </Col>
 
+        {/* Security */}
         <Col md={6}>
           <Card>
             <Card.Header>Security</Card.Header>
@@ -221,7 +237,7 @@ const UserProfile: React.FC = () => {
 
                 <div className="d-flex justify-content-end">
                   <Button variant="secondary" onClick={updatePassword} disabled={isSubmitting}>
-                    {isSubmitting ? 'Changing...' : 'Change password'}
+                    {isSubmitting ? "Changing..." : "Change password"}
                   </Button>
                 </div>
               </Form>
@@ -229,35 +245,37 @@ const UserProfile: React.FC = () => {
           </Card>
         </Col>
 
-       <Col md={6}>
-  <Card border="danger">
-    <Card.Header className="text-danger">Danger zone</Card.Header>
-    <Card.Body>
-      <p className="text-muted">
-        Deleting your account is permanent and cannot be undone.
-      </p>
+        {/* Danger Zone */}
+        <Col md={6}>
+          <Card border="danger">
+            <Card.Header className="text-danger">Danger zone</Card.Header>
+            <Card.Body>
+              <p className="text-muted">
+                Deleting your account is permanent and cannot be undone.
+              </p>
 
-      {user?.unique_name?.toLowerCase() === "admin" ? (
-        <Alert variant="warning" className="mt-2">
-          You can't delete the Admin user.
-        </Alert>
-      ) : (
-        <div className="d-flex justify-content-end">
-          <Button
-            variant="outline-danger"
-            onClick={() => setShowConfirmDelete(true)}
-            disabled={isSubmitting}
-          >
-            Delete account
-          </Button>
-        </div>
-      )}
-    </Card.Body>
-  </Card>
-</Col>
-
+              {/* Method that makes sure that role admin can't delete itself */}
+              {user?.role?.toLowerCase() === "admin" ? (
+                <Alert variant="warning" className="mt-2">
+                  You can't delete the Admin user.
+                </Alert>
+              ) : (
+                <div className="d-flex justify-content-end">
+                  <Button
+                    variant="outline-danger"
+                    onClick={() => setShowConfirmDelete(true)}
+                    disabled={isSubmitting}
+                  >
+                    Delete account
+                  </Button>
+                </div>
+              )}
+            </Card.Body>
+          </Card>
+        </Col>
       </Row>
 
+      {/* Confirm Delete Modal */}
       <Modal show={showConfirmDelete} onHide={() => setShowConfirmDelete(false)} centered>
         <Modal.Header closeButton>
           <Modal.Title>Confirm account deletion</Modal.Title>

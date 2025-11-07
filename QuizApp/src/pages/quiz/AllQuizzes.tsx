@@ -43,16 +43,16 @@ const AllQuizzes: React.FC = () => {
   // Returns a view using the QuizList component to show all available quizzes
   return (
     <QuizList
-      quizzes={quizzes}
-      loading={loading}
-      error={error}
-      successMsg={successMsg}
-      onQuizDeleted={handleQuizDeleted}
-      title="Available Quizzes"
-      emptyMessage="No quizzes yet. Create one!"
-      showAdminDelete={isAdmin(user)}
-      currentUserName={user?.unique_name}
-    />
+    quizzes={quizzes}
+    loading={loading}
+    error={error}
+    successMsg={successMsg}
+    onQuizDeleted={handleQuizDeleted}
+    title="Available Quizzes"
+    emptyMessage="No quizzes yet. Create one!"
+    showAdminDelete={true} // Lets quizlist determine admin status
+    currentUserRole={user?.role as string} // Single role
+  />
   );
 };
 

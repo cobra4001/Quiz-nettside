@@ -1,10 +1,12 @@
-// a reusable component to show a list of quizzes. with logic for Users and Admin
-
+// QuizList.tsx
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { deleteQuiz } from "./QuizService";
 import type { QuizListProps } from "../../types/quiz";
 import "./QuizList.css";
+import { isAdminRole } from "../../utils/roleUtils";
+
+// Checker to check if user is admin
 
 const QuizList: React.FC<QuizListProps> = ({
   quizzes,
@@ -17,7 +19,7 @@ const QuizList: React.FC<QuizListProps> = ({
   showUpdateButton = false,
   showDeleteButton = false,
   showAdminDelete = false,
-  currentUserName = "",
+  currentUserRole
 }) => {
   const navigate = useNavigate();
 
@@ -98,7 +100,9 @@ const QuizList: React.FC<QuizListProps> = ({
                       <h2 className="card-title fw-bolder fs-4 quiz-card-title mb-2">
                         {quiz.title}
                       </h2>
-                      <p className="card-text quiz-card-text mb-3">{quiz.description}</p>
+                      <p className="card-text quiz-card-text mb-3">
+                        {quiz.description}
+                      </p>
                     </div>
                   </div>
 
@@ -137,8 +141,8 @@ const QuizList: React.FC<QuizListProps> = ({
                       </button>
                     )}
 
-                    {/*If the user is Admin, show a delete button */}
-                    {showAdminDelete && currentUserName === "Admin" && (
+                    {/* Admin delete button */}
+                    {showAdminDelete && isAdminRole(currentUserRole) && (
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
