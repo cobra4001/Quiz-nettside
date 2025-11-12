@@ -8,6 +8,7 @@ using api.Models;
 using Microsoft.EntityFrameworkCore.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using api.Services;
+using api.DAL;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -21,6 +22,8 @@ builder.Services.AddDbContext<AuthUserDbContext>(options =>
     options.UseSqlite(builder.Configuration["ConnectionStrings:AuthUserDbContextConnection"]);
 });
 
+builder.Services.AddScoped<IAuthRepository, AuthRepository>();
+builder.Services.AddScoped<IQuizRepository, QuizRepository>();
 
 builder.Services.AddIdentity<AuthUser, IdentityRole>(options =>
 {
@@ -71,7 +74,6 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
-
 var app = builder.Build();
 
 // Apply pending EF Core migrations automatically at startup (dev convenience). In production consider manual migration deployment.
@@ -86,11 +88,11 @@ using (var scope = app.Services.CreateScope())
         db.Database.Migrate();
         logger.LogInformation("Database migrations applied successfully");
 
-        // Seed roles and create default admin user
+        /* Seed roles and create default admin user
         await RoleSeeder.SeedRoles(scope.ServiceProvider);
         await RoleSeeder.CreateDefaultAdmin(scope.ServiceProvider, builder.Configuration);
 
-        logger.LogInformation("Database seeding completed successfully");
+        logger.LogInformation("Database seeding completed successfully"); */
     }
     catch (Exception ex)
     {

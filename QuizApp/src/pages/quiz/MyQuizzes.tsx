@@ -1,8 +1,8 @@
 // Page showing the user's quizzes
 
 import React, { useEffect, useState } from 'react';
-import { fetchMyQuizzes } from './QuizService';
-import QuizList from './QuizList';
+import { fetchMyQuizzes } from '../../utils/QuizService';
+import QuizList from '../../components/QuizList';
 
 const MyQuizzes: React.FC = () => {
   const [quizzes, setQuizzes] = useState<any[]>([]);
@@ -10,7 +10,7 @@ const MyQuizzes: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
-  // Gets the users quizzes
+  // Hent brukerens quizzer
   useEffect(() => {
     let mounted = true;
     (async () => {
@@ -35,7 +35,7 @@ const MyQuizzes: React.FC = () => {
     setTimeout(() => setSuccessMsg(null), 3000);
   };
 
-  // Returns a view using the QuizList component to show all the users quizzes
+  // Returner ved QuizList
   return (
     <QuizList
       quizzes={quizzes}

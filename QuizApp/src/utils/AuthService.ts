@@ -2,7 +2,7 @@ import type { LoginDto, RegisterDto, UpdateContactDTO, ChangePasswordDTO } from 
 
 // API base URL
 const API_URL = import.meta.env.VITE_API_URL;
-
+const API_URL_BASE = import.meta.env.VITE_API_URL_BASE_PATH || "/api";
 
 // Build Authorization header from token or localStorage
 function authHeader(token?: string) {
@@ -37,7 +37,7 @@ async function handleResponse(response: Response): Promise<any> {
 
 // Log in and return JWT token
 export const login = async (credentials: LoginDto): Promise<{ token: string }> => {
-    const response = await fetch(`${API_URL}/api/Auth/login`, {
+    const response = await fetch(`${API_URL}${API_URL_BASE}/Auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(credentials),
@@ -47,7 +47,7 @@ export const login = async (credentials: LoginDto): Promise<{ token: string }> =
 
 // Register a new user
 export const register = async (userData: RegisterDto): Promise<any> => {
-    const response = await fetch(`${API_URL}/api/Auth/register`, {
+    const response = await fetch(`${API_URL}${API_URL_BASE}/Auth/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(userData),
@@ -58,7 +58,7 @@ export const register = async (userData: RegisterDto): Promise<any> => {
 
 // Update contact information
 export const updateContact = async (updateContact: UpdateContactDTO, token?: string): Promise<any> => {
-    const response = await fetch(`${API_URL}/api/Auth/update`, {
+    const response = await fetch(`${API_URL}${API_URL_BASE}/Auth/update`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json', ...authHeader(token) } as HeadersInit,
         body: JSON.stringify(updateContact),
@@ -68,7 +68,7 @@ export const updateContact = async (updateContact: UpdateContactDTO, token?: str
 
 // Change account password
 export const changePassword = async (changePassword: ChangePasswordDTO, token?: string): Promise<any> => {
-    const response = await fetch(`${API_URL}/api/Auth/change-password`, {
+    const response = await fetch(`${API_URL}${API_URL_BASE}/Auth/change-password`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json', ...authHeader(token) } as HeadersInit,
         body: JSON.stringify(changePassword)
@@ -80,7 +80,7 @@ export const changePassword = async (changePassword: ChangePasswordDTO, token?: 
 export const fetchProfile = async (token: string): Promise<any> => {
     const headers = { 'Content-Type': 'application/json', ...authHeader(token) } as HeadersInit;
 
-    const response = await fetch(`${API_URL}/api/Auth/profile`, {
+    const response = await fetch(`${API_URL}${API_URL_BASE}/Auth/profile`, {
         method: 'GET',
         headers,
     });
@@ -89,7 +89,7 @@ export const fetchProfile = async (token: string): Promise<any> => {
 
 // Permanently delete the current user's account
 export const deleteAccount = async (token: string): Promise<any> => {
-    const response = await fetch(`${API_URL}/api/Auth/delete`, {
+    const response = await fetch(`${API_URL}${API_URL_BASE}/Auth/delete`, {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json', ...authHeader(token) } as HeadersInit,
     });

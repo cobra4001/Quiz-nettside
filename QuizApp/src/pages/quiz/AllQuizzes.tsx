@@ -1,9 +1,9 @@
 // Page showing all available quizzes
 
 import React, { useEffect, useState } from 'react';
-import { fetchQuizzes } from './QuizService';
+import { fetchQuizzes } from '../../utils/QuizService';
 import { useAuth } from "../../auth/AuthContext";
-import QuizList from './QuizList';
+import QuizList from '../../components/QuizList';
 import { isAdmin } from '../../utils/roleUtils';
 
 const AllQuizzes: React.FC = () => {
@@ -13,10 +13,12 @@ const AllQuizzes: React.FC = () => {
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const { user } = useAuth() as any;
 
+  //logging for sjekk av bruker, intern testing, burde slettes
   console.log('Current user in AllQuizzes:', user);
   console.log('Is user admin?', isAdmin(user));
   console.log('User roles:', user ? (Array.isArray(user.role) ? user.role : [user.role]) : 'No user');
-  // Get all quizzes
+
+  //hent quizzer
   useEffect(() => {
     let mounted = true;
     (async () => {
@@ -40,7 +42,7 @@ const AllQuizzes: React.FC = () => {
     setTimeout(() => setSuccessMsg(null), 3000);
   };
 
-  // Returns a view using the QuizList component to show all available quizzes
+  // Returner en QuizList
   return (
     <QuizList
     quizzes={quizzes}
@@ -50,8 +52,8 @@ const AllQuizzes: React.FC = () => {
     onQuizDeleted={handleQuizDeleted}
     title="Available Quizzes"
     emptyMessage="No quizzes yet. Create one!"
-    showAdminDelete={true} // Lets quizlist determine admin status
-    currentUserRole={user?.role as string} // Single role
+    showAdminDelete={false} // Lar QuizList behandle, men default skal, i tilfelle, holde seg false.
+    currentUserRole={user?.role as string} // Vil kun ha én, sterkeste rolle
   />
   );
 };

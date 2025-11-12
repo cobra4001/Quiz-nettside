@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using api.DTOs;
+using api.DAL;
 using api.Models;
 using System.Security.Claims;
 using System.Text.Json;
@@ -13,12 +13,13 @@ namespace api.Controllers
     [Route("api/[controller]")]
     public class QuizController : ControllerBase
     {
-        private readonly AuthUserDbContext _context;
         private readonly ILogger<QuizController> _logger;
-        public QuizController(AuthUserDbContext context, ILogger<QuizController> logger)
+        private readonly IQuizRepository _quizRepository;
+
+        public QuizController(ILogger<QuizController> logger, IQuizRepository quizRepository)
         {
-            _context = context;
             _logger = logger;
+            _quizRepository = quizRepository;
         }
 
         // Helper method to resolve user ID from JWT token claims
@@ -27,11 +28,11 @@ namespace api.Controllers
             var userId = await Task.Run(() => User.FindFirstValue(ClaimTypes.NameIdentifier));
             if (userId != null)
                 return userId;
-            else{
+            else
+            {
                 _logger.LogWarning("[QuizController] Could not resolve user ID from token claims.");
                 return null;
             }
-                
         }
 
         // POST: api/Quiz/create
@@ -40,161 +41,128 @@ namespace api.Controllers
         [HttpPost("create")]
         public async Task<IActionResult> CreateQuiz([FromBody] QuizCreationDto quizDto)
         {
-
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
             var userId = await ResolveUserIdAsync();
             if (userId == null)
-            {
                 return Unauthorized(new { Message = "Kunne ikke validere bruker fra token (mangler eller ugyldig). Logg inn på nytt." });
-            }
 
-            //format validation (questions and answers)
+            // Format validation (questions and answers)
             if (quizDto.Questions == null || !quizDto.Questions.Any())
                 return BadRequest(new { Message = "Quiz må ha minst ett spørsmål." });
             if (quizDto.Questions.Any(q => q.Answers == null || !q.Answers.Any()))
                 return BadRequest(new { Message = "Hvert spørsmål må ha minst ett svar." });
 
-            // Creates the quiz entry
-            var quiz = new Quiz
+            try
             {
-                Title = quizDto.Title,
-                Description = quizDto.Description,
-                UserId = userId,
-                Questions = quizDto.Questions.Select(qDto => new Question
-                {
-                    QuestionText = qDto.QuestionText,
-                    Points = qDto.Points,
-                    Answers = qDto.Answers.Select(aDto => new Answer
-                    {
-                        AnswerText = aDto.AnswerText,
-                        IsCorrect = aDto.IsCorrect
-                    }).ToList()
-                }).ToList()
-            };
-
-            //submits to database and logs if unsuccessfull
-            _context.Quizzes.Add(quiz);
-
-            bool returnOk = await _context.SaveChangesAsync() > 0;
-            if (returnOk)
+                var quiz = await _quizRepository.CreateQuiz(quizDto, userId);
                 return Ok(new { Message = "Quiz opprettet!", QuizId = quiz.Id });
-
-            _logger.LogError("[QuizController] Failed to create quiz for user {@userId}", userId);
-            return StatusCode(500, new { Message = "Internal server error." });
-            //Old code: delete if okay with Thomas
-            /*try
-            {
-                await _context.SaveChangesAsync();
-                return Ok(new { Message = "Quiz opprettet!", QuizId = quiz.Id });
-            }
-            catch (DbUpdateException ex)
-            {
-                
-                Console.WriteLine($"[QuizController] DbUpdateException: {ex.Message}\nInner: {ex.InnerException?.Message}");
-                return StatusCode(500, new { Message = "Lagring feilet (DbUpdateException). Sannsynligvis ugyldig brukerreferanse.", Detail = ex.InnerException?.Message });
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[QuizController] Uventet feil: {ex}");
-                return StatusCode(500, new { Message = "Uventet feil ved opprettelse av quiz.", Detail = ex.Message });
-            }*/
+                _logger.LogError(ex, "[QuizController] Failed to create quiz for user {@userId}", userId);
+                return StatusCode(500, new { Message = "Internal server error." });
+            }
         }
 
         // GET: api/Quiz
         // Brings a list of all available quizzes
-            //DENNE OG NÆSTE KAN VI EVENTULTIG BYTTE UD MED EN FÆLLES METODE SOM TAGER EN OPTIONAL USERID
-            [HttpGet]
-            public async Task<IActionResult> GetQuizzes()
+        [HttpGet]
+        public async Task<IActionResult> GetQuizzes()
+        {
+            try
             {
-             // Using a LINQ projection to select only necessary data and avoid too much fetching/ too much posting.
-             var quizzes = await _context.Quizzes
-                                        .Include(q => q.Creator) // Secures that we can access Creator navigation property 
-                                        .Select(q => new
-                                        {
-                                        q.Id,
-                                        q.Title,
-                                        q.Description,
-                                        QuestionCount = q.Questions.Count,
-                                        Creator = q.Creator != null ? q.Creator.UserName! : "Unknown"
-                                        })
-                                        .ToListAsync();
+                var quizzes = await _quizRepository.GetQuizzes();
 
-            // No check nessesary if the list is empty returns 200 okay with []
-            return Ok(quizzes); 
+                var quizList = quizzes.Select(q => new
+                {
+                    q.Id,
+                    q.Title,
+                    q.Description,
+                    QuestionCount = q.Questions.Count,
+                    Creator = q.Creator != null ? q.Creator.UserName! : "Unknown"
+                }).ToList();
+
+                return Ok(quizList);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "[QuizController] Failed to fetch quizzes");
+                return StatusCode(500, new { Message = "Failed to fetch quizzes." });
+            }
         }
 
-    // GET: api/Quiz/my
-    // Get quizzes created by the logged-in user.
-    [Authorize]
-    [HttpGet("my")]
+        // GET: api/Quiz/my
+        // Get quizzes created by the logged-in user.
+        [Authorize]
+        [HttpGet("my")]
         public async Task<IActionResult> GetMyQuizzes()
         {
-        var resolvedUserId = await ResolveUserIdAsync();
-        if (resolvedUserId == null)
-        {
-        // Custom feilmelding her:
-        return Unauthorized(new { Message = "could not validate user." });
+            var resolvedUserId = await ResolveUserIdAsync();
+            if (resolvedUserId == null)
+                return Unauthorized(new { Message = "could not validate user." });
+
+            try
+            {
+                var myQuizzes = await _quizRepository.GetMyQuizzes(resolvedUserId);
+
+                var quizList = myQuizzes.Select(q => new
+                {
+                    q.Id,
+                    q.Title,
+                    q.Description,
+                    QuestionCount = q.Questions.Count,
+                    Creator = q.Creator != null ? q.Creator.UserName! : "Unknown"
+                }).ToList();
+
+                return Ok(quizList);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "[QuizController] Failed to fetch user quizzes for {@userId}", resolvedUserId);
+                return StatusCode(500, new { Message = "Failed to fetch your quizzes." });
+            }
         }
 
-            // Only get the users quizzes
-            var myQuizzes = await _context.Quizzes
-            .Where(q => q.UserId == resolvedUserId)
-            .Include(q => q.Creator)
-            .Select(q => new
-            {
-                q.Id,
-                q.Title,
-                q.Description,
-                QuestionCount = q.Questions.Count,
-                Creator = q.Creator != null ? q.Creator.UserName! : "Unknown"
-            })
-            .ToListAsync();
-     // USIKKER PÅ OM LOGGING GIVER  MENING HER???
-           /* if (!myQuizzes.Any()) 
-                _logger.LogInformation("[QuizController] User {@userId} has no created quizzes.", resolvedUserId); */
-
-        // Hvis ingen quizer funnet, returneres 200 OK med tom liste.
-        return Ok(myQuizzes);
-    }
-
         // GET: api/Quiz/{id}
-        // Gets a specific quiz using ID, without anwsers
+        // Gets a specific quiz using ID, without answers
         [HttpGet("{id}")]
         public async Task<IActionResult> GetQuiz(int id)
         {
-            // Eagerly loads questions and their answers for the quiz
-            var quiz = await _context.Quizzes
-                .Include(q => q.Questions)
-                .ThenInclude(q => q.Answers)
-                .FirstOrDefaultAsync(q => q.Id == id);
-
-            if (quiz == null)
+            try
             {
-                _logger.LogWarning("[QuizController] Quiz with ID {@quizId} not found.", id);
-                return NotFound(new { Message = "Quiz not found for the QuizID" });
-            }
+                var quiz = await _quizRepository.GetQuizById(id);
 
-            // Create an anonymous DTO to ensure that 'IsCorrect' is not exposed to the client.
-            return Ok(new
-            {
-                quiz.Id,
-                quiz.Title,
-                Questions = quiz.Questions.Select(q => new
+                if (quiz == null)
                 {
-                    q.Id,
-                    q.QuestionText,
-                    q.Points,
-                    Answers = q.Answers.Select(a => new
-                    {
-                        a.Id,
-                        a.AnswerText
-                    }).ToList()
-                }).ToList()
-            });
+                    _logger.LogWarning("[QuizController] Quiz with ID {@quizId} not found.", id);
+                    return NotFound(new { Message = "Quiz not found for the QuizID" });
+                }
 
-            //return Ok(quizDetails);
+                // Create an anonymous DTO to ensure that 'IsCorrect' is not exposed to the client.
+                return Ok(new
+                {
+                    quiz.Id,
+                    quiz.Title,
+                    Questions = quiz.Questions.Select(q => new
+                    {
+                        q.Id,
+                        q.QuestionText,
+                        q.Points,
+                        Answers = q.Answers.Select(a => new
+                        {
+                            a.Id,
+                            a.AnswerText
+                        }).ToList()
+                    }).ToList()
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "[QuizController] Failed to fetch quiz {@quizId}", id);
+                return StatusCode(500, new { Message = "Failed to fetch quiz." });
+            }
         }
 
         // GET: api/Quiz/{id}/edit
@@ -205,51 +173,47 @@ namespace api.Controllers
         {
             var userId = await ResolveUserIdAsync();
             if (userId == null)
-            {
                 return Unauthorized(new { Message = "Could not validate user" });
-            }
 
-            // Get the quiz including questions and answers
-            var quiz = await _context.Quizzes
-                .Include(q => q.Questions)
-                .ThenInclude(q => q.Answers)
-                .FirstOrDefaultAsync(q => q.Id == id);
+            try
+            {
+                var quiz = await _quizRepository.GetQuizForEdit(id, userId);
 
-            if (quiz == null)
-            {
-                _logger.LogWarning("[QuizController] Quiz with ID {@quizId} not found for editing.", id);   
-                return NotFound(new { Message = "Quiz not found." });
-            }
-            if (quiz.UserId != userId)
-            {
-                _logger.LogWarning("[QuizController] User {@userId} attempted to edit quiz {@quizId} without permission.", userId, id);
-                return StatusCode(403, new { Message = "You do not have permission to edit this quiz." });
-            }
-                
-
-            // Return the quiz directly with questions and answers (including IsCorrect)
-            return Ok(new
-            {
-                quiz.Id,
-                quiz.Title,
-                quiz.Description,
-                Questions = quiz.Questions.Select(q => new
+                if (quiz == null)
                 {
-                    q.Id,
-                    q.QuestionText,
-                    q.Points,
-                    Answers = q.Answers.Select(a => new
+                    _logger.LogWarning("[QuizController] Quiz with ID {@quizId} not found or user {@userId} lacks permission.", id, userId);
+                    return NotFound(new { Message = "Quiz not found or you don't have permission to edit it." });
+                }
+
+                // Return the quiz directly with questions and answers (including IsCorrect)
+                return Ok(new
+                {
+                    quiz.Id,
+                    quiz.Title,
+                    quiz.Description,
+                    Questions = quiz.Questions.Select(q => new
                     {
-                        a.Id,
-                        a.AnswerText,
-                        a.IsCorrect
+                        q.Id,
+                        q.QuestionText,
+                        q.Points,
+                        Answers = q.Answers.Select(a => new
+                        {
+                            a.Id,
+                            a.AnswerText,
+                            a.IsCorrect
+                        }).ToList()
                     }).ToList()
-                }).ToList()
-            });
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "[QuizController] Failed to fetch quiz {@quizId} for editing", id);
+                return StatusCode(500, new { Message = "Failed to fetch quiz for editing." });
+            }
         }
 
         // PUT: api/Quiz/{id}
-        // Oppdates an existing quiz that the user have created
+        // Updates an existing quiz that the user has created
         [Authorize]
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateQuiz(int id, [FromBody] QuizCreationDto quizDto)
@@ -259,179 +223,163 @@ namespace api.Controllers
 
             var userId = await ResolveUserIdAsync();
             if (userId == null)
-            {
                 return Unauthorized(new { Message = "could not validate user" });
-            }
 
             // Validate the quiz data
             if (quizDto.Questions == null || !quizDto.Questions.Any())
             {
-                _logger.LogWarning("[QuizController] UpdateQuiz failed");
+                _logger.LogWarning("[QuizController] UpdateQuiz failed - no questions");
                 return BadRequest(new { Message = "Quiz må ha minst ett spørsmål." });
             }
 
             if (quizDto.Questions.Any(q => q.Answers == null || !q.Answers.Any()))
             {
-                _logger.LogWarning("[QuizController] UpdateQuiz failed");
+                _logger.LogWarning("[QuizController] UpdateQuiz failed - questions without answers");
                 return BadRequest(new { Message = "Hvert spørsmål må ha minst ett svar." });
             }
 
-
-            // Get the existing quiz
-            var existingQuiz = await _context.Quizzes
-                .Include(q => q.Questions)
-                .ThenInclude(q => q.Answers)
-                .FirstOrDefaultAsync(q => q.Id == id);
-
-            if (existingQuiz == null)
+            try
             {
-                _logger.LogWarning("[QuizController] Quiz with ID {@quizId} not found", id);
-                return NotFound(new { Message = "Quiz not found." });
-            }
-            // Check if the user owns the quiz
-            if (existingQuiz.UserId != userId)
-            {
-                _logger.LogWarning("[QuizController] User {@userId} attempted to update quiz {@quizId} without permission.", userId, id);
-                return StatusCode(403, new { Message = "You do not have permission to update this quiz." });
-            }
+                var updatedQuiz = await _quizRepository.UpdateQuiz(id, quizDto, userId);
 
-
-            // Update quiz properties
-            existingQuiz.Title = quizDto.Title;
-            existingQuiz.Description = quizDto.Description;
-
-            // Remove all existing questions and answers
-            _context.Questions.RemoveRange(existingQuiz.Questions);
-
-            // Add new questions and answers
-            existingQuiz.Questions = quizDto.Questions.Select(qDto => new Question
-            {
-                QuestionText = qDto.QuestionText,
-                Points = qDto.Points,
-                Answers = qDto.Answers.Select(aDto => new Answer
+                if (updatedQuiz == null)
                 {
-                    AnswerText = aDto.AnswerText,
-                    IsCorrect = aDto.IsCorrect
-                }).ToList()
-            }).ToList();
+                    _logger.LogWarning("[QuizController] Quiz with ID {@quizId} not found or user {@userId} lacks permission.", id, userId);
+                    return NotFound(new { Message = "Quiz not found or you don't have permission to update it." });
+                }
 
-            if (await _context.SaveChangesAsync() > 0)
-                return Ok(new { Message = "Quiz updated!", QuizId = existingQuiz.Id });
-
-            _logger.LogError("[QuizController] Failed to update quiz {@quizId} for user {@userId}", id, userId);
-            return StatusCode(500, new { Message = "Failed to update quiz." });
+                return Ok(new { Message = "Quiz updated!", QuizId = updatedQuiz.Id });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "[QuizController] Failed to update quiz {@quizId} for user {@userId}", id, userId);
+                return StatusCode(500, new { Message = "Failed to update quiz." });
+            }
         }
 
-        //Method for deleting a quiz by id
-        // EVENTUELT TRY CATCH BLOCK HER?
+        // DELETE: api/Quiz/{id}
+        // Method for deleting a quiz by id
         [Authorize]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteQuiz(int id)
         {
-            // Find the quiz including its questions and answers (for cascade delete) Then remove it, and return 204 
-            var quiz = await _context.Quizzes
-            .Include(q => q.Questions)
-            .ThenInclude(q => q.Answers)
-            .FirstOrDefaultAsync(q => q.Id == id);
-
-            if (quiz != null)
+            try
             {
-                _context.Quizzes.Remove(quiz);
-                await _context.SaveChangesAsync();
+                var deleted = await _quizRepository.DeleteQuiz(id);
+
+                if (!deleted)
+                {
+                    _logger.LogError("[QuizController] Quiz with ID {@quizId} not found for deletion", id);
+                    return StatusCode(500, new { Message = "Unexpected error occurred while deleting quiz." });
+                }
+
                 return NoContent();
             }
-            // If quiz not found, log and return 500
-            _logger.LogError("[QuizController] Unexpected error occurred while deleting quiz {@quizId}", id);
-            return StatusCode(500, new { Message = "Unexpected error occurred while deleting quiz."});
-        }   
-    
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "[QuizController] Failed to delete quiz {@quizId}", id);
+                return StatusCode(500, new { Message = "Failed to delete quiz." });
+            }
+        }
+
+        // POST: api/Quiz/submit
+        // sends a quiz submission and calculates the score.
         // POST: api/Quiz/submit
         // sends a quiz submission and calculates the score.
         [HttpPost("submit")]
         public async Task<IActionResult> SubmitQuiz([FromBody] QuizSubmissionDto submissionDto)
         {
-            // Eagerly loads the entire quiz structure (questions and answers)
-            var quiz = await _context.Quizzes
-                .Include(q => q.Questions)
-                .ThenInclude(q => q.Answers)
-                .FirstOrDefaultAsync(q => q.Id == submissionDto.QuizId);
-
-            if (quiz == null)
+            try
             {
-                _logger.LogWarning("[QuizController] Quiz with ID {@quizId} not found for submission.", submissionDto.QuizId);
-                return NotFound("Quiz not found.");
-            }
+                var quiz = await _quizRepository.GetQuizForSubmission(submissionDto.QuizId);
 
-            var totalScore = 0;
-            var correctAnswers = 0;
-            var questionCount = quiz.Questions.Count;
-
-            foreach (var question in quiz.Questions)
-            {
-                if (submissionDto.SelectedAnswers.TryGetValue(question.Id, out int selectedAnswerId))
+                if (quiz == null)
                 {
-                    // Finds the correct anwser
-                    var correctAnswer = question.Answers.FirstOrDefault(a => a.IsCorrect);
-                    
-                    if (correctAnswer != null && correctAnswer.Id == selectedAnswerId)
+                    _logger.LogWarning("[QuizController] Quiz with ID {@quizId} not found for submission.", submissionDto.QuizId);
+                    return NotFound("Quiz not found.");
+                }
+
+                var totalScore = 0;
+                var correctAnswers = 0;
+                var questionCount = quiz.Questions.Count;
+
+                foreach (var question in quiz.Questions)
+                {
+                    if (submissionDto.SelectedAnswers.TryGetValue(question.Id, out int selectedAnswerId))
                     {
-                        totalScore += question.Points;
-                        correctAnswers++;
+                        // Finds the correct answer
+                        var correctAnswer = question.Answers.FirstOrDefault(a => a.IsCorrect);
+
+                        if (correctAnswer != null && correctAnswer.Id == selectedAnswerId)
+                        {
+                            totalScore += question.Points;
+                            correctAnswers++;
+                        }
                     }
                 }
-            }
 
-            // Get user ID from token
-            var userId = await ResolveUserIdAsync();
+                // Get user ID from token
+                var userId = await ResolveUserIdAsync();
 
-            // Save submission to database if user is authenticated
-            if (!string.IsNullOrWhiteSpace(userId))
-            {
-                try
+                // Save submission to database if user is authenticated
+                if (!string.IsNullOrWhiteSpace(userId))
                 {
-                    var submission = new QuizSubmission
+                    try
                     {
-                        UserId = userId,
-                        QuizId = quiz.Id,
-                        Score = totalScore,
-                        MaxScore = quiz.Questions.Sum(q => q.Points),
-                        QuestionsSnapshot = System.Text.Json.JsonSerializer.Serialize(
-                            quiz.Questions.Select(q => new {
-                                q.Id,
-                                q.QuestionText,
-                                q.Points,
-                                Answers = q.Answers.Select(a => new {
-                                    a.Id,
-                                    a.AnswerText,
-                                    a.IsCorrect
-                                }).ToList()
-                            }).ToList(),
-                            new JsonSerializerOptions { 
-                                ReferenceHandler = ReferenceHandler.IgnoreCycles 
-                            }),
-                        AnswersSnapshot = System.Text.Json.JsonSerializer.Serialize(
-                            submissionDto.SelectedAnswers,
-                            new JsonSerializerOptions { 
-                                ReferenceHandler = ReferenceHandler.IgnoreCycles 
-                            }
-                        ),
-                        SubmittedAt = DateTime.UtcNow
-                    };
-                    _context.QuizSubmissions.Add(submission);
-                    await _context.SaveChangesAsync();
+                        var submission = new QuizSubmission
+                        {
+                            UserId = userId,
+                            QuizId = quiz.Id,
+                            Score = totalScore,
+                            MaxScore = quiz.Questions.Sum(q => q.Points),
+                            QuestionsSnapshot = JsonSerializer.Serialize(
+                                quiz.Questions.Select(q => new
+                                {
+                                    q.Id,
+                                    q.QuestionText,
+                                    q.Points,
+                                    Answers = q.Answers.Select(a => new
+                                    {
+                                        a.Id,
+                                        a.AnswerText,
+                                        a.IsCorrect
+                                    }).ToList()
+                                }).ToList(),
+                                new JsonSerializerOptions
+                                {
+                                    ReferenceHandler = ReferenceHandler.IgnoreCycles
+                                }),
+                            AnswersSnapshot = JsonSerializer.Serialize(
+                                submissionDto.SelectedAnswers,
+                                new JsonSerializerOptions
+                                {
+                                    ReferenceHandler = ReferenceHandler.IgnoreCycles
+                                }
+                            ),
+                            SubmittedAt = DateTime.UtcNow
+                        };
+
+                        await _quizRepository.SaveQuizSubmission(submission);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "[QuizController] Failed to save quiz submission for user {@userId} on quiz {@quizId}", userId, quiz.Id);
+                        // Proceed without failing the submission response
+                    }
                 }
-                catch (Exception ex)
+
+                return Ok(new
                 {
-                    _logger.LogError(ex, "[QuizController] Failed to save quiz submission for user {@userId} on quiz {@quizId}", userId, quiz.Id);
-                    // Proceed without failing the submission response
-                }
+                    Score = totalScore,
+                    CorrectAnswers = correctAnswers,
+                    TotalQuestions = questionCount
+                });
             }
-            return Ok(new
+            catch (Exception ex)
             {
-                Score = totalScore,
-                CorrectAnswers = correctAnswers,
-                TotalQuestions = questionCount
-            });
+                _logger.LogError(ex, "[QuizController] Failed to submit quiz");
+                return StatusCode(500, new { Message = "Failed to submit quiz." });
+            }
         }
 
         // GET: api/Quiz/myscores
@@ -442,30 +390,26 @@ namespace api.Controllers
         {
             var resolvedUserId = await ResolveUserIdAsync();
             if (resolvedUserId == null)
-            {
                 return Unauthorized(new { Message = "could not validate user." });
-            }
 
             try
             {
-                var submissions = await _context.QuizSubmissions
-                    .Where(s => s.UserId == resolvedUserId)
-                    .Include(s => s.Quiz)
-                    .OrderByDescending(s => s.SubmittedAt)
-                    .ToListAsync();
+                var submissions = await _quizRepository.GetMySubmissions(resolvedUserId);
 
-                var myScores = submissions.Select(s => {
+                var myScores = submissions.Select(s =>
+                {
                     // Parse the snapshots
-                    var questionsSnapshot = string.IsNullOrEmpty(s.QuestionsSnapshot) 
-                        ? new List<QuestionSnapshotDTO>() 
+                    var questionsSnapshot = string.IsNullOrEmpty(s.QuestionsSnapshot)
+                        ? new List<QuestionSnapshotDTO>()
                         : JsonSerializer.Deserialize<List<QuestionSnapshotDTO>>(s.QuestionsSnapshot) ?? new List<QuestionSnapshotDTO>();
-                    
-                    var answersSnapshot = string.IsNullOrEmpty(s.AnswersSnapshot) 
-                        ? new Dictionary<int, int>() 
+
+                    var answersSnapshot = string.IsNullOrEmpty(s.AnswersSnapshot)
+                        ? new Dictionary<int, int>()
                         : JsonSerializer.Deserialize<Dictionary<int, int>>(s.AnswersSnapshot) ?? new Dictionary<int, int>();
 
                     // Build question details
-                    var questionDetails = questionsSnapshot.Select(q => {
+                    var questionDetails = questionsSnapshot.Select(q =>
+                    {
                         // Correct answer text from snapshot answers
                         var correctAnswerText = q.Answers.FirstOrDefault(a => a.IsCorrect)?.AnswerText ?? "Unknown";
 
@@ -486,7 +430,8 @@ namespace api.Controllers
                             userAnswerText = "Not answered";
                         }
 
-                        return new {
+                        return new
+                        {
                             QuestionText = q.QuestionText,
                             Points = q.Points,
                             AllAnswers = q.Answers.Select(a => a.AnswerText).ToList(),
@@ -496,7 +441,8 @@ namespace api.Controllers
                         };
                     }).ToList();
 
-                    return new {
+                    return new
+                    {
                         QuizTitle = s.Quiz != null ? s.Quiz.Title : "Unknown Quiz",
                         s.Score,
                         s.MaxScore,

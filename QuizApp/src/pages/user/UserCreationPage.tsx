@@ -1,8 +1,13 @@
 import React, { useState } from "react";
-import { Form, Button, Card, Alert, Container } from "react-bootstrap";
 import { useAuth } from "../../auth/AuthContext";
 import type { RegisterDto } from "../../types/auth";
 import { isValidEmail, isValidPhone } from "../../shared/Regex";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AlertCircle, CheckCircle2 } from "lucide-react";
 
 const UserCreationPage: React.FC = () => {
   const { register } = useAuth();
@@ -33,14 +38,14 @@ const UserCreationPage: React.FC = () => {
       return;
     }
     if (!isValidEmail(email)) {
-    setError("Please enter a valid email address.");
-    return;
+      setError("Please enter a valid email address.");
+      return;
     }
      
-      if (!isValidPhone(phonenumber)) {
+    if (!isValidPhone(phonenumber)) {
       setError("Please enter a valid Norwegian phone number 4******* or 9*******.");
       return;
-      }
+    }
     
     if (password.length < 8) {
       setError("Please create a password with at least 8 characters.");
@@ -52,19 +57,17 @@ const UserCreationPage: React.FC = () => {
     }
 
     try {
-     await register({
-      username,
-      email,
-      phonenumber,
-      password,
-      confirmPassword
-    } as RegisterDto);
-
-
-   } catch (err: any) {
-  setError(err.message || "User creation failed.");
-  return;
-}
+      await register({
+        username,
+        email,
+        phonenumber,
+        password,
+        confirmPassword
+      } as RegisterDto);
+    } catch (err: any) {
+      setError(err.message || "User creation failed.");
+      return;
+    }
 
     setSuccess("User created successfully!");
     setUsername("");
@@ -75,16 +78,33 @@ const UserCreationPage: React.FC = () => {
   };
 
   return (
-    <Container className="d-flex align-items-center justify-content-center min-vh-100">
-      <Card style={{ minWidth: "350px" }} className="shadow">
-        <Card.Body>
-          <h2 className="mb-4 text-center">Create User</h2>
-          {error && <Alert variant="danger">{error}</Alert>}
-          {success && <Alert variant="success">{success}</Alert>}
-          <Form onSubmit={handleSubmit}>
-            <Form.Group className="mb-3" controlId="formUsername">
-              <Form.Label>Username</Form.Label>
-              <Form.Control
+    <div className="flex items-center justify-center min-h-screen p-4">
+      <Card className="w-full max-w-md shadow-lg">
+        <CardHeader>
+          <CardTitle className="text-xl text-center">Create your Account</CardTitle>
+          <CardDescription className="text-md text-center text-muted-foreground">
+            Create your account to track scores and create quizzes!
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {error && (
+            <Alert variant="destructive" className="mb-4">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
+          {success && (
+            <Alert className="mb-4 border-green-500 bg-green-50 text-green-900 dark:bg-green-950 dark:text-green-100">
+              <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-green-400" />
+              <AlertDescription>{success}</AlertDescription>
+            </Alert>
+          )}
+          
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="username" className="mb-2">Username</Label>
+              <Input
+                id="username"
                 type="text"
                 placeholder="Enter username"
                 minLength={3}
@@ -93,35 +113,37 @@ const UserCreationPage: React.FC = () => {
                 onChange={e => setUsername(e.target.value)}
                 autoComplete="username"
               />
-            </Form.Group>
+            </div>
 
-            <Form.Group className="mb-3" controlId="formEmail">
-              <Form.Label>Email</Form.Label>
-              <Form.Control
+            <div className="space-y-2">
+              <Label htmlFor="email" className="mb-2">Email</Label>
+              <Input
+                id="email"
                 type="email"
-                placeholder="Enter Email address"
+                placeholder="Enter email address"
                 value={email}
                 onChange={e => setEmail(e.target.value)}
                 autoComplete="email"
               />
-            </Form.Group>
+            </div>
 
-            <Form.Group className="mb-3" controlId="formTelephone">
-              <Form.Label>Phone number</Form.Label>
-              <Form.Control
+            <div className="space-y-2">
+              <Label htmlFor="phonenumber" className="mb-2">Phone number</Label>
+              <Input
+                id="phonenumber"
                 type="tel"
-                placeholder="Enter Phone number"
+                placeholder="Enter phone number"
                 maxLength={8}
                 value={phonenumber}
                 onChange={e => setPhonenumber(e.target.value)}
                 autoComplete="tel"
               />
-           
-            </Form.Group>
+            </div>
 
-            <Form.Group className="mb-3" controlId="formPassword">
-              <Form.Label>Password</Form.Label>
-              <Form.Control
+            <div className="space-y-2">
+              <Label htmlFor="password" className="mb-2">Password</Label>
+              <Input
+                id="password"
                 type="password"
                 placeholder="Enter password"
                 minLength={8}
@@ -129,26 +151,27 @@ const UserCreationPage: React.FC = () => {
                 onChange={e => setPassword(e.target.value)}
                 autoComplete="new-password"
               />
-            </Form.Group>
+            </div>
 
-            <Form.Group className="mb-4" controlId="formConfirmPassword">
-              <Form.Label>Confirm Password</Form.Label>
-              <Form.Control
+            <div className="space-y-2">
+              <Label htmlFor="confirmPassword" className="mb-2">Confirm Password</Label>
+              <Input
+                id="confirmPassword"
                 type="password"
                 placeholder="Confirm password"
                 value={confirmPassword}
                 onChange={e => setConfirmPassword(e.target.value)}
                 autoComplete="new-password"
               />
-            </Form.Group>
+            </div>
 
-            <Button variant="success" type="submit" className="w-100">
+            <Button type="submit" className="w-full bg-primary hover:bg-primary/90 cursor-pointer">
               Create Account
             </Button>
-          </Form>
-        </Card.Body>
+          </form>
+        </CardContent>
       </Card>
-    </Container>
+    </div>
   );
 };
 

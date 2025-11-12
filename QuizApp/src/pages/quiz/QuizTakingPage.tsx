@@ -1,18 +1,18 @@
 import React, { useState, useEffect } from "react";
 import type { IQuiz, IQuestion, QuizTakerProps } from '../../types/quiz';
-import { fetchQuizById, submitQuiz } from './QuizService';
-import "bootstrap/dist/css/bootstrap.min.css";
-import { Card, Button, ProgressBar, Alert } from 'react-bootstrap';
+import { fetchQuizById, submitQuiz } from '../../utils/QuizService';
 import { useParams, useNavigate } from 'react-router-dom';
-import Spinner from 'react-bootstrap/Spinner';
-import '../../App.css';
-import './QuizList.css';
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Progress } from "@/components/ui/progress";
+import { Loader2, AlertCircle, CheckCircle2, Trophy, RotateCcw, ArrowLeft, ArrowRight } from "lucide-react";
 
 /**
  * The QuizTaker component displays the questions for a selected quiz and handles the game logic.
  */
 const QuizTaker: React.FC<QuizTakerProps> = () => {
-   const { quizId } = useParams<{ quizId: string }>();
+    const { quizId } = useParams<{ quizId: string }>();
     const navigate = useNavigate();
 
     const [currentQuiz, setCurrentQuiz] = useState<IQuiz | undefined>(undefined);
@@ -33,7 +33,7 @@ const QuizTaker: React.FC<QuizTakerProps> = () => {
             if (Number.isNaN(id)) {
                 setLoading(false);
                 return;
-            };
+            }
             try {
                 const data = await fetchQuizById(id);
                 if (!data) {
@@ -58,8 +58,7 @@ const QuizTaker: React.FC<QuizTakerProps> = () => {
                 setCurrentQuiz(mapped);
             } catch (err) {
                 console.error('Failed to load quiz', err);
-            }
-            finally {
+            } finally {
                 setLoading(false);
             }
         };
@@ -68,9 +67,9 @@ const QuizTaker: React.FC<QuizTakerProps> = () => {
 
     if (loading) {
         return (
-            <div className="text-center mt-5">
-                <Spinner animation="border" role="status" />
-                <div>Loading quiz...</div>
+            <div className="flex flex-col items-center justify-center min-h-screen gap-3">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                <p className="text-muted-foreground">Loading quiz...</p>
             </div>
         );
     }
@@ -78,17 +77,27 @@ const QuizTaker: React.FC<QuizTakerProps> = () => {
     // Handles error if quiz not found
     if (!currentQuiz) {
         return (
-            <Alert variant="danger" className="mt-5 text-center">
-                <Alert.Heading>Oops! Quiz ikke funnet.</Alert.Heading>
-                <p>Kunne ikke laste quiz med ID: {quizId}.</p>
-                <Button variant="danger" onClick={() => navigate('/QuizList')}>Tilbake til listen</Button>
-            </Alert>
+            <div className="container mx-auto px-4 py-8 mt-20">
+                <Alert variant="destructive" className="max-w-md mx-auto">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertTitle>Oops! Quiz not found</AlertTitle>
+                    <AlertDescription>
+                        Could not load quiz with ID: {quizId}
+                    </AlertDescription>
+                    <Button 
+                        variant="destructive" 
+                        className="mt-4"
+                        onClick={() => navigate('/QuizList')}
+                    >
+                        Back to Quiz List
+                    </Button>
+                </Alert>
+            </div>
         );
     }
 
     const totalQuestions = currentQuiz.questions.length;
     const currentQuestion: IQuestion = currentQuiz.questions[currentQuestionIndex];
-
 
     const handleAnswerSelect = (optionId: number) => {
         setUserAnswers({
@@ -149,8 +158,8 @@ const QuizTaker: React.FC<QuizTakerProps> = () => {
                 setShowResults(true);
             } catch (err: any) {
                 console.error('Submit failed', err);
-                setSubmitError(err.message || 'Kunne ikke sende inn quiz.');
-                setShowResults(true); 
+                setSubmitError(err.message || 'Could not submit quiz.');
+                setShowResults(true);
             } finally {
                 setIsSubmitting(false);
             }
@@ -171,43 +180,70 @@ const QuizTaker: React.FC<QuizTakerProps> = () => {
 
     const renderQuestion = () => (
         <>
-            <ProgressBar 
-                now={progress} 
-  //              label={`${currentQuestionIndex + 1} av ${totalQuestions}`} 
-                className="mb-4"
-                variant="info"
-            />
-            <Card.Title className="h5 mb-4">{currentQuestion.questionText}</Card.Title>
-            
-            <div className="d-grid gap-3">
+            <div className="mb-6">
+                <Progress value={progress} className="h-2" />
+            </div>
+
+            <CardTitle className="text-2xl mb-6 text-center">
+                {currentQuestion.questionText}
+            </CardTitle>
+
+            <div className="grid gap-3 mb-6">
                 {currentQuestion.answerOptions.map(option => (
                     <Button
                         key={option.id}
-                        variant={userAnswers[currentQuestion.id] === option.id ? 'info' : 'outline-dark'}
+                        variant={userAnswers[currentQuestion.id] === option.id ? "default" : "outline"}
                         size="lg"
                         onClick={() => handleAnswerSelect(option.id)}
-                        className={`text-start quiz-answer-button ${userAnswers[currentQuestion.id] === option.id ? 'selected' : ''}`}
+                        className={`justify-start text-left h-auto py-4 px-6 ${
+                            userAnswers[currentQuestion.id] === option.id
+                                ? "bg-primary/80 border-2 border-foreground"
+                                : "bg-muted! hover:bg-muted/50! cursor-pointer"
+                        }`}
                     >
                         {option.text}
                     </Button>
                 ))}
             </div>
 
-            <div className="d-flex justify-content-between mt-4">
-                <Button 
-                    variant="secondary" 
-                    onClick={handlePrevious} 
+            <div className="flex justify-between items-center mt-6">
+                <Button
+                    variant="secondary"
+                    onClick={handlePrevious}
                     disabled={currentQuestionIndex === 0}
+                    className="gap-2"
                 >
+                    <ArrowLeft className="h-4 w-4" />
                     Previous
                 </Button>
-                <p>Question <br></br>{currentQuestionIndex + 1} of {totalQuestions}</p>
-                <Button 
-                    variant="success" 
+
+                <div className="text-center">
+                    <p className="text-sm text-muted-foreground">Question</p>
+                    <p className="font-semibold">
+                        {currentQuestionIndex + 1} of {totalQuestions}
+                    </p>
+                </div>
+
+                <Button
                     onClick={handleNext}
                     disabled={userAnswers[currentQuestion.id] === undefined || isSubmitting}
+                    className="gap-2 bg-primary hover:bg-primary/90"
                 >
-                    {currentQuestionIndex === totalQuestions - 1 ? (isSubmitting ? 'Sender...' : 'Submit Quiz') : 'Next question'}
+                    {currentQuestionIndex === totalQuestions - 1 ? (
+                        isSubmitting ? (
+                            <>
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                                Submitting...
+                            </>
+                        ) : (
+                            'Submit Quiz'
+                        )
+                    ) : (
+                        <>
+                            Next
+                            <ArrowRight className="h-4 w-4" />
+                        </>
+                    )}
                 </Button>
             </div>
         </>
@@ -215,64 +251,104 @@ const QuizTaker: React.FC<QuizTakerProps> = () => {
 
     const renderResults = () => {
         if (isSubmitting) {
-            return <div className="text-center p-4"><h4>Sending in results</h4></div>;
+            return (
+                <div className="text-center p-8">
+                    <Loader2 className="h-12 w-12 animate-spin text-primary mx-auto mb-4" />
+                    <h4 className="text-xl font-semibold">Submitting your answers...</h4>
+                </div>
+            );
         }
+        
         if (submitError) {
             return (
-                <Alert variant="danger" className="text-center">
-                    <p>{submitError}</p>
-                    <Button variant="secondary" onClick={() => navigate('/QuizList')}>Back</Button>
+                <Alert variant="destructive" className="text-center">
+                    <AlertCircle className="h-5 w-5 mx-auto mb-2" />
+                    <AlertDescription className="text-lg mb-4">{submitError}</AlertDescription>
+                    <Button variant="secondary" onClick={() => navigate('/QuizList')}>
+                        Back to Quiz List
+                    </Button>
                 </Alert>
             );
         }
+        
         if (!result) {
-            return <div className="text-center p-4"><h4>Receiving results...</h4></div>;
+            return (
+                <div className="text-center p-8">
+                    <Loader2 className="h-12 w-12 animate-spin text-primary mx-auto mb-4" />
+                    <h4 className="text-xl font-semibold">Loading results...</h4>
+                </div>
+            );
         }
+
         const totalPoints = calculateTotalPoints();
         const finalScore = result.score;
         const scorePercentage = totalPoints > 0 ? (finalScore / totalPoints) * 100 : 0;
 
         return (
-            <div className="text-center p-4">
-                <h2 className="display-4 quiz-completed-title mb-4">Quiz Completed!</h2>
-                <Alert variant={scorePercentage >= 50 ? 'success' : 'warning'}>
-                    <p className="lead mb-1">your score:</p>
-                    <h3 className="fw-bold">{finalScore} of {totalPoints} points</h3>
-                    <p className="h5">({scorePercentage.toFixed(1)}%)</p>
+            <div className="text-center p-6">
+                <Trophy className="h-16 w-16 text-primary mx-auto mb-4" />
+                <h2 className="text-4xl font-bold mb-6">Quiz Completed!</h2>
+                
+                <Alert
+                    className={`mb-6 ${
+                        scorePercentage >= 70
+                            ? "border-green-500 bg-green-50 text-green-900 dark:bg-green-950 dark:text-green-100"
+                            : scorePercentage >= 50
+                            ? "border-yellow-500 bg-yellow-50 text-yellow-900 dark:bg-yellow-950 dark:text-yellow-100"
+                            : "border-red-500 bg-red-50 text-red-900 dark:bg-red-950 dark:text-red-100"
+                    }`}
+                >
+                    {scorePercentage >= 70 ? (
+                        <CheckCircle2 className="h-5 w-5 mx-auto mb-2" />
+                    ) : (
+                        <AlertCircle className="h-5 w-5 mx-auto mb-2" />
+                    )}
+                    <AlertTitle className="text-lg mb-2">Your Score</AlertTitle>
+                    <AlertDescription>
+                        <h3 className="text-3xl font-bold mb-1">
+                            {finalScore} of {totalPoints} points
+                        </h3>
+                        <p className="text-xl">({scorePercentage.toFixed(1)}%)</p>
+                    </AlertDescription>
                 </Alert>
-                <Button 
-                    variant="success" 
-                    className="mt-3 me-2"
-                    onClick={() => {
-                        setCurrentQuestionIndex(0);
-                        setUserAnswers({});
-                        setShowResults(false);
-                        setResult(null);
-                        setSubmitError(null);
-                    }}
-                >
-                    Take the Quiz again
-                </Button>
-                <Button 
-                    variant="secondary" 
-                    className="mt-3"
-                    onClick={() => navigate('/QuizList')} // Goes back to the list
-                >
-                     Back to Quiz-list
-                </Button>
+
+                <div className="flex flex-wrap gap-3 justify-center">
+                    <Button
+                        onClick={() => {
+                            setCurrentQuestionIndex(0);
+                            setUserAnswers({});
+                            setShowResults(false);
+                            setResult(null);
+                            setSubmitError(null);
+                        }}
+                        className="gap-2 bg-primary hover:bg-primary/90"
+                    >
+                        <RotateCcw className="h-4 w-4" />
+                        Take Quiz Again
+                    </Button>
+                    
+                    <Button
+                        variant="secondary"
+                        onClick={() => navigate('/QuizList')}
+                        className="gap-2"
+                    >
+                        <ArrowLeft className="h-4 w-4" />
+                        Back to Quiz List
+                    </Button>
+                </div>
             </div>
         );
     };
 
     return (
-        <div className="py-5">
-            <Card className="shadow-lg mx-auto TakeQuiz">
-                <Card.Header className="bg-success text-white text-center">
-                    <h2 className="mb-0">{currentQuiz.title}</h2>
-                </Card.Header>
-                <Card.Body>
+        <div className="container mx-auto px-4 py-8 mt-20">
+            <Card className="max-w-3xl mx-auto shadow-lg">
+                <CardHeader className="bg-primary text-primary-foreground text-center">
+                    <CardTitle className="text-2xl">{currentQuiz.title}</CardTitle>
+                </CardHeader>
+                <CardContent className="p-6">
                     {showResults ? renderResults() : renderQuestion()}
-                </Card.Body>
+                </CardContent>
             </Card>
         </div>
     );

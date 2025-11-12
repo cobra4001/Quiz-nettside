@@ -1,5 +1,6 @@
 interface ImportMetaEnv {
     readonly VITE_API_URL: string
+    readonly VITE_API_URL_BASE_PATH: string
 }
 
 interface ImportMeta {
@@ -7,3 +8,8 @@ interface ImportMeta {
 }
 
 declare module '*.css';
+
+declare module '*.svg' {
+  const value: string;
+  export default value;
+}

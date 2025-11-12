@@ -1,266 +1,302 @@
 import React, { useState, useEffect } from "react";
-import { Navbar, Nav, NavDropdown, Container, Offcanvas } from "react-bootstrap";
 import { useAuth } from "../auth/AuthContext";
 import { useNavigate } from "react-router-dom";
-import './NavBar.css'
 import { isAdmin } from "../utils/roleUtils";
+import { Menu, ChevronDown } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
+import { ThemeToggle } from "@/components/ThemeToggle";
+import logo from "@/img/file.svg";
 
 const NavBar: React.FC = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const [showMobileMenu, setShowMobileMenu] = useState(false);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isMobileDropdownOpen, setIsMobileDropdownOpen] = useState(false);
 
-  const handleNavigate = (path: string, state?: any) => {
-  setShowOffcanvas(false);
-  navigate(path, state);
+  const handleNavigate = (path: string, options?: { state?: any; replace?: boolean }) => {
+    setShowMobileMenu(false);
+    navigate(path, options);
   };
-
 
   const handleCreateClick = () => {
     if (!user) {
-      // User is not logged in, go to login page
-      handleNavigate("/LoginPage", { state: { from: "/quizcreate", message: "You have to login first" } });
+      handleNavigate("/LoginPage", {
+        state: { from: "/quizcreate", message: "You have to login first" },
+      });
     } else {
-      // user is logged in, go to Quiz create
       handleNavigate("/quizcreate");
     }
   };
 
-  const [showOffcanvas, setShowOffcanvas] = useState(false);
-
-  const [isDark, setIsDark] = useState<boolean>(() => {
-    const savedTheme = localStorage.getItem('theme');
-    return savedTheme === 'dark' || document.body.getAttribute("data-bs-theme") === "dark";
-  });
-
-  useEffect(() => {
-    // keep body theme in sync with state and save to localStorage
-    document.body.setAttribute("data-bs-theme", isDark ? "dark" : "light");
-    localStorage.setItem('theme', isDark ? 'dark' : 'light');
-  }, [isDark]);
-  
   useEffect(() => {
     const handleResize = () => {
-      // Bootstrap lg breakpoint is 992px
-      if (window.innerWidth >= 992) {
-        setShowOffcanvas(false);
+      if (window.innerWidth >= 1024) {
+        setShowMobileMenu(false);
       }
     };
 
-    // Add event listener
-    window.addEventListener('resize', handleResize);
-
-    // Cleanup
-    return () => window.removeEventListener('resize', handleResize);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  const darkModeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setIsDark(e.target.checked);
-  };
-
-  console.log(user);
-
-  const expand = "lg";
-  const offcanvasId = `offcanvasNavbar-expand-${expand}`;
-  const offcanvasLabel = `offcanvasNavbarLabel-expand-${expand}`;
-
   return (
-    /* This navbar is dynamic and changes based on whether user is logged in or not, it also collapses at smaller screen sizes
-       making it responsive for mobile phones aswell*/
-    <Navbar expand={expand} fixed="top" bg="success" variant="dark">
-      <Container className={user ? "" : "justify-content"}>
-        <Navbar.Brand href="/HomePage">
-          <img
-            src="src/img/Logo.png"
-            width="30"
-            height="30"
-            className="d-inline-block align-top me-2"
-            alt="Logo"
-          />
-          QuizApp
-        </Navbar.Brand>
+    <nav className="fixed z-50 border-b navbar-gradient text-navbar-foreground rounded-full top-4 right-25 left-25 shadow-lg border border-navbar-foreground">
+      <div className="container mx-auto px-4 lg:px-4">
+        <div className="flex items-center h-16">
+          {/* Logo and Brand */}
+          <a
+            href="/HomePage"
+            className="flex items-center gap-2 text-xl text-navbar-foreground font-semibold hover:opacity-50 transition-opacity no-underline px-2"
+          >
+            <img
+              src={logo}
+              width="30"
+              height="30"
+              alt="Logo"
+            />
+            QuizApp
+          </a>
 
-        <Navbar.Toggle
-          aria-controls={offcanvasId}
-          className={!user ? "d-lg-none" : ""}
-          onClick={() => setShowOffcanvas(true)}
-        />
+          {/* Desktop Navigation */}
+          <div className="hidden lg:flex items-center">
+            <Button
+              variant="ghost"
+              onClick={() => handleNavigate("/QuizList")}
+              className="text-navbar-foreground hover:opacity-50 hover:bg-transparent px-2 mx-2 cursor-pointer"
+            >
+              Quizzes
+            </Button>
 
-        <Navbar.Offcanvas
-          id={offcanvasId}
-          aria-labelledby={offcanvasLabel}
-          placement="end"
-          show={showOffcanvas}
-          onHide={() => setShowOffcanvas(false)}
-        >
-          <Offcanvas.Header closeButton>
-            <Offcanvas.Title id={offcanvasLabel}>
-              <Nav.Link href="/HomePage">
-                <img
-                  src="src/img/Logo.png"
-                  width="35"
-                  height="35"
-                  className="d-inline-block align-top me-2"
-                  alt="Logo"
-                />
-                QuizApp
-              </Nav.Link>
-            </Offcanvas.Title>
-          </Offcanvas.Header>
-
-          <Offcanvas.Body>
-            {user ? (
-              // User logged in view
+            {user && (
               <>
-                <Nav className="text-center">
-                  <Nav.Link href="/QuizList">Quizzes</Nav.Link>
-                  <Nav.Link onClick={handleCreateClick} style={{ cursor: "pointer" }}>
-                    Create quiz
-                  </Nav.Link>
-                   {/*If the user is Admin, show UserControl page */}
-                   {isAdmin(user) && (
-                    <Nav.Link onClick={() => handleNavigate("/UserControl")}>
-                      User Control
-                    </Nav.Link>
-                  )}
-                </Nav>
+                <Button
+                  variant="ghost"
+                  onClick={handleCreateClick}
+                  className="text-navbar-foreground hover:opacity-50 bg-transparent hover:bg-transparent px-2 mx-2 cursor-pointer"
+                >
+                  Create quiz
+                </Button>
 
-                <div className="ms-auto form-check form-switch mt-2 align-self-center d-none d-lg-flex">
-                  <label className="theme-switch mx-2" aria-label="Toggle dark mode">
-                    <input
-                      type="checkbox"
-                      id="darkModeToggle"
-                      checked={isDark}
-                      onChange={darkModeChange}
-                    />
-                    <span className="slider" />
-                  </label>
-                </div>
-                {/* Desktop / large screens: show user dropdown inline */}
-                <Nav className="text-center d-none d-lg-flex align-items-center">
-                  <NavDropdown title={user.unique_name} id="user-dropdown">
-                    <NavDropdown.Item onClick={() => handleNavigate("/MyScores")}>
-                      My scores
-                    </NavDropdown.Item>
-                    <NavDropdown.Item onClick={() => handleNavigate("/MyQuizzes")}>
-                      My Quizzes
-                    </NavDropdown.Item>
-                    <NavDropdown.Item onClick={() => handleNavigate("/UserProfile")}>
-                      Profile
-                    </NavDropdown.Item>
-                    <NavDropdown.Divider />
-                    <NavDropdown.Item
-                      onClick={() => {
-                        logout();
-                        handleNavigate("/", {
-                          state: { message: "You have been logged out of the website." },
-                        });
-                      }}
-                    >
-                      Logout
-                    </NavDropdown.Item>
-                  </NavDropdown>
-                </Nav>
-                {/* Small screens: show user dropdown separately */}
-                <Nav className="text-center d-lg-none">
-                  <NavDropdown title={user.unique_name} id="user-dropdown" align="end">
-                    <NavDropdown.Item onClick={() => handleNavigate("/MyScores")}>
-                      My scores
-                    </NavDropdown.Item>
-                    <NavDropdown.Item onClick={() => handleNavigate("/MyQuizzes")}>
-                      My Quizzes
-                    </NavDropdown.Item>
-                    <NavDropdown.Item onClick={() => handleNavigate("/UserProfile")}>
-                      Profile
-                    </NavDropdown.Item>
-                    <NavDropdown.Divider />
-                    <NavDropdown.Item
-                      onClick={() => {
-                        logout();
-                        handleNavigate("/", {
-                          state: { message: "You have been logged out of the website." },
-                        });
-                      }}
-                    >
-                      Logout
-                    </NavDropdown.Item>
-                  </NavDropdown>
-                </Nav>
-
-                <div className="d-lg-none offcanvas-switch-row">
-                  <label className="theme-switch" aria-label="Toggle dark mode">
-                    <input
-                      type="checkbox"
-                      id="darkModeToggle-sm"
-                      checked={isDark}
-                      onChange={darkModeChange}
-                    />
-                    <span className="slider" />
-                  </label>
-                </div>
-              </>
-            ) : (
-              // User not logged in view
-              <>
-                <Nav className="text-center">
-                  <Nav.Link href="/QuizList">Quizzes</Nav.Link>
-                </Nav>
-
-                {/* Desktop / large screens: switch visible inline with auth links */}
-                <Nav className="ms-auto text-center d-none d-lg-flex align-items-center">
-                  <div className="form-check form-switch mt-2 align-self-center">
-                    <label className="theme-switch mx-2" aria-label="Toggle dark mode">
-                      <input
-                        type="checkbox"
-                        id="darkModeToggle"
-                        checked={isDark}
-                        onChange={darkModeChange}
-                      />
-                      <span className="slider" />
-                    </label>
-                  </div>
-                  <Nav.Link href="/CreateUser">Create account</Nav.Link>
-                  <Nav.Link
-                    onClick={() =>
-                      handleNavigate("/LoginPage", {
-                        state: { from: "/NavBar", message: "" },
-                      })
-                    }
+                {isAdmin(user) && (
+                  <Button
+                    variant="ghost"
+                    onClick={() => handleNavigate("/UserControl")}
+                    className="text-navbar-foreground hover:opacity-50 bg-transparent hover:bg-transparent px-2 mx-2 cursor-pointer"
                   >
-                    Login
-                  </Nav.Link>
-                </Nav>
-
-                {/* Small screens: show auth links + theme switch at bottom-right */}
-                <Nav className="text-center d-lg-none">
-                  <Nav.Link href="/CreateUser">Create account</Nav.Link>
-                  <Nav.Link
-                    onClick={() =>
-                      handleNavigate("/LoginPage", {
-                        state: { from: "/NavBar", message: "" },
-                      })
-                    }
-                  >
-                    Login
-                  </Nav.Link>
-                </Nav>
-
-                <div className="d-lg-none offcanvas-switch-row">
-                  <label className="theme-switch" aria-label="Toggle dark mode">
-                    <input
-                      type="checkbox"
-                      id="darkModeToggle-sm"
-                      checked={isDark}
-                      onChange={darkModeChange}
-                    />
-                    <span className="slider" />
-                  </label>
-                </div>
+                    User Control
+                  </Button>
+                )}
               </>
             )}
-          </Offcanvas.Body>
-        </Navbar.Offcanvas>
-      </Container>
-    </Navbar>
+          </div>
+
+          {/* Desktop Right Side */}
+          <div className="hidden lg:flex ml-auto justify-items-center">
+
+            <ThemeToggle />
+
+            {user ? (
+              <DropdownMenu onOpenChange={setIsDropdownOpen}>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="text-navbar-foreground flex items-center gap-1 bg-transparent hover:bg-transparent hover:opacity-50 px-2 mx-2 cursor-pointer">
+                    {user.unique_name}
+                    <ChevronDown
+                      className={`h-4 w-4 transition-transform duration-200 ${isDropdownOpen ? 'rotate-180' : ''}`}
+                    />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48">
+                  <DropdownMenuItem onClick={() => handleNavigate("/MyScores")} className="cursor-pointer">
+                    My scores
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleNavigate("/MyQuizzes")} className="cursor-pointer">
+                    My Quizzes
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleNavigate("/UserProfile")} className="cursor-pointer">
+                    Profile
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    onClick={() => {
+                      handleNavigate("/", { 
+                        replace: true,
+                        state: { message: "You have been logged out of the website." } 
+                      });
+                      setTimeout(() => logout(), 50); {/* settimeout nodvendig for ikke-feilaktig navigasjon fra protectedRoute */}
+                    }}
+                    className="cursor-pointer"
+                  >
+                    Logout
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="ghost"
+                  onClick={() => handleNavigate("/CreateUser")}
+                  className="text-navbar-foreground hover:opacity-50 hover:bg-transparent cursor-pointer"
+                >
+                  Create account
+                </Button>
+                <Button
+                  variant="default"
+                  onClick={() =>
+                    handleNavigate("/LoginPage", {
+                      state: { from: "/NavBar", message: "" },
+                    })
+                  }
+                  className="bg-navbar-button-background text-navbar-button-foreground hover:text-navbar-foreground rounded-full cursor-pointer"
+                >
+                  Login
+                </Button>
+              </div>
+            )}
+          </div>
+
+          {/* Mobile Menu Button */}
+          <div className="lg:hidden ml-auto">
+            <Sheet open={showMobileMenu} onOpenChange={setShowMobileMenu}>
+              <SheetTrigger asChild>
+                <Button aria-label="menu" variant="ghost" size="icon" className="text-navbar-foreground hover:bg-navbar-hover cursor-pointer">
+                  <Menu className="h-6 w-6" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="right" className="navbar-vertical w-[300px] text-navbar-foreground flex flex-col [&>button]:cursor-pointer">
+                <SheetHeader className="pb-1">
+                  <SheetTitle className="text-foreground">
+                    <a
+                      href="/HomePage"
+                      onClick={() => setShowMobileMenu(false)}
+                      className="flex items-center gap-2 text-xl text-navbar-foreground font-semibold hover:opacity-50 transition-opacity no-underline"
+                      style={{ textDecoration: 'none' }}
+                    >
+                      <img
+                        src={logo}
+                        width="35"
+                        height="35"
+                        alt="Logo"
+                      />
+                      QuizApp
+                    </a>
+                  </SheetTitle>
+                </SheetHeader>
+
+                <div className="flex flex-col gap-2 flex-1">
+                  <Button
+                    variant="ghost"
+                    onClick={() => handleNavigate("/QuizList")}
+                    className="justify-center hover:opacity-50 bg-transparent cursor-pointer"
+                  >
+                    Quizzes
+                  </Button>
+
+                  {user && (
+                    <>
+                      <Button
+                        variant="ghost"
+                        onClick={handleCreateClick}
+                        className="justify-center hover:opacity-50 bg-transparent cursor-pointer"
+                      >
+                        Create quiz
+                      </Button>
+
+                      {isAdmin(user) && (
+                        <Button
+                          variant="ghost"
+                          onClick={() => handleNavigate("/UserControl")}
+                          className="justify-center hover:opacity-50 bg-transparent cursor-pointer"
+                        >
+                          User Control
+                        </Button>
+                      )}
+
+                      <DropdownMenu onOpenChange={setIsMobileDropdownOpen}>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" className="bg-transparent border-0 hover:opacity-50 hover:text-navbar-foreground cursor-pointer px-8 py-2 flex items-center gap-2">
+                            {user.unique_name}
+                            <ChevronDown
+                              className={`h-4 w-4 transition-transform duration-200 ${isMobileDropdownOpen ? 'rotate-180' : ''}`}
+                            />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-full">
+                          <DropdownMenuItem onClick={() => handleNavigate("/MyScores")} className="cursor-pointer">
+                            My scores
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleNavigate("/MyQuizzes")} className="cursor-pointer">
+                            My Quizzes
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleNavigate("/UserProfile")} className="cursor-pointer">
+                            Profile
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem
+                            onClick={() => {
+                              handleNavigate("/", { 
+                                replace: true,
+                                state: { message: "You have been logged out of the website." } 
+                              });
+                              setTimeout(() => logout(), 50); {/* settimeout nodvendig for ikke-feilaktig navigasjon fra protectedRoute */}
+                            }}
+                            className="cursor-pointer"
+                          >
+                            Logout
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </>
+                  )}
+
+                  {!user && (
+                    <>
+                      <Button
+                        variant="ghost"
+                        onClick={() => handleNavigate("/CreateUser")}
+                        className="justify-center hover:opacity-50 bg-transparent cursor-pointer"
+                      >
+                        Create account
+                      </Button>
+                      <div className="flex justify-center my-2">
+                        <Button
+                          variant="default"
+                          onClick={() =>
+                            handleNavigate("/LoginPage", {
+                              state: { from: "/NavBar", message: "" },
+                            })
+                          }
+                          className="bg-navbar-button-background text-navbar-button-foreground cursor-pointer hover:text-navbar-foreground rounded-full px-8 py-2"
+                        >
+                          Login
+                        </Button>
+                      </div>
+                    </>
+                  )}
+                </div>
+                <div className="flex justify-center mb-4">
+                  <ThemeToggle />
+                </div>
+              </SheetContent>
+            </Sheet>
+          </div>
+        </div>
+      </div>
+    </nav >
   );
 };
 

@@ -1,9 +1,11 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import React, { Suspense, lazy } from 'react';
-import { Container } from 'react-bootstrap';
 import NavBar from './shared/NavBar';
 import './App.css';
-import ProtectedRoute from './utils/ProtectedRoute';
+import ProtectedRoute from './components/ProtectedRoute';
+import { Toaster } from '@/components/ui/sonner'
+import { Loader2 } from 'lucide-react';
+import { ThemeProvider } from '@/components/ThemeProvider'
 
 const HomePage = lazy(() => import("./pages/home/HomePage"));
 const QuizCreationPage = lazy(() => import("./pages/quiz/QuizCreatePage"));
@@ -19,51 +21,56 @@ const UserControlPage = lazy(() => import("./pages/Admin/UserControl"));
 
 const App: React.FC = () => {
   return (
-    <Router>
-      <NavBar />
-      <Suspense fallback={<div>Loading...</div>}>
-        <Container>
-          <Routes>
-            <Route path="/" element={<HomePage />} />
-            <Route path="/LoginPage" element={<LoginPage />} />
-            <Route path="/HomePage" element={<HomePage />} />
-            <Route path="/QuizList" element={<AllQuizzes />} />
-            <Route path="/MyQuizzes" element={
-              <ProtectedRoute>
-                <MyQuizzes />
-              </ProtectedRoute>
-            } />
-            <Route path="/UserProfile" element={
-              <ProtectedRoute>
-                <UserProfile />
-              </ProtectedRoute>
-            } />
-            <Route path="/QuizTakingPage/:quizId" element={<QuizTakingPage />} />
-            <Route path="/quizcreate" element={
-              <ProtectedRoute>
-                <QuizCreationPage />
-              </ProtectedRoute>
-            } />
-            <Route path="/CreateUser" element={<UserCreationPage />} />
-            <Route path="/QuizUpdate/:quizId" element={
-              <ProtectedRoute>
-                <QuizUpdatePage />
-              </ProtectedRoute>
-            } />
-            <Route path="/MyScores" element={
-              <ProtectedRoute>
-                <MyScores />
-              </ProtectedRoute>
-            } />
-            <Route path="/UserControl" element={
-              <ProtectedRoute requireAdmin={true}>
-                <UserControlPage />
-              </ProtectedRoute>} />
-            <Route path="*" element={<div>404 - Side ikke funnet</div>} />
-          </Routes>
-        </Container>
-      </Suspense>
-    </Router>
+    <ThemeProvider defaultTheme='dark' storageKey='quiz-app-theme'>
+      <Router>
+        <NavBar />
+        <Suspense fallback={
+          <div className="flex items-center justify-center min-h-screen">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          </div>
+        }>
+            <Routes>
+              <Route path="/" element={<HomePage />} />
+              <Route path="/LoginPage" element={<LoginPage />} />
+              <Route path="/HomePage" element={<HomePage />} />
+              <Route path="/QuizList" element={<AllQuizzes />} />
+              <Route path="/MyQuizzes" element={
+                <ProtectedRoute>
+                  <MyQuizzes />
+                </ProtectedRoute>
+              } />
+              <Route path="/UserProfile" element={
+                <ProtectedRoute>
+                  <UserProfile />
+                </ProtectedRoute>
+              } />
+              <Route path="/QuizTakingPage/:quizId" element={<QuizTakingPage />} />
+              <Route path="/quizcreate" element={
+                <ProtectedRoute>
+                  <QuizCreationPage />
+                </ProtectedRoute>
+              } />
+              <Route path="/CreateUser" element={<UserCreationPage />} />
+              <Route path="/QuizUpdate/:quizId" element={
+                <ProtectedRoute>
+                  <QuizUpdatePage />
+                </ProtectedRoute>
+              } />
+              <Route path="/MyScores" element={
+                <ProtectedRoute>
+                  <MyScores />
+                </ProtectedRoute>
+              } />
+              <Route path="/UserControl" element={
+                <ProtectedRoute requireAdmin={true}>
+                  <UserControlPage />
+                </ProtectedRoute>} />
+              <Route path="*" element={<div>404 - Side ikke funnet</div>} />
+            </Routes>
+        </Suspense>
+      </Router>
+      <Toaster position="top-center" />
+    </ThemeProvider>
   );
 };
 

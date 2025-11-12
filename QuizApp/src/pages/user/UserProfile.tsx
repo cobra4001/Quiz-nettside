@@ -1,9 +1,23 @@
 import React, { useEffect, useState } from "react";
-import { Form, Button, Card, Alert, Container, Row, Col, Modal } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../auth/AuthContext";
 import { isValidEmail, isValidPhone } from "../../shared/Regex";
 import type { ChangePasswordDTO, UpdateContactDTO } from "../../types/auth";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Separator } from "@/components/ui/separator";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Loader2, AlertCircle, CheckCircle2, AlertTriangle } from "lucide-react";
 
 const UserProfile: React.FC = () => {
   const { user, logout, updateContact, changePassword, deleteAccount, fetchProfile } = useAuth() as any;
@@ -26,7 +40,9 @@ const UserProfile: React.FC = () => {
   // Fetch profile data
   useEffect(() => {
     if (!user) {
-      navigate("/LoginPage", { state: { message: "Please log in to access your profile.", from: "/UserProfile" } });
+      navigate("/LoginPage", { 
+        state: { message: "Please log in to access your profile.", from: "/UserProfile" } 
+      });
       return;
     }
 
@@ -84,8 +100,8 @@ const UserProfile: React.FC = () => {
     }
   };
 
-  // Update password
-  const updatePassword = async () => {
+  const updatePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
     setError(null);
     setSuccess(null);
 
@@ -117,9 +133,9 @@ const UserProfile: React.FC = () => {
     setError(null);
     setIsSubmitting(true);
     try {
-      await deleteAccount();
-      logout();
       navigate("/", { state: { message: "Your account has been deleted." } });
+      setTimeout(() => logout(), 50) //Vil ikke sende til login-skjerm, som kan skje ved protectedRoute
+      await deleteAccount();
     } catch (err: any) {
       setError(err.message || "Delete failed");
     } finally {
@@ -130,169 +146,222 @@ const UserProfile: React.FC = () => {
 
   if (loading) {
     return (
-      <Container className="py-5" style={{ maxWidth: 900 }}>
-        <p>Loading profile...</p>
-      </Container>
+      <div className="flex items-center justify-center min-h-screen">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
     );
   }
 
   return (
-    <Container className="py-5" style={{ maxWidth: 900 }}>
-      <h2 className="mb-4">User profile</h2>
+    <div className="container mx-auto px-4 py-8 mt-20">
+      <div className="max-w-4xl mx-auto">
+        <h1 className="text-3xl font-bold mb-6 text-foreground">User Profile</h1>
 
-      {error && <Alert variant="danger">{error}</Alert>}
-      {success && <Alert variant="success">{success}</Alert>}
+        {error && (
+          <Alert variant="destructive" className="mb-6">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>Error</AlertTitle>
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
+        {success && (
+          <Alert className="mb-6 border-green-500 bg-green-50 text-green-900 dark:bg-green-950 dark:text-green-100">
+            <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-green-400" />
+            <AlertTitle>Success</AlertTitle>
+            <AlertDescription>{success}</AlertDescription>
+          </Alert>
+        )}
 
-      <Row className="g-4">
-        {/* Account Info */}
-        <Col md={6}>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+          {/* Account Card */}
           <Card>
-            <Card.Header>Account</Card.Header>
-            <Card.Body>
-              <Form>
-                <Form.Group className="mb-3">
-                  <Form.Label className="fw-bold">Username</Form.Label>
-                  <p className="form-control-plaintext">{username}</p>
-                </Form.Group>
-                <Form.Group className="mb-3">
-                  <Form.Label className="fw-bold">Role</Form.Label>
-                  <p className="form-control-plaintext">{role}</p>
-                </Form.Group>
-              </Form>
-            </Card.Body>
+            <CardHeader>
+              <CardTitle>Account</CardTitle>
+              <Separator className="mt-2" />
+            </CardHeader>
+            <CardContent>
+              <div className="mb-4 space-y-2">
+                <Label className="font-semibold">Username</Label>
+                <p className="text-muted-foreground">{username}</p>
+              </div>
+              <Separator className="mb-4"/>
+              <div className="space-y-2">
+                <Label className="font-semibold">Role</Label>
+                <p className="text-muted-foreground">{role}</p>
+              </div>
+            </CardContent>
           </Card>
-        </Col>
 
-        {/* Contact Info */}
-        <Col md={6}>
+          {/* Contact Card */}
           <Card>
-            <Card.Header>Contact</Card.Header>
-            <Card.Body>
-              <Form onSubmit={update}>
-                <Form.Group className="mb-3">
-                  <Form.Label className="fw-bold">Email</Form.Label>
-                  <Form.Control
+            <CardHeader>
+              <CardTitle>Contact</CardTitle>
+              <Separator />
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={update} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="email" className="font-semibold">Email</Label>
+                  <Input
+                    id="email"
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="you@example.com"
                   />
-                </Form.Group>
+                </div>
 
-                <Form.Group className="mb-3">
-                  <Form.Label className="fw-bold">Phone</Form.Label>
-                  <Form.Control
+                <div className="space-y-2">
+                  <Label htmlFor="phone" className="font-semibold">Phone</Label>
+                  <Input
+                    id="phone"
+                    type="tel"
                     value={phonenumber}
                     onChange={(e) => setPhonenumber(e.target.value)}
                     maxLength={8}
-                    placeholder="+47 123 45 678"
+                    placeholder="12345678"
                   />
-                </Form.Group>
+                </div>
 
-                <div className="d-flex justify-content-end">
-                  <Button variant="primary" type="submit" disabled={isSubmitting}>
-                    {isSubmitting ? "Saving..." : "Save Contact"}
+                <div className="flex justify-end">
+                  <Button type="submit" disabled={isSubmitting} className="bg-primary hover:bg-primary/90 cursor-pointer">
+                    {isSubmitting ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Saving...
+                      </>
+                    ) : (
+                      'Save Contact'
+                    )}
                   </Button>
                 </div>
-              </Form>
-            </Card.Body>
+              </form>
+            </CardContent>
           </Card>
-        </Col>
 
-        {/* Security */}
-        <Col md={6}>
+          {/* Security Card */}
           <Card>
-            <Card.Header>Security</Card.Header>
-            <Card.Body>
-              <Form onSubmit={updatePassword}>
-                <Form.Group className="mb-3">
-                  <Form.Label className="fw-bold">Current password</Form.Label>
-                  <Form.Control
+            <CardHeader>
+              <CardTitle>Security</CardTitle>
+              <Separator />
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={updatePassword} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="oldPassword" className="font-semibold">Current Password</Label>
+                  <Input
+                    id="oldPassword"
                     type="password"
                     value={oldPassword}
                     onChange={(e) => setOldPassword(e.target.value)}
                     placeholder="Enter current password"
                   />
-                </Form.Group>
+                </div>
 
-                <Form.Group className="mb-3">
-                  <Form.Label className="fw-bold">New password</Form.Label>
-                  <Form.Control
+                <div className="space-y-2">
+                  <Label htmlFor="newPassword" className="font-semibold">New Password</Label>
+                  <Input
+                    id="newPassword"
                     type="password"
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
                     placeholder="Enter new password"
                   />
-                </Form.Group>
+                </div>
 
-                <Form.Group className="mb-3">
-                  <Form.Label className="fw-bold">Confirm new password</Form.Label>
-                  <Form.Control
+                <div className="space-y-2">
+                  <Label htmlFor="confirmPassword" className="font-semibold">Confirm New Password</Label>
+                  <Input
+                    id="confirmPassword"
                     type="password"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     placeholder="Confirm password"
                   />
-                </Form.Group>
+                </div>
 
-                <div className="d-flex justify-content-end">
-                  <Button variant="secondary" onClick={updatePassword} disabled={isSubmitting}>
-                    {isSubmitting ? "Changing..." : "Change password"}
+                <div className="flex justify-end">
+                  <Button type="submit" variant="secondary" disabled={isSubmitting} className="cursor-pointer">
+                    {isSubmitting ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Changing...
+                      </>
+                    ) : (
+                      'Change Password'
+                    )}
                   </Button>
                 </div>
-              </Form>
-            </Card.Body>
+              </form>
+            </CardContent>
           </Card>
-        </Col>
 
-        {/* Danger Zone */}
-        <Col md={6}>
-          <Card border="danger">
-            <Card.Header className="text-danger">Danger zone</Card.Header>
-            <Card.Body>
-              <p className="text-muted">
+          {/* Danger Zone Card */}
+          <Card className="border-destructive">
+            <CardHeader>
+              <CardTitle className="text-destructive">Danger Zone</CardTitle>
+              <CardDescription>
                 Deleting your account is permanent and cannot be undone.
-              </p>
-
-              {/* Method that makes sure that role admin can't delete itself */}
-              {user?.role?.toLowerCase() === "admin" ? (
-                <Alert variant="warning" className="mt-2">
-                  You can't delete the Admin user.
+              </CardDescription>
+              <Separator />
+            </CardHeader>
+            <CardContent>
+              {user?.unique_name?.toLowerCase() === "admin" ? (
+                <Alert className="bg-warning text-warning-foreground">
+                  <AlertTriangle className="h-4 w-4" />
+                  <AlertDescription className="text-warning-foreground">
+                    You can't delete the default administator user.
+                  </AlertDescription>
                 </Alert>
               ) : (
-                <div className="d-flex justify-content-end">
+                <div className="flex justify-center">
                   <Button
-                    variant="outline-danger"
+                    variant="destructive"
                     onClick={() => setShowConfirmDelete(true)}
                     disabled={isSubmitting}
+                    className="cursor-pointer"
                   >
-                    Delete account
+                    Delete Account
                   </Button>
                 </div>
               )}
-            </Card.Body>
+            </CardContent>
           </Card>
-        </Col>
-      </Row>
+        </div>
 
-      {/* Confirm Delete Modal */}
-      <Modal show={showConfirmDelete} onHide={() => setShowConfirmDelete(false)} centered>
-        <Modal.Header closeButton>
-          <Modal.Title>Confirm account deletion</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <p>This will permanently delete your account and all associated data. Are you sure?</p>
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowConfirmDelete(false)}>
-            Cancel
-          </Button>
-          <Button variant="danger" onClick={confirmDelete} disabled={isSubmitting}>
-            Yes, delete account
-          </Button>
-        </Modal.Footer>
-      </Modal>
-    </Container>
+        {/* Delete Confirmation Dialog */}
+        <Dialog open={showConfirmDelete} onOpenChange={setShowConfirmDelete}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Confirm Account Deletion</DialogTitle>
+              <DialogDescription>
+                This will permanently delete your account and all associated data. Are you sure?
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+              <Button variant="secondary" onClick={() => setShowConfirmDelete(false)} className="cursor-pointer">
+                Cancel
+              </Button>
+              <Button 
+                variant="destructive" 
+                onClick={confirmDelete} 
+                disabled={isSubmitting}
+                className="cursor-pointer"
+              >
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Deleting...
+                  </>
+                ) : (
+                  'Yes, Delete Account'
+                )}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </div>
+    </div>
   );
 };
 

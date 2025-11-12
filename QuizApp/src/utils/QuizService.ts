@@ -1,4 +1,5 @@
 const API_URL = import.meta.env.VITE_API_URL;
+const API_URL_BASE = import.meta.env.VITE_API_URL_BASE_PATH || "/api";
 
 // Response handler
 const handleResponse = async (response: Response) => {
@@ -29,7 +30,7 @@ const buildHeaders = (extra: Record<string, string> = {}) => {
 
 // GET /api/Quiz
 export const fetchQuizzes = async () => {
-    const response = await fetch(`${API_URL}/api/Quiz`, {
+    const response = await fetch(`${API_URL}${API_URL_BASE}/Quiz`, {
         headers: buildHeaders(),
     });
     return handleResponse(response);
@@ -37,7 +38,7 @@ export const fetchQuizzes = async () => {
 
 // GET /api/Quiz/my
 export const fetchMyQuizzes = async () => {
-    const response = await fetch(`${API_URL}/api/Quiz/my`, {
+    const response = await fetch(`${API_URL}${API_URL_BASE}/Quiz/my`, {
         headers: buildHeaders(),
     });
     return handleResponse(response);
@@ -45,7 +46,7 @@ export const fetchMyQuizzes = async () => {
 
 // GET /api/Quiz/{id}
 export const fetchQuizById = async (id: number) => {
-    const response = await fetch(`${API_URL}/api/Quiz/${id}`, {
+    const response = await fetch(`${API_URL}${API_URL_BASE}/Quiz/${id}`, {
         headers: buildHeaders(),
     });
     return handleResponse(response);
@@ -53,7 +54,7 @@ export const fetchQuizById = async (id: number) => {
 
 // POST /api/Quiz/create
 export const createQuiz = async (quizDto: any) => {
-    const response = await fetch(`${API_URL}/api/Quiz/create`, {
+    const response = await fetch(`${API_URL}${API_URL_BASE}/Quiz/create`, {
         method: 'POST',
         headers: buildHeaders(),
         body: JSON.stringify(quizDto),
@@ -63,7 +64,7 @@ export const createQuiz = async (quizDto: any) => {
 
 //Submit quiz answers
 export const submitQuiz = async (submission: { quizId: number; selectedAnswers: Record<number, number>; }) => {
-    const response = await fetch(`${API_URL}/api/Quiz/submit`, {
+    const response = await fetch(`${API_URL}${API_URL_BASE}/Quiz/submit`, {
         method: 'POST',
         headers: buildHeaders(),
         body: JSON.stringify({
@@ -76,7 +77,7 @@ export const submitQuiz = async (submission: { quizId: number; selectedAnswers: 
 
 // GET /api/Quiz/{id}/edit - Fetch quiz for editing with all details
 export const fetchQuizForEdit = async (id: number) => {
-    const response = await fetch(`${API_URL}/api/Quiz/${id}/edit`, {
+    const response = await fetch(`${API_URL}${API_URL_BASE}/Quiz/${id}/edit`, {
         headers: buildHeaders(),
     });
     return handleResponse(response);
@@ -84,7 +85,7 @@ export const fetchQuizForEdit = async (id: number) => {
 
 // PUT /api/Quiz/{id} - Update quiz by ID
 export const updateQuiz = async (id: number, quizDto: any) => {
-    const response = await fetch(`${API_URL}/api/Quiz/${id}`, {
+    const response = await fetch(`${API_URL}${API_URL_BASE}/Quiz/${id}`, {
         method: 'PUT',
         headers: buildHeaders(),
         body: JSON.stringify(quizDto),
@@ -94,7 +95,7 @@ export const updateQuiz = async (id: number, quizDto: any) => {
 
 // DELETE quiz by ID
 export const deleteQuiz = async (id: number): Promise<void> => {
-    const response = await fetch(`${API_URL}/api/Quiz/${id}`, {
+    const response = await fetch(`${API_URL}${API_URL_BASE}/Quiz/${id}`, {
         method: 'DELETE',
         headers: buildHeaders(),
     });
@@ -107,7 +108,7 @@ export const deleteQuiz = async (id: number): Promise<void> => {
 
 // Get quiz results by quiz ID and user ID
 export const fetchMyScores = async () => {
-    const response = await fetch(`${API_URL}/api/Quiz/myscores`, {
+    const response = await fetch(`${API_URL}${API_URL_BASE}/Quiz/myscores`, {
         headers: buildHeaders(),
     });
     return handleResponse(response);

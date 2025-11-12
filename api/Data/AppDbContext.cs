@@ -2,5 +2,5 @@
 // Keeping the filename avoids accidental re-creation but prevents EF from detecting a second DbContext.
 namespace api.Data
 {
-    // Removed: old AppDbContext. Use AuthUserDbContext instead.
+    // Removed: old AppDbContext. Use api/DAL/AuthUserDbContext.cs instead.
 }

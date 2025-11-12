@@ -1,20 +1,23 @@
 import React, { useState, useEffect } from "react";
-import { Form, Button, Card, Alert, Container } from "react-bootstrap";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "./AuthContext";
 import type { LoginDto } from "../types/auth";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AlertCircle } from "lucide-react";
 
-// Login page component
 const LoginPage: React.FC = () => {
   const { login } = useAuth();
-  // Local form state
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Show message passed from protected-route redirects
+  // Vis melding fra andre interne sider
   useEffect(() => {
     const state = location.state as { message?: string; from?: string };
     if (state?.message) {
@@ -22,11 +25,11 @@ const LoginPage: React.FC = () => {
     }
   }, [location.state]);
 
-  // Handle login submission
+  // Håndtering, login
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Basic client-side validation
+    // Enkel validering på klient
     if (username.length < 3) {
       setError("Please write a username with at least 3 characters.");
       return;
@@ -47,74 +50,76 @@ const LoginPage: React.FC = () => {
     try {
       await login({ username, password } as LoginDto);
       setError(null);
-
-      {/*  const state = location.state as { from?: string };
-      if (state?.from) {
-        navigate(state.from, { replace: true });
-      } else {
-        navigate("/HomePage", { replace: true });
-      }
-*/} //changed to always go to Homepage 
-
       navigate("/HomePage", { replace: true });
-      
-
     } catch (err) {
       setError("Invalid username or password.");
     }
   };
 
-  // Navigate to registration page
+  // Navigasjon til skaping av bruker
   const handleCreateUser = () => {
     navigate("/CreateUser");
   };
 
   return (
-    <Container className="d-flex align-items-center justify-content-center min-vh-100">
-      <Card style={{ minWidth: "350px" }} className="shadow">
-        <Card.Body>
-          <h2 className="mb-4 text-center">Login</h2>
-          {error && <Alert variant="danger">{error}</Alert>}
-          <Form onSubmit={handleSubmit}>
-            {/* Username field */}
-            <Form.Group className="mb-3" controlId="formUsername">
-              <Form.Label>Username</Form.Label>
-              <Form.Control
+    <div className="flex items-center justify-center min-h-screen p-4">
+      <Card className="w-full max-w-md shadow-lg">
+        <CardHeader>
+          <CardTitle className="text-xl text-center">Welcome Back</CardTitle>
+          <CardDescription className="text-md text-center text-muted-foreground">
+            Login to access your quizzes and scores
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {error && (
+            <Alert variant="destructive" className="mb-4">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
+          
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="username" className="mb-2">Username</Label>
+              <Input
+                id="username"
                 type="text"
                 placeholder="Enter username"
                 value={username}
                 onChange={e => setUsername(e.target.value)}
                 autoComplete="username"
               />
-            </Form.Group>
-            {/* Password field */}
-            <Form.Group className="mb-4" controlId="formPassword">
-              <Form.Label>Password</Form.Label>
-              <Form.Control
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="password" className="mb-2">Password</Label>
+              <Input
+                id="password"
                 type="password"
-                placeholder="Password"
+                placeholder="Enter password"
                 value={password}
                 onChange={e => setPassword(e.target.value)}
                 autoComplete="current-password"
               />
-            </Form.Group>
-            {/* Submit login */}
-            <Button variant="primary" type="submit" className="w-100 mb-2">
-              Login
-            </Button>
-            {/* Go to registration */}
-            <Button
-              variant="secondary"
-              type="button"
-              className="w-100"
-              onClick={handleCreateUser}
-            >
-              Create User
-            </Button>
-          </Form>
-        </Card.Body>
+            </div>
+
+            <div className="space-y-2">
+              <Button type="submit" className="w-full bg-primary hover:bg-primary/90 cursor-pointer">
+                Login
+              </Button>
+              <Button 
+                type="button" 
+                variant="secondary"
+                className="w-full mt-2 cursor-pointer"
+                onClick={handleCreateUser}
+              >
+                Create Account
+              </Button>
+            </div>
+          </form>
+        </CardContent>
       </Card>
-    </Container>
+    </div>
   );
 };
 

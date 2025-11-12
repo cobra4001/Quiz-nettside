@@ -1,7 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using api.Models;
 
-namespace api.Models
+namespace api.DAL
 {
     // Consolidated DbContext: contains Identity tables and quiz domain tables.
     public class AuthUserDbContext : IdentityDbContext<AuthUser>

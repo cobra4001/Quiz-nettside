@@ -1,14 +1,38 @@
 import React, { useEffect, useState } from "react";
-import { Table, Button, Alert, Spinner, Container } from "react-bootstrap";
 import { useAuth } from "../../auth/AuthContext";
 import { isAdmin } from "../../utils/roleUtils";
 import { useNavigate } from "react-router-dom";
-
-const API_URL = import.meta.env.VITE_API_URL;
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Alert,
+  AlertDescription,
+  AlertTitle,
+} from "@/components/ui/alert";
+import { Loader2, AlertCircle, Trash2, UserPlus } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { deleteUser, fetchUsers, createMockUser } from "../../utils/AdminService";
 
 interface UserDto {
-  id: string; 
-  userName: string; 
+  id: string;
+  userName: string;
   email: string | null;
   phoneNumber: string | null;
   role: string | null;
@@ -18,149 +42,264 @@ const UserControl: React.FC = () => {
   const { token, user } = useAuth();
   const navigate = useNavigate();
   const [users, setUsers] = useState<UserDto[]>([]);
+  const [filteredUsers, setFilteredUsers] = useState<UserDto[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [message, setMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
-  
-  // Fetches all users from the backend
-  const fetchUsers = async () => {
+  const [creatingMockUser, setCreatingMockUser] = useState<boolean>(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [userToDelete, setUserToDelete] = useState<{ id: string; username: string } | null>(null);
+
+  // Fetch users wrapper
+  const loadUsers = async () => {
     if (!token) {
         setLoading(false);
         setError("Authentication token is missing.");
         return;
-    } 
+    }
 
     try {
-      setLoading(true);
+        setLoading(true);
+        setError(null);
+
+        const uniqueUsers = await fetchUsers(token);
+        
+        setUsers(uniqueUsers);
+        setFilteredUsers(uniqueUsers);
+    } catch (err: any) {
+        setError(err.message || "Something went wrong while fetching users.");
+    } finally {
+        setLoading(false);
+    }
+  };
+
+  // Create mock user
+  const handleCreateMockUser = async () => {
+    if (!token) return;
+
+    try {
+      setCreatingMockUser(true);
       setError(null);
 
-      const res = await fetch(`${API_URL}/api/Auth/users`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (!res.ok) {
-        const statusError = res.status === 403 ? "Access Denied. You may not have the necessary permissions." : "Failed to fetch users.";
-        throw new Error(statusError);
-      }
+      await createMockUser(token);
       
-      const data: UserDto[] = await res.json();
-      
-      const uniqueUsers = data.filter((user, index, self) => 
-        index === self.findIndex((u) => u.id === user.id)
-      );
-
-      setUsers(uniqueUsers); 
-      
+      // Refresh the user list after creating mock user
+      await loadUsers();
     } catch (err: any) {
-      setError(err.message || "Something went wrong while fetching users.");
+      console.error("Create mock user error:", err);
+      setError(err.message || "Something went wrong while creating mock user.");
     } finally {
-      setLoading(false);
+      setCreatingMockUser(false);
     }
   };
 
   useEffect(() => {
     if (!isAdmin(user)) {
       navigate("/forbidden");
+    } else {
+      loadUsers();
     }
-    else {
-      fetchUsers();
-    }
-
   }, [token]);
 
-  // Deletes a specific user by ID
-  const handleDelete = async (userId: string, username: string) => {
-    if (!token) return;
-
-    if (username.toLowerCase() === "admin") {
-        alert("Cannot delete the Admin user.");
-        return;
+  // Filtrering av brukere i soksfunksjonen
+  useEffect(() => {
+    if (searchQuery.length >= 3) {
+      const filtered = users.filter((user) =>
+        user.userName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        user.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        user.phoneNumber?.includes(searchQuery)
+      );
+      setFilteredUsers(filtered);
+    } else {
+      setFilteredUsers(users);
     }
+  }, [searchQuery, users]);
+
+  const openDeleteDialog = (userId: string, username: string) => {
+    if (username.toLowerCase() === "admin") {
+      setError("Cannot delete the Admin user.");
+      return;
+    }
+    setUserToDelete({ id: userId, username });
+    setDeleteDialogOpen(true);
+  };
+
+  // Sletting ved ID
+  const handleDelete = async () => {
+    if (!token || !userToDelete) return;
 
     try {
-      const confirmDelete = window.confirm(
-        `Are you sure you want to delete user: ${username}?`
-      );
-      if (!confirmDelete) return;
-      
-      // Calls the backend endpoint using the simplified route: /api/Auth/user/{userId}
-      const res = await fetch(`${API_URL}/api/Auth/user/${userId}`, { 
-        method: "DELETE",
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const data = await deleteUser(userToDelete.id, token);
 
-      if (!res.ok) {
-        let errorMessage = "Failed to delete user. Check console for details.";
-        
-        const text = await res.text();
-        if (text) {
-            try {
-                const errorBody = JSON.parse(text);
-                errorMessage = errorBody?.Message || text;
-            } catch (e) {
-                errorMessage = `Deletion failed: ${res.status} (${res.statusText}).`;
-            }
-        } else if (res.status === 404) {
-            errorMessage = `Error: 404 Not Found. API route was not found.`;
-        }
+      const updatedUsers = users.filter((u) => u.id !== userToDelete.id);
+      setUsers(updatedUsers);
+      setFilteredUsers(updatedUsers.filter((u) =>
+        searchQuery.length >= 3
+          ? u.userName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          u.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          u.phoneNumber?.includes(searchQuery)
+          : true
+      ));
 
-        throw new Error(errorMessage);
-      }
+      setMessage(data?.message)
+      setDeleteDialogOpen(false);
+      setUserToDelete(null);
+      setError(null);
 
-      // Update the list by filtering out the deleted user
-      setUsers(users.filter(u => u.id !== userId));
     } catch (err: any) {
+      console.error("Delete user error:", err);
       setError(err.message || "Something went wrong during user deletion.");
+      setDeleteDialogOpen(false);
+      setUserToDelete(null);
     }
   };
 
 
-  if (loading) return <Spinner animation="border" className="m-5" />;
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
-    <Container className="mt-5">
-      <h2 className="mb-4">User Control Panel</h2>
-      {error && <Alert variant="danger">{error}</Alert>}
-      
-      <Table striped bordered hover responsive>
-        <thead>
-          <tr>
-            <th>Username</th>
-            <th>Email</th>
-            <th>Phone</th>
-            <th>Role</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {users.map((user, index) => {
-            const uniqueKey = user.id || index; 
-            
-            return (
-              <tr key={uniqueKey}> 
-                <td>{user.userName}</td>
-                <td>{user.email ?? "-"}</td>
-                <td>{user.phoneNumber ?? "-"}</td>
-                <td>{user.role ?? "-"}</td>
-                <td>
-                  <Button
-                  variant="danger"
-                  size="sm"
-                  onClick={() => handleDelete(user.id, user.userName)}
-                  // Disable deletion for admin role
-                  disabled={user.role?.toLowerCase() === "admin"}
-                >
-                  Delete
-                </Button>
+    <div className="container mx-auto px-4 py-8 mt-20">
+      <div className="max-w-6xl mx-auto">
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-3xl font-bold text-foreground">User Control Panel</h1>
+          <Button
+            onClick={handleCreateMockUser}
+            disabled={creatingMockUser}
+            className="gap-2 cursor-pointer"
+          >
+            {creatingMockUser ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Creating...
+              </>
+            ) : (
+              <>
+                <UserPlus className="h-4 w-4" />
+                Create Mock User
+              </>
+            )}
+          </Button>
+        </div>
 
-                </td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </Table>
-    </Container>
+        {error && (
+          <Alert variant="destructive" className="mb-6">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>Error</AlertTitle>
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
+
+        {message && (
+          <Alert className="mb-6 bg">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>Success</AlertTitle>
+            <AlertDescription>{message}</AlertDescription>
+          </Alert>
+        )}
+
+        {/* Search Bar */}
+        <div className="relative mb-6">
+          <Input
+            type="text"
+            placeholder="Search by username, email, or phone (min 3 characters)..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="text-muted-foreground"
+          />
+          {searchQuery.length > 0 && searchQuery.length < 3 && (
+            <p className="text-sm text-muted-foreground mt-2">
+              Type at least 3 characters to search
+            </p>
+          )}
+          {searchQuery.length >= 3 && (
+            <p className="text-sm text-muted-foreground mt-2">
+              Found {filteredUsers.length} user{filteredUsers.length !== 1 ? 's' : ''}
+            </p>
+          )}
+        </div>
+
+        <div className="rounded-md border">
+          <Table>
+            <TableHeader>
+              <TableRow className="bg-secondary/5">
+                <TableHead className="text-muted-foreground">Username</TableHead>
+                <TableHead className="text-muted-foreground">Email</TableHead>
+                <TableHead className="text-muted-foreground">Phone</TableHead>
+                <TableHead className="text-muted-foreground">Role</TableHead>
+                <TableHead className="text-right text-muted-foreground">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredUsers.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={5} className="text-center text-foreground">
+                    {searchQuery.length >= 3 ? "No users match your search." : "No users found."}
+                  </TableCell>
+                </TableRow>
+              ) : (
+                filteredUsers.map((user, index) => {
+                  const uniqueKey = user.id || index;
+                  const isAdminUser = user.userName.toLowerCase() === "admin";
+
+                  return (
+                    <TableRow key={uniqueKey}>
+                      <TableCell className="font-medium text-foreground">{user.userName}</TableCell>
+                      <TableCell className="text-foreground">{user.email ?? "-"}</TableCell>
+                      <TableCell className="text-foreground">{user.phoneNumber ?? "-"}</TableCell>
+                      <TableCell className="text-foreground"> {user.role ?? "-"}</TableCell>
+                      <TableCell className="text-right text-foreground">
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          onClick={() => openDeleteDialog(user.id, user.userName)}
+                          disabled={isAdminUser}
+                          className="gap-2 cursor-pointer"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                          Delete
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })
+              )}
+            </TableBody>
+          </Table>
+        </div>
+      </div>
+
+
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-card-foreground">Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription className="text-muted-foreground">
+              This will permanently delete the user{" "}
+              <span className="font-semibold">{userToDelete?.username}</span>. This
+              action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setUserToDelete(null)} className="text-foreground">
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDelete}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </div>
   );
 };
 

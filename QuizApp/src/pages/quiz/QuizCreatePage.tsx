@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../auth/AuthContext";
-import * as QuizService from "./QuizService";
-import QuizForm from "./QuizForm";
+import * as QuizService from "../../utils/QuizService";
+import QuizForm from "../../components/QuizForm";
 import type { IQuestion } from "../../types/quiz";
 
 const QuizCreatePage: React.FC = () => {
