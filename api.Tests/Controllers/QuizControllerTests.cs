@@ -27,12 +27,14 @@ public class QuizControllerTests
     #region Helper Methods
 
     // Helper method to set up authenticated user
-    private void SetupAuthenticatedUser(string userId = "user123")
+    private void SetupAuthenticatedUser(string userId, string role = "User")
     {
         var claims = new List<Claim>
-        {
-            new Claim(ClaimTypes.NameIdentifier, userId)
-        };
+    {
+        new Claim(ClaimTypes.NameIdentifier, userId),
+        new Claim(ClaimTypes.Role, role)
+    };
+
         var identity = new ClaimsIdentity(claims, "TestAuthType");
         var claimsPrincipal = new ClaimsPrincipal(identity);
 
@@ -52,7 +54,7 @@ public class QuizControllerTests
             HttpContext = new DefaultHttpContext { User = claimsPrincipal }
         };
     }
-    
+
     #endregion
 
     #region GetQuizzes Tests
@@ -407,7 +409,17 @@ public class QuizControllerTests
     public async Task DeleteQuiz_Successfull()
     {
         // Arrange
-        SetupAuthenticatedUser("user123");
+        SetupAuthenticatedUser("user123", "Admin"); // Add role
+
+        var mockQuiz = new Quiz
+        {
+            Id = 1,
+            UserId = "user123",
+            Title = "Test Quiz",
+            Questions = new List<Question>()
+        };
+
+        _mockRepo.Setup(repo => repo.GetQuizById(1)).ReturnsAsync(mockQuiz);
         _mockRepo.Setup(repo => repo.DeleteQuiz(1)).ReturnsAsync(true);
 
         // Act
@@ -421,7 +433,17 @@ public class QuizControllerTests
     public async Task DeleteQuiz_Error()
     {
         // Arrange
-        SetupAuthenticatedUser("user123");
+        SetupAuthenticatedUser("user123", "Admin"); // Add role
+
+        var mockQuiz = new Quiz
+        {
+            Id = 1,
+            UserId = "user123",
+            Title = "Test Quiz",
+            Questions = new List<Question>()
+        };
+
+        _mockRepo.Setup(repo => repo.GetQuizById(1)).ReturnsAsync(mockQuiz);
         _mockRepo.Setup(repo => repo.DeleteQuiz(1)).ThrowsAsync(new Exception("Database error"));
 
         // Act
@@ -430,6 +452,67 @@ public class QuizControllerTests
         // Assert
         var statusResult = Assert.IsType<ObjectResult>(result);
         Assert.Equal(500, statusResult.StatusCode);
+    }
+
+    [Fact]
+    public async Task DeleteQuiz_NotFound_ReturnsNotFound()
+    {
+        // Arrange
+        SetupAuthenticatedUser("user123");
+        _mockRepo.Setup(repo => repo.GetQuizById(1)).ReturnsAsync((Quiz?)null);
+
+        // Act
+        var result = await _controller.DeleteQuiz(1);
+
+        // Assert
+        Assert.IsType<NotFoundObjectResult>(result);
+    }
+
+    [Fact]
+    public async Task DeleteQuiz_NotOwnerAndNotAdmin_ReturnsForbid()
+    {
+        // Arrange
+        SetupAuthenticatedUser("user123", "User"); // Regular user
+
+        var mockQuiz = new Quiz
+        {
+            Id = 1,
+            UserId = "differentUser", // Different owner
+            Title = "Test Quiz",
+            Questions = new List<Question>()
+        };
+
+        _mockRepo.Setup(repo => repo.GetQuizById(1)).ReturnsAsync(mockQuiz);
+
+        // Act
+        var result = await _controller.DeleteQuiz(1);
+
+        // Assert
+        Assert.IsType<ForbidResult>(result);
+    }
+
+    [Fact]
+    public async Task DeleteQuiz_AsOwner_Success()
+    {
+        // Arrange
+        SetupAuthenticatedUser("user123", "User");
+
+        var mockQuiz = new Quiz
+        {
+            Id = 1,
+            UserId = "user123", // Same user
+            Title = "Test Quiz",
+            Questions = new List<Question>()
+        };
+
+        _mockRepo.Setup(repo => repo.GetQuizById(1)).ReturnsAsync(mockQuiz);
+        _mockRepo.Setup(repo => repo.DeleteQuiz(1)).ReturnsAsync(true);
+
+        // Act
+        var result = await _controller.DeleteQuiz(1);
+
+        // Assert
+        Assert.IsType<NoContentResult>(result);
     }
     #endregion
 }

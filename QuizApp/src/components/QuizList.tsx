@@ -73,8 +73,6 @@ const QuizList: React.FC<QuizListProps> = ({
     );
   });
 
-  console.log(user?.nameid)
-
   return (
     <div className="flex justify-center min-h-screen p-3">
       <div className="container py-8 mt-20" style={{ maxWidth: "800px" }}>
