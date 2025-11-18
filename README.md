@@ -1,23 +1,23 @@
 # ITPE3200Exam
 
-Eksamen og obliger for ITPE3200
+Exam and obligs for ITPE3200
 
 ## Task delegation, used internally within the group
 
-**Emil:**  
+**Student 1:**  
 Task 1: coordinate coding, and merging all code together.
 Task 2: coordinate writing, writing of introduction and architecture, merging all writing together.
 
-**Thomas:**  
+**Student 2:**  
 Task 3: writing and coding of data access.
 Task 4: writing and coding of business logic and controllers.
 
-**Julian:**  
+**Student 3:**  
 Task 5: writing and coding of error handling, logging, and input validation, in close collaboration with
 others.
 Task 8: writing and coding of authentication.
 
-**Jacob:**  
+**Student 4:**  
 Task 6: writing and coding of front-end and back-end communication (AJAX call).
 Task 7: user interface design, user experience design, user test, and writing.
 
@@ -43,3 +43,7 @@ There exists a test suite for the backend/server-side. To run the complete suite
 dotnet test
 ```
 to run all tests.
+
+### Admin user
+
+Username = Admin Password = Admin1234
