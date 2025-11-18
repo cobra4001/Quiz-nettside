@@ -255,6 +255,7 @@ const UserProfile: React.FC = () => {
                     value={oldPassword}
                     onChange={(e) => setOldPassword(e.target.value)}
                     placeholder="Enter current password"
+                    autoComplete="current-password"
                   />
                 </div>
 
@@ -266,6 +267,7 @@ const UserProfile: React.FC = () => {
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
                     placeholder="Enter new password"
+                    autoComplete="new-password"
                   />
                 </div>
 
@@ -277,6 +279,7 @@ const UserProfile: React.FC = () => {
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     placeholder="Confirm password"
+                    autoComplete="new-password"
                   />
                 </div>
 
