@@ -77,6 +77,7 @@ namespace api.Controllers
 
                 var quizList = quizzes.Select(q => new
                 {
+                    q.UserId,
                     q.Id,
                     q.Title,
                     q.Description,
@@ -263,16 +264,41 @@ namespace api.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteQuiz(int id)
         {
+            var userId = await ResolveUserIdAsync();
+            if (userId == null)
+                return Unauthorized(new { Message = "Could not validate user." });
+
             try
             {
+                // Get the quiz to check ownership
+                var quiz = await _quizRepository.GetQuizById(id);
+
+                if (quiz == null)
+                {
+                    _logger.LogWarning("[QuizController] Quiz with ID {@quizId} not found for deletion", id);
+                    return NotFound(new { Message = "Quiz not found." });
+                }
+
+                // Check if user is admin or the creator
+                var userRole = User.FindFirstValue(ClaimTypes.Role);
+                bool isAdmin = userRole == "Admin";
+                bool isCreator = quiz.UserId == userId;
+
+                if (!isAdmin && !isCreator)
+                {
+                    _logger.LogWarning("[QuizController] User {@userId} attempted to delete quiz {@quizId} without permission", userId, id);
+                    return Forbid();
+                }
+
                 var deleted = await _quizRepository.DeleteQuiz(id);
 
                 if (!deleted)
                 {
-                    _logger.LogError("[QuizController] Quiz with ID {@quizId} not found for deletion", id);
+                    _logger.LogError("[QuizController] Quiz with ID {@quizId} could not be deleted", id);
                     return StatusCode(500, new { Message = "Unexpected error occurred while deleting quiz." });
                 }
 
+                _logger.LogInformation("[QuizController] Quiz {@quizId} deleted by user {@userId} (isAdmin: {@isAdmin})", id, userId, isAdmin);
                 return NoContent();
             }
             catch (Exception ex)

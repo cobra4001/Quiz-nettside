@@ -52,7 +52,7 @@ const AllQuizzes: React.FC = () => {
     onQuizDeleted={handleQuizDeleted}
     title="Available Quizzes"
     emptyMessage="No quizzes yet. Create one!"
-    showAdminDelete={false} // Lar QuizList behandle, men default skal, i tilfelle, holde seg false.
+    showAdminDelete={isAdmin(user)}
     currentUserRole={user?.role as string} // Vil kun ha én, sterkeste rolle
   />
   );
