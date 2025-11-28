@@ -10,7 +10,7 @@ const MyQuizzes: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
-  // Hent brukerens quizzer
+  // Gets the users quizzes
   useEffect(() => {
     let mounted = true;
     (async () => {
@@ -35,7 +35,7 @@ const MyQuizzes: React.FC = () => {
     setTimeout(() => setSuccessMsg(null), 3000);
   };
 
-  // Returner ved QuizList
+  // Returns with quizlist
   return (
     <QuizList
       quizzes={quizzes}

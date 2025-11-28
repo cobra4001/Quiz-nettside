@@ -14,7 +14,7 @@ const QuizCreatePage: React.FC = () => {
     if (!user) {
       navigate("/LoginPage", {
         replace: true,
-        state: { from: "/quizcreate", message: "Du må logge inn først" },
+        state: { from: "/quizcreate", message: "You have to login first!" },
       });
     }
   }, [user, navigate]);

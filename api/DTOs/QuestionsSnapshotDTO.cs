@@ -1,5 +1,6 @@
 using System.Text.Json;
 
+// DTO for Question Snapshot
 public class QuestionSnapshotDTO
 {
     public int Id { get; set; }
@@ -8,6 +9,7 @@ public class QuestionSnapshotDTO
     public List<AnswerSnapshot> Answers { get; set; } = new List<AnswerSnapshot>();
 }
 
+// Snapshot of an Answer
 public class AnswerSnapshot
 {
     public int Id { get; set; }

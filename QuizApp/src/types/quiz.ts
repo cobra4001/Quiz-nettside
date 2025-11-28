@@ -36,7 +36,7 @@ export interface QuizListProps {
 
 // Interface for the QuizTaker component
 export interface QuizTakerProps {
-    // No props are needed anymore, as quizId is fetched via useParams
+    
 }
 
 //interface for QuizForm

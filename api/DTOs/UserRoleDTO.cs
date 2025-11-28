@@ -1,5 +1,5 @@
 using System.ComponentModel.DataAnnotations;
-
+//DTO for user roles
 namespace api.DTOs
 {
     public class UserRoleDTO

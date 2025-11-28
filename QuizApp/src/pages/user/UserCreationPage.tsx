@@ -24,6 +24,7 @@ const UserCreationPage: React.FC = () => {
     setError(null);
     setSuccess(null);
 
+    // Input validation
     if (!username || !email || !phonenumber || !password || !confirmPassword) {
       setError("Please fill in all fields.");
       return;

@@ -17,7 +17,7 @@ const LoginPage: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Vis melding fra andre interne sider
+  // Show message from other internal pages
   useEffect(() => {
     const state = location.state as { message?: string; from?: string };
     if (state?.message) {
@@ -25,11 +25,11 @@ const LoginPage: React.FC = () => {
     }
   }, [location.state]);
 
-  // Håndtering, login
+  // Handling, login
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Enkel validering på klient
+    // Simple validation on client side
     if (username.length < 3) {
       setError("Please write a username with at least 3 characters.");
       return;
@@ -56,7 +56,7 @@ const LoginPage: React.FC = () => {
     }
   };
 
-  // Navigasjon til skaping av bruker
+  // Navigation to user creation page
   const handleCreateUser = () => {
     navigate("/CreateUser");
   };

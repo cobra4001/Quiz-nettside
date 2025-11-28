@@ -1,3 +1,4 @@
+// DTO for User data transfer
 public class UserDto
 {
     

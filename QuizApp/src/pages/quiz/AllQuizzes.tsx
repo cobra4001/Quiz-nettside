@@ -4,7 +4,6 @@ import React, { useEffect, useState } from 'react';
 import { fetchQuizzes } from '../../utils/QuizService';
 import { useAuth } from "../../auth/AuthContext";
 import QuizList from '../../components/QuizList';
-import { isAdmin } from '../../utils/roleUtils';
 
 const AllQuizzes: React.FC = () => {
   const [quizzes, setQuizzes] = useState<any[]>([]);
@@ -13,12 +12,8 @@ const AllQuizzes: React.FC = () => {
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const { user } = useAuth() as any;
 
-  //logging for sjekk av bruker, intern testing, burde slettes
-  console.log('Current user in AllQuizzes:', user);
-  console.log('Is user admin?', isAdmin(user));
-  console.log('User roles:', user ? (Array.isArray(user.role) ? user.role : [user.role]) : 'No user');
 
-  //hent quizzer
+  //Get quizzes
   useEffect(() => {
     let mounted = true;
     (async () => {
@@ -42,7 +37,7 @@ const AllQuizzes: React.FC = () => {
     setTimeout(() => setSuccessMsg(null), 3000);
   };
 
-  // Returner en QuizList
+  // Returns an quizlist
   return (
     <QuizList
     quizzes={quizzes}
@@ -52,8 +47,8 @@ const AllQuizzes: React.FC = () => {
     onQuizDeleted={handleQuizDeleted}
     title="Available Quizzes"
     emptyMessage="No quizzes yet. Create one!"
-    showAdminDelete={false} // Lar QuizList behandle, men default skal, i tilfelle, holde seg false.
-    currentUserRole={user?.role as string} // Vil kun ha én, sterkeste rolle
+    showAdminDelete={true} 
+    currentUserRole={user?.role as string} // Only want one, strongest role
   />
   );
 };

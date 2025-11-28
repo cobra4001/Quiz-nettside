@@ -102,7 +102,7 @@ const UserControl: React.FC = () => {
     }
   }, [token]);
 
-  // Filtrering av brukere i soksfunksjonen
+  // Filtering of users in the search bar
   useEffect(() => {
     if (searchQuery.length >= 3) {
       const filtered = users.filter((user) =>
@@ -116,16 +116,25 @@ const UserControl: React.FC = () => {
     }
   }, [searchQuery, users]);
 
-  const openDeleteDialog = (userId: string, username: string) => {
-    if (username.toLowerCase() === "admin") {
-      setError("Cannot delete the Admin user.");
-      return;
-    }
-    setUserToDelete({ id: userId, username });
-    setDeleteDialogOpen(true);
-  };
+//Method so admin cannot open delete catalaog
+const openDeleteDialog = (user: { id: string; userName: string | null; role: string | null }) => {
+  if (user.role === "Admin") {
+    setError("Cannot delete an admin user.");
+    return;
+  }
 
-  // Sletting ved ID
+  setUserToDelete({
+    id: user.id,
+    username: user.userName ?? "(no username)"
+  });
+
+  setDeleteDialogOpen(true);
+};
+
+
+
+
+  //  Deleting with ID
   const handleDelete = async () => {
     if (!token || !userToDelete) return;
 
@@ -246,7 +255,7 @@ const UserControl: React.FC = () => {
               ) : (
                 filteredUsers.map((user, index) => {
                   const uniqueKey = user.id || index;
-                  const isAdminUser = user.userName.toLowerCase() === "admin";
+                  const isAdminUser = user.role === "Admin";
 
                   return (
                     <TableRow key={uniqueKey}>
@@ -258,7 +267,7 @@ const UserControl: React.FC = () => {
                         <Button
                           variant="destructive"
                           size="sm"
-                          onClick={() => openDeleteDialog(user.id, user.userName)}
+                        onClick={() => openDeleteDialog(user)}
                           disabled={isAdminUser}
                           className="gap-2 cursor-pointer"
                         >
