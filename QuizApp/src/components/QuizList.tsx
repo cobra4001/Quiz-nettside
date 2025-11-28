@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -19,6 +20,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { AlertCircle, CheckCircle2, Trash2, Edit, Play } from "lucide-react";
+import { useAuth } from "@/auth/AuthContext";
 
 const QuizList: React.FC<QuizListProps> = ({
   quizzes,
@@ -36,6 +38,8 @@ const QuizList: React.FC<QuizListProps> = ({
   const navigate = useNavigate();
   const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false);
   const [quizToDelete, setQuizToDelete] = React.useState<number | null>(null);
+  const [searchQuery, setSearchQuery] = React.useState("");
+  const { user } = useAuth();
 
   const navigateOnclick = (quizId: number) => {
     navigate(`/QuizTakingPage/${quizId}`);
@@ -61,12 +65,29 @@ const QuizList: React.FC<QuizListProps> = ({
     }
   };
 
+  const filteredQuizzes = quizzes.filter((quiz: any) => {
+    const searchLower = searchQuery.toLowerCase();
+    return (
+      quiz.title?.toLowerCase().includes(searchLower) ||
+      quiz.description?.toLowerCase().includes(searchLower)
+    );
+  });
+
   return (
     <div className="flex justify-center min-h-screen p-3">
       <div className="container py-8 mt-20" style={{ maxWidth: "800px" }}>
         <h1 className="text-center font-bold text-4xl md:text-5xl mb-8">
           {title}
         </h1>
+
+        <div className="relative mb-6">
+          <Input
+            type="text"
+            placeholder="Search quizzes by title or description..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+        </div>
 
         {error && (
           <Alert variant="destructive" className="mb-6">
@@ -82,16 +103,23 @@ const QuizList: React.FC<QuizListProps> = ({
           </Alert>
         )}
 
-        {!loading && !error && quizzes.length === 0 && (
+        {!loading && !error && filteredQuizzes.length === 0 && quizzes.length === 0 && (
           <Alert className="text-center">
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>{emptyMessage}</AlertDescription>
           </Alert>
         )}
 
-        {!loading && !error && quizzes.length > 0 && (
+        {!loading && !error && filteredQuizzes.length === 0 && quizzes.length > 0 && (
+          <Alert className="text-center">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>No quizzes match your search.</AlertDescription>
+          </Alert>
+        )}
+
+        {!loading && !error && filteredQuizzes.length > 0 && (
           <div className="grid grid-cols-1 gap-6">
-            {quizzes.map((quiz: any) => (
+            {filteredQuizzes.map((quiz: any) => (
               <Card
                 key={quiz.id}
                 className={`relative shadow-md hover:shadow-lg transition-all duration-200 ${
@@ -134,7 +162,7 @@ const QuizList: React.FC<QuizListProps> = ({
                       Start Quiz
                     </Button>
 
-                    {showUpdateButton && (
+                    {(showUpdateButton || user?.nameid === quiz.userId) && (
                       <Button
                         onClick={(e) => {
                           e.stopPropagation();
@@ -148,7 +176,7 @@ const QuizList: React.FC<QuizListProps> = ({
                       </Button>
                     )}
 
-                    {showDeleteButton && (
+                    {(showDeleteButton || user?.nameid === quiz.userId) && (
                       <Button
                         onClick={(e) => {
                           e.stopPropagation();
