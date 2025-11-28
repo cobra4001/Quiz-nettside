@@ -45,9 +45,9 @@ const AllQuizzes: React.FC = () => {
     error={error}
     successMsg={successMsg}
     onQuizDeleted={handleQuizDeleted}
+    showAdminDelete={true}
     title="Available Quizzes"
     emptyMessage="No quizzes yet. Create one!"
-    showAdminDelete={false} 
     currentUserRole={user?.role as string} // Only want one, strongest role
   />
   );

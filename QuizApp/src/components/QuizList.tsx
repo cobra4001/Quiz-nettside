@@ -189,8 +189,8 @@ const QuizList: React.FC<QuizListProps> = ({
                         Delete Quiz
                       </Button>
                     )}
-
-                    {showAdminDelete && isAdminRole(currentUserRole) && (
+                    
+                    {showAdminDelete && isAdminRole(currentUserRole) && user?.nameid !== quiz.userId && (
                       <Button
                         onClick={(e) => {
                           e.stopPropagation();
