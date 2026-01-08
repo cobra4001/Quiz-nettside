@@ -1,0 +1,43 @@
+# Build results
+bin/
+obj/
+build/
+
+# User-specific files
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+*.db-shm
+*.db-wal
+
+# Visual Studio Code settings
+.vscode/
+
+# Configuration files
+appsettings.Development.json
+
+# Logs
+*.log
+logs/
+APILogs/
+
+# Others
+*.vspscc
+*.vssscc
+*.dbmdl
+*.pdb
+
+# Rider
+.idea/
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Node modules
+node_modules/
+
+# Distribution folder
+dist/
+
